@@ -15,7 +15,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, see
-#  <<a  rel="nofollow" href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>>
+#  <http://www.gnu.org/licenses/lgpl-2.1.html>
 #
 
 obj-y   += translate.o
@@ -25,4 +25,5 @@ obj-y   += op_helper.o
 obj-y   += translate-inst.o
 obj-y   += gdbstub.o
 obj-y   += decode.o
+obj-y   += arc-decoder.o
 obj-$(CONFIG_SOFTMMU) += machine.o

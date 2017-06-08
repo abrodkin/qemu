@@ -9,6 +9,8 @@
 #ifndef ARC_DECODER_H
 #define ARC_DECODER_H
 
+#include "qemu/osdep.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,6 +26,7 @@ extern "C" {
 /* Instruction Class.  */
 typedef enum
 {
+  NADA = 0,
   ACL,
   ARITH,
   AUXREG,
@@ -121,7 +124,15 @@ typedef enum
   F_CLASS_ZZ = (1 << 5),
 
   /* Implicit flag.  */
-  F_CLASS_IMPLICIT = (1 << 6)
+  F_CLASS_IMPLICIT = (1 << 6),
+
+  F_CLASS_F = (1 << 7),
+
+  F_CLASS_DI = (1 << 8),
+
+  F_CLASS_X = (1 << 9),
+  F_CLASS_D = (1 << 10),
+
 } flag_class_t;
 
 /* The opcode table is an array of struct arc_opcode.  */
@@ -229,7 +240,7 @@ struct arc_operand
      this operand (i.e., the instruction does not match).  If the
      operand is valid, *INVALID will not be changed.  */
   long long int (*extract) (unsigned long long instruction,
-                            bfd_boolean *invalid);
+                            bool *invalid);
 };
 
 /* Values defined for the flags field of a struct arc_operand.  */

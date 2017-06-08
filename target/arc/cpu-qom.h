@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see
- * <<a  rel="nofollow" href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>>
+ * <http://www.gnu.org/licenses/lgpl-2.1.html>
  */
 
 #ifndef QEMU_ARC_CPU_QOM_H
@@ -25,12 +25,12 @@
 
 #define TYPE_ARC_CPU            "arc"
 
-#define ARC_CPU_CLASS(klass)    \
-                    OBJECT_CLASS_CHECK(ARCCPUClass, (klass), TYPE_ARC_CPU)
-#define ARC_CPU(obj)            \
-                    OBJECT_CHECK(ARCCPU, (obj), TYPE_ARC_CPU)
-#define ARC_CPU_GET_CLASS(obj)  \
-                    OBJECT_GET_CLASS(ARCCPUClass, (obj), TYPE_ARC_CPU)
+#define ARC_CPU_CLASS(klass)                                    \
+    OBJECT_CLASS_CHECK(ARCCPUClass, (klass), TYPE_ARC_CPU)
+#define ARC_CPU(obj)                            \
+    OBJECT_CHECK(ARCCPU, (obj), TYPE_ARC_CPU)
+#define ARC_CPU_GET_CLASS(obj)                          \
+    OBJECT_GET_CLASS(ARCCPUClass, (obj), TYPE_ARC_CPU)
 
 /**
 *  ARCCPUClass:

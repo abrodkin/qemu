@@ -17,50 +17,36 @@
    MA 02110-1301, USA.  */
 
 #include "arc-decoder.h"
+#include "exec/cpu_ldst.h"
+#include "qemu/osdep.h"
+#include "qemu/bswap.h"
+#include "cpu.h"
+#include "arc-functions.h"
+#include "arc-fxi.h"
+#include "translate.h"
+
+static inline bool bswap_code(bool sctlr_b)
+{
+#ifdef CONFIG_USER_ONLY
+    /* BE8 (SCTLR.B = 0, TARGET_WORDS_BIGENDIAN = 1) is mixed endian.
+     * The invalid combination SCTLR.B=1/CPSR.E=1/TARGET_WORDS_BIGENDIAN=0
+     * would also end up as a mixed-endian mode with BE code, LE data.
+     */
+    return
+#ifdef TARGET_WORDS_BIGENDIAN
+        1 ^
+#endif
+        sctlr_b;
+#else
+    /* All code access in ARM is little endian, and there are no loaders
+     * doing swaps that need to be reversed
+     */
+    return 0;
+#endif
+}
 
 #define ARRANGE_ENDIAN(endianess, buf)          \
   ((endianess) ? arc_getm32 (buf) : bswap32 (buf))
-
-/* The opcode table.
-
-   The format of the opcode table is:
-
-   NAME OPCODE MASK CPU CLASS SUBCLASS { OPERANDS } { FLAGS }.
-
-   The table is organised such that, where possible, all instructions with
-   the same mnemonic are together in a block.  When the assembler searches
-   for a suitable instruction the entries are checked in table order, so
-   more specific, or specialised cases should appear earlier in the table.
-
-   As an example, consider two instructions 'add a,b,u6' and 'add
-   a,b,limm'.  The first takes a 6-bit immediate that is encoded within the
-   32-bit instruction, while the second takes a 32-bit immediate that is
-   encoded in a follow-on 32-bit, making the total instruction length
-   64-bits.  In this case the u6 variant must appear first in the table, as
-   all u6 immediates could also be encoded using the 'limm' extension,
-   however, we want to use the shorter instruction wherever possible.
-
-   It is possible though to split instructions with the same mnemonic into
-   multiple groups.  However, the instructions are still checked in table
-   order, even across groups.  The only time that instructions with the
-   same mnemonic should be split into different groups is when different
-   variants of the instruction appear in different architectures, in which
-   case, grouping all instructions from a particular architecture together
-   might be preferable to merging the instruction into the main instruction
-   table.
-
-   An example of this split instruction groups can be found with the 'sync'
-   instruction.  The core arc architecture provides a 'sync' instruction,
-   while the nps instruction set extension provides 'sync.rd' and
-   'sync.wr'.  The rd/wr flags are instruction flags, not part of the
-   mnemonic, so we end up with two groups for the sync instruction, the
-   first within the core arc instruction table, and the second within the
-   nps extension instructions.  */
-const struct arc_opcode arc_opcodes[] =
-{
-#include "arc-tbl.h"
-  { NULL, 0, 0, 0, 0, 0, { 0 }, { 0 } }
-};
 
 /* The operands table.
 
@@ -166,7 +152,7 @@ const struct arc_operand arc_operands[] =
   /* Long immediate.  */
 #define LIMM		(ILINK2 + 1)
 #define LIMM_S		(ILINK2 + 1)
-  { 32, 0, BFD_RELOC_ARC_32_ME, ARC_OPERAND_LIMM, insert_limm, 0 },
+  { 32, 0, 0, ARC_OPERAND_LIMM, insert_limm, 0 },
 #define LIMMdup		(LIMM + 1)
   { 32, 0, 0, ARC_OPERAND_LIMM | ARC_OPERAND_DUPLICATE, insert_limm, 0 },
 
@@ -260,7 +246,7 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM11_A32_7_S mask = 0000000111111111.  */
 #define SIMM11_A32_7_S	     (UIMM3_13R_S + 1)
-  {11, 0, BFD_RELOC_ARC_SDA16_LD2, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
+  {11, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
    | ARC_OPERAND_TRUNCATE, insert_simm11_a32_7_s, extract_simm11_a32_7_s},
 
   /* UIMM6_13_S mask = 0000000002220111.  */
@@ -283,13 +269,13 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM21_A16_5 mask = 00000111111111102222222222000000.  */
 #define SIMM21_A16_5	   (UIMM6_8 + 1)
-  {21, 0, BFD_RELOC_ARC_S21H_PCREL, ARC_OPERAND_SIGNED
+  {21, 0, 0, ARC_OPERAND_SIGNED
    | ARC_OPERAND_ALIGNED16 | ARC_OPERAND_TRUNCATE,
    insert_simm21_a16_5, extract_simm21_a16_5},
 
   /* SIMM25_A16_5 mask = 00000111111111102222222222003333.  */
 #define SIMM25_A16_5	   (SIMM21_A16_5 + 1)
-  {25, 0, BFD_RELOC_ARC_S25H_PCREL, ARC_OPERAND_SIGNED
+  {25, 0, 0, ARC_OPERAND_SIGNED
    | ARC_OPERAND_ALIGNED16 | ARC_OPERAND_TRUNCATE | ARC_OPERAND_PCREL,
    insert_simm25_a16_5, extract_simm25_a16_5},
 
@@ -311,19 +297,19 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM21_A32_5 mask = 00000111111111002222222222000000.  */
 #define SIMM21_A32_5	   (SIMM7_A16_10_S + 1)
-  {21, 0, BFD_RELOC_ARC_S21W_PCREL, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
+  {21, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
    | ARC_OPERAND_TRUNCATE | ARC_OPERAND_PCREL, insert_simm21_a32_5,
    extract_simm21_a32_5},
 
   /* SIMM25_A32_5 mask = 00000111111111002222222222003333.  */
 #define SIMM25_A32_5	   (SIMM21_A32_5 + 1)
-  {25, 0, BFD_RELOC_ARC_S25W_PCREL, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
+  {25, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
    | ARC_OPERAND_TRUNCATE | ARC_OPERAND_PCREL, insert_simm25_a32_5,
    extract_simm25_a32_5},
 
   /* SIMM13_A32_5_S mask = 0000011111111111.  */
 #define SIMM13_A32_5_S	     (SIMM25_A32_5 + 1)
-  {13, 0, BFD_RELOC_ARC_S13_PCREL, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
+  {13, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
    | ARC_OPERAND_TRUNCATE | ARC_OPERAND_PCREL, insert_simm13_a32_5_s,
    extract_simm13_a32_5_s},
 
@@ -335,7 +321,7 @@ const struct arc_operand arc_operands[] =
 
 /* UIMM10_6_S_JLIOFF mask = 0000001111111111.  */
 #define UIMM10_6_S_JLIOFF     (SIMM8_A16_9_S + 1)
-  {12, 0, BFD_RELOC_ARC_JLI_SECTOFF, ARC_OPERAND_UNSIGNED
+  {12, 0, 0, ARC_OPERAND_UNSIGNED
    | ARC_OPERAND_ALIGNED32 | ARC_OPERAND_TRUNCATE, insert_uimm10_6_s,
    extract_uimm10_6_s},
 
@@ -353,7 +339,7 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM9_8 mask = 00000000111111112000000000000000.	 */
 #define SIMM9_8	      (UIMM6_11_S + 1)
-  {9, 0, BFD_RELOC_ARC_SDA_LDST, ARC_OPERAND_SIGNED | ARC_OPERAND_IGNORE,
+  {9, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_IGNORE,
    insert_simm9_8, extract_simm9_8},
 
   /* The same as above but used by relaxation.  */
@@ -369,7 +355,7 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM9_7_S mask = 0000000111111111.  */
 #define SIMM9_7_S	(UIMM10_A32_8_S + 1)
-  {9, 0, BFD_RELOC_ARC_SDA16_LD, ARC_OPERAND_SIGNED, insert_simm9_7_s,
+  {9, 0, 0, ARC_OPERAND_SIGNED, insert_simm9_7_s,
    extract_simm9_7_s},
 
   /* UIMM6_A16_11_S mask = 0000000000011111.  */
@@ -386,7 +372,7 @@ const struct arc_operand arc_operands[] =
 
   /* SIMM11_A32_13_S mask = 0000022222200111.	 */
 #define SIMM11_A32_13_S	      (UIMM5_A32_11_S + 1)
-  {11, 0, BFD_RELOC_ARC_SDA16_ST2, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
+  {11, 0, 0, ARC_OPERAND_SIGNED | ARC_OPERAND_ALIGNED32
    | ARC_OPERAND_TRUNCATE, insert_simm11_a32_13_s, extract_simm11_a32_13_s},
 
   /* UIMM7_13_S mask = 0000000022220111.  */
@@ -475,7 +461,7 @@ const struct arc_operand arc_operands[] =
   { 6, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK, insert_nps_rflt_uimm6, extract_nps_rflt_uimm6 },
 
 #define NPS_XLDST_UIMM16	(NPS_RFLT_UIMM6 + 1)
-  { 16, 0, BFD_RELOC_ARC_NPS_CMEM16, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK, insert_nps_cmem_uimm16, extract_nps_cmem_uimm16 },
+  { 16, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK, insert_nps_cmem_uimm16, extract_nps_cmem_uimm16 },
 
 #define NPS_SRC2_POS           (NPS_XLDST_UIMM16 + 1)
   { 0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK, insert_nps_src2_pos, extract_nps_src2_pos },
@@ -1065,49 +1051,49 @@ const struct arc_flag_class arc_flag_classes[] =
   { F_CLASS_OPTIONAL | F_CLASS_WB, { F_A22, F_AW22, F_AB22, F_AS22, F_NULL } },
 
 #define C_F	    (C_AA_ADDR22 + 1)
-  { F_CLASS_OPTIONAL, { F_FLAG, F_NULL } },
+  { F_CLASS_OPTIONAL | F_CLASS_F, { F_FLAG, F_NULL } },
 #define C_FHARD	    (C_F + 1)
-  { F_CLASS_OPTIONAL, { F_FFAKE, F_NULL } },
+  { F_CLASS_OPTIONAL | F_CLASS_F, { F_FFAKE, F_NULL } },
 
 #define C_T	    (C_FHARD + 1)
   { F_CLASS_OPTIONAL, { F_NT, F_T, F_NULL } },
 #define C_D	    (C_T + 1)
-  { F_CLASS_OPTIONAL, { F_ND, F_D, F_NULL } },
+  { F_CLASS_OPTIONAL | F_CLASS_D, { F_ND, F_D, F_NULL } },
 #define C_DNZ_D     (C_D + 1)
-  { F_CLASS_OPTIONAL, { F_DNZ_ND, F_DNZ_D, F_NULL } },
+  { F_CLASS_OPTIONAL | F_CLASS_D, { F_DNZ_ND, F_DNZ_D, F_NULL } },
 
 #define C_DHARD	    (C_DNZ_D + 1)
-  { F_CLASS_OPTIONAL, { F_DFAKE, F_NULL } },
+  { F_CLASS_OPTIONAL | F_CLASS_D, { F_DFAKE, F_NULL } },
 
 #define C_DI20	    (C_DHARD + 1)
-  { F_CLASS_OPTIONAL, { F_DI11, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_DI, { F_DI11, F_NULL }},
 #define C_DI14	    (C_DI20 + 1)
-  { F_CLASS_OPTIONAL, { F_DI14, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_DI, { F_DI14, F_NULL }},
 #define C_DI16	    (C_DI14 + 1)
-  { F_CLASS_OPTIONAL, { F_DI15, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_DI, { F_DI15, F_NULL }},
 #define C_DI26	    (C_DI16 + 1)
-  { F_CLASS_OPTIONAL, { F_DI5, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_DI, { F_DI5, F_NULL }},
 
 #define C_X25	    (C_DI26 + 1)
-  { F_CLASS_OPTIONAL, { F_SIGN6, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_X, { F_SIGN6, F_NULL }},
 #define C_X15	   (C_X25 + 1)
-  { F_CLASS_OPTIONAL, { F_SIGN16, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_X, { F_SIGN16, F_NULL }},
 #define C_XHARD	   (C_X15 + 1)
 #define C_X	   (C_X15 + 1)
-  { F_CLASS_OPTIONAL, { F_SIGNX, F_NULL }},
+  { F_CLASS_OPTIONAL | F_CLASS_X, { F_SIGNX, F_NULL }},
 
 #define C_ZZ13	      (C_X + 1)
-  { F_CLASS_OPTIONAL, { F_SIZEB17, F_SIZEW17, F_H17, F_NULL}},
+  { F_CLASS_OPTIONAL | F_CLASS_ZZ, { F_SIZEB17, F_SIZEW17, F_H17, F_NULL}},
 #define C_ZZ23	      (C_ZZ13 + 1)
-  { F_CLASS_OPTIONAL, { F_SIZEB7, F_SIZEW7, F_H7, F_NULL}},
+  { F_CLASS_OPTIONAL | F_CLASS_ZZ, { F_SIZEB7, F_SIZEW7, F_H7, F_NULL}},
 #define C_ZZ29	      (C_ZZ23 + 1)
-  { F_CLASS_OPTIONAL, { F_SIZEB1, F_SIZEW1, F_H1, F_NULL}},
+  { F_CLASS_OPTIONAL | F_CLASS_ZZ, { F_SIZEB1, F_SIZEW1, F_H1, F_NULL}},
 
 #define C_AS	    (C_ZZ29 + 1)
-  { F_CLASS_OPTIONAL, { F_ASFAKE, F_NULL}},
+  { F_CLASS_OPTIONAL | F_CLASS_WB, { F_ASFAKE, F_NULL}},
 
 #define C_NE	    (C_AS + 1)
-  { F_CLASS_OPTIONAL, { F_NE, F_NULL}},
+  { F_CLASS_OPTIONAL | F_CLASS_COND, { F_NE, F_NULL}},
 
   /* ARC NPS400 Support: See comment near head of file.  */
 #define C_NPS_CL     (C_NE + 1)
@@ -1177,6 +1163,47 @@ const struct arc_flag_class arc_flag_classes[] =
   { F_CLASS_OPTIONAL, { F_NPS_LDBIT_X2_2, F_NPS_LDBIT_X4_2, F_NULL }},
 };
 
+/* The opcode table.
+
+   The format of the opcode table is:
+
+   NAME OPCODE MASK CPU CLASS SUBCLASS { OPERANDS } { FLAGS }.
+
+   The table is organised such that, where possible, all instructions with
+   the same mnemonic are together in a block.  When the assembler searches
+   for a suitable instruction the entries are checked in table order, so
+   more specific, or specialised cases should appear earlier in the table.
+
+   As an example, consider two instructions 'add a,b,u6' and 'add
+   a,b,limm'.  The first takes a 6-bit immediate that is encoded within the
+   32-bit instruction, while the second takes a 32-bit immediate that is
+   encoded in a follow-on 32-bit, making the total instruction length
+   64-bits.  In this case the u6 variant must appear first in the table, as
+   all u6 immediates could also be encoded using the 'limm' extension,
+   however, we want to use the shorter instruction wherever possible.
+
+   It is possible though to split instructions with the same mnemonic into
+   multiple groups.  However, the instructions are still checked in table
+   order, even across groups.  The only time that instructions with the
+   same mnemonic should be split into different groups is when different
+   variants of the instruction appear in different architectures, in which
+   case, grouping all instructions from a particular architecture together
+   might be preferable to merging the instruction into the main instruction
+   table.
+
+   An example of this split instruction groups can be found with the 'sync'
+   instruction.  The core arc architecture provides a 'sync' instruction,
+   while the nps instruction set extension provides 'sync.rd' and
+   'sync.wr'.  The rd/wr flags are instruction flags, not part of the
+   mnemonic, so we end up with two groups for the sync instruction, the
+   first within the core arc instruction table, and the second within the
+   nps extension instructions.  */
+const struct arc_opcode arc_opcodes[] =
+{
+#include "arc-tbl.h"
+  { NULL, 0, 0, 0, 0, 0, { 0 }, { 0 } }
+};
+
 /* Return length of an opcode in bytes.  */
 
 static uint8_t
@@ -1215,7 +1242,7 @@ arc_getm32 (uint32_t data)
    and cached for later use.  */
 
 static unsigned int
-arc_insn_length (uint16_t insn, enum cpu_type)
+arc_insn_length (uint16_t insn, uint16_t cpu_type)
 {
   uint8_t major_opcode;
   uint8_t msb, lsb;
@@ -1224,7 +1251,7 @@ arc_insn_length (uint16_t insn, enum cpu_type)
   lsb = (uint8_t)(insn & 0xFF);
   major_opcode = msb >> 3;
 
-  switch (info->mach)
+  switch (cpu_type)
     {
     case ARC_OPCODE_ARC700:
       /* The nps400 extension set requires this special casing of the
@@ -1260,20 +1287,20 @@ arc_insn_length (uint16_t insn, enum cpu_type)
 }
 
 static const struct arc_opcode *
-find_format (DisasCtxt *ctx, uint64_t insn, uint8_t length, uint32_t isa_mask)
+find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 {
   uint32_t i = 0;
   const struct arc_opcode *opcode = NULL;
-  const struct arc_opcode *t_op = NULL;
   const uint8_t *opidx;
   const uint8_t *flgidx;
-  bool warn_p = false;
   bool has_limm = false;
 
   do {
     bool invalid = false;
+    uint32_t noperands = 0;
 
     opcode = &arc_opcodes[i++];
+    memset (&ctx->insn, 0, sizeof (ctx->insn));
 
     if (!(opcode->cpu & isa_mask))
       continue;
@@ -1317,6 +1344,9 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t length, uint32_t isa_mask)
         if (operand->flags & ARC_OPERAND_LIMM
             && !(operand->flags & ARC_OPERAND_DUPLICATE))
           has_limm = true;
+
+        ctx->insn.operands[noperands]->value = value;
+        ctx->insn.operands[noperands++]->type = operand->flags;
       }
 
     /* Check the flags.  */
@@ -1330,19 +1360,62 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t length, uint32_t isa_mask)
 
         /* FIXME! Add check for EXTENSION flags.  */
 
-        /* Check for the implicit flags.  */
-        if (cl_flags->flag_class & F_CLASS_IMPLICIT)
-          continue;
-
         for (flgopridx = cl_flags->flags; *flgopridx; ++flgopridx)
           {
             const struct arc_flag_operand *flg_operand =
               &arc_flag_operands[*flgopridx];
 
+            /* Check for the implicit flags.  */
+            if (cl_flags->flag_class & F_CLASS_IMPLICIT)
+              {
+                if (cl_flags->flag_class & F_CLASS_COND)
+                  ctx->insn.cc = flg_operand->code;
+                else if (cl_flags->flag_class & F_CLASS_WB)
+                  ctx->insn.aa = flg_operand->code;
+                else if (cl_flags->flag_class & F_CLASS_ZZ)
+                  ctx->insn.zz = flg_operand->code;
+                continue;
+              }
+
             value = (insn >> flg_operand->shift)
               & ((1 << flg_operand->bits) - 1);
             if (value == flg_operand->code)
-              foundA = true;
+              {
+                if (cl_flags->flag_class & F_CLASS_ZZ)
+                  switch (flg_operand->name[0])
+                    {
+                    case 'b':
+                      ctx->insn.zz = 1;
+                      break;
+                    case 'h':
+                    case 'w':
+                      ctx->insn.zz = 2;
+                      break;
+                    default:
+                      ctx->insn.zz = 4;
+                      break;
+                    }
+
+                if (cl_flags->flag_class & F_CLASS_D)
+                  ctx->insn.d = true;
+
+                if (cl_flags->flag_class & F_CLASS_COND)
+                  ctx->insn.cc = value;
+
+                if (cl_flags->flag_class & F_CLASS_WB)
+                  ctx->insn.aa = value;
+
+                if (cl_flags->flag_class & F_CLASS_F)
+                  ctx->insn.f = true;
+
+                if (cl_flags->flag_class & F_CLASS_DI)
+                  ctx->insn.di = true;
+
+                if (cl_flags->flag_class & F_CLASS_X)
+                  ctx->insn.x = true;
+
+                foundA = true;
+              }
             if (value)
               foundB = true;
           }
@@ -1358,31 +1431,33 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t length, uint32_t isa_mask)
       continue;
 
     /* The instruction is valid.  */
-    ctx->opt.limm_p = has_limm;
+    ctx->insn.limm_p = has_limm;
     /* FIXME! here add extra info about the instruction e.g. delay
        slot, data size, write back, etc.  */
     return opcode;
   } while (opcode->mask);
 
+  memset (&ctx->insn, 0, sizeof (ctx->insn));
   return NULL;
 }
 
-int arc_decode (DisasCtxt *ctx)
+int arc_decodeNew (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
   uint16_t buffer[2];
   uint8_t length;
   uint64_t insn;
-  uint32_t opcode;
+  bool sctlr_b = false;
 
   memset (&ctx->opt, 0, sizeof (ctx->opt));
+  memset (&ctx->insn, 0, sizeof (ctx->insn));
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
   buffer[0] = cpu_lduw_code(ctx->env, ctx->cpc);
   if (bswap_code (sctlr_b))
     buffer[0] = bswap16 (buffer[0]);
 
-  length = arc_insn_length (buffer, ARC_OPCODE_ARC700);
+  length = arc_insn_length (buffer[0], ARC_OPCODE_ARC700);
 
   switch (length)
     {
@@ -1393,7 +1468,7 @@ int arc_decode (DisasCtxt *ctx)
     case 4:
       /* 32-bit instructions.  */
       buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
-      insn = ARRANGE_ENDIAN (bswap_code (sctlr_b), buffer);
+      insn = ARRANGE_ENDIAN (bswap_code (sctlr_b), (uint32_t) *buffer);
       break;
     default:
       abort ();
@@ -1401,18 +1476,25 @@ int arc_decode (DisasCtxt *ctx)
 
   opcode = find_format (ctx, insn, length, ARC_OPCODE_ARC700);
 
-  if (opcode && ctx->opt.limm_p)
+  if (opcode)
     {
-      ctx->opt.limm = ARRANGE_ENDIAN (bswap_code (sctlr_b),
-                                      cpu_ldl_code (ctx->env,
-                                                    ctx->cpc + length));
-      length += 4;
+      if (ctx->insn.limm_p)
+        {
+          ctx->insn.limm = ARRANGE_ENDIAN (bswap_code (sctlr_b),
+                                           cpu_ldl_code (ctx->env,
+                                                         ctx->cpc + length));
+          length += 4;
+        }
+      else
+        ctx->insn.limm = 0;
+
+      ctx->insn.class = (uint32_t) opcode->insn_class;
     }
-  else
-    ctx->opt.limm = 0;
+
+  ctx->insn.len = length;
 
   ctx->npc = ctx->cpc + length;
   ctx->pcl = ctx->cpc & 0xfffffffc;
 
-  return opcode;
+  return (opcode ? BS_NONE : BS_EXCP);
 }

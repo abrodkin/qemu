@@ -15,7 +15,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, see
- *  <<a  rel="nofollow" href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>>
+ *  <http://www.gnu.org/licenses/lgpl-2.1.html>
  */
 
 #ifndef ARC_TRANSLATE_H_
@@ -166,6 +166,27 @@ typedef struct options_s {
     uint8_t zz;     /*  data size       */
 } options_t;
 
+typedef struct {
+    uint32_t value;
+    uint32_t type;
+} operand_t;
+
+typedef struct {
+    uint32_t class;
+    uint32_t limm;
+    uint8_t len;
+    bool limm_p;
+    operand_t *operands[3];
+    uint8_t cc;
+    uint8_t aa;
+    uint8_t zz;
+    bool d;
+    bool f;
+    bool di;
+    bool x;
+} insn_t;
+
+
 struct DisasCtxt {
     struct TranslationBlock    *tb;
 
@@ -187,6 +208,7 @@ struct DisasCtxt {
     TCGv smin5;     /*  0xffffffe1      */
 
     options_t opt;
+    insn_t insn;
 
     int memidx;
     int bstate;
@@ -196,6 +218,7 @@ struct DisasCtxt {
 };
 
 int arc_decode(DisasCtxt *ctx);
+int arc_decodeNew(DisasCtxt *ctx);
 int arc_gen_INVALID(DisasCtxt *ctx);
 
 static inline void  gen_goto_tb(CPUARCState *env, DisasCtxt *ctx,
