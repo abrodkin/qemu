@@ -311,7 +311,7 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
             goto done_generating;
         }
 
-        ctx.bstate = arc_decode(&ctx);
+        ctx.bstate = arc_decodeNew(&ctx);
 
         if (ctx.npc == env->lpe) {
             TCGLabel *label_next = gen_new_label();

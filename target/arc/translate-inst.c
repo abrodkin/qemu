@@ -122,7 +122,7 @@ static void arc_gen_exec_delayslot(DisasCtxt *ctx)
         /* TODO: check for illegal instruction sequence */
 
         memset(&ctx->opt, 0, sizeof(ctx->opt));
-        arc_decode(ctx);
+        arc_decodeNew(ctx);
 
         --ctx->ds;
 

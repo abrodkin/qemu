@@ -176,7 +176,7 @@ typedef struct {
     uint32_t limm;
     uint8_t len;
     bool limm_p;
-    operand_t *operands[3];
+    operand_t operands[3];
     uint8_t cc;
     uint8_t aa;
     uint8_t zz;

@@ -1345,8 +1345,9 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
             && !(operand->flags & ARC_OPERAND_DUPLICATE))
           has_limm = true;
 
-        ctx->insn.operands[noperands]->value = value;
-        ctx->insn.operands[noperands++]->type = operand->flags;
+        ctx->insn.operands[noperands].value = value;
+        ctx->insn.operands[noperands].type = operand->flags;
+	noperands += 1;
       }
 
     /* Check the flags.  */
@@ -1441,6 +1442,27 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
   return NULL;
 }
 
+
+#include "arc-decoder.h"
+
+enum arc_opcode_map {
+  MAP_NONE = 0,
+  /* Add some include to generated files */
+  MAP_LAST
+};
+
+enum arc_opcode_map
+arc_map_opcode (struct arc_opcode *opcode)
+{
+  return MAP_NONE;
+}
+
+void
+arc_debug_opcode(struct arc_opcode *opcode, const char *msg)
+{
+  printf("%s for %s\n", msg, opcode->name);
+}
+
 int arc_decodeNew (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
@@ -1468,13 +1490,28 @@ int arc_decodeNew (DisasCtxt *ctx)
     case 4:
       /* 32-bit instructions.  */
       buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
-      insn = ARRANGE_ENDIAN (bswap_code (sctlr_b), (uint32_t) *buffer);
+      uint32_t buf = (buffer[0] << 16) | buffer[1];
+      insn = buf; //ARRANGE_ENDIAN (bswap_code (sctlr_b), (uint32_t) buf);
       break;
     default:
       abort ();
     }
 
   opcode = find_format (ctx, insn, length, ARC_OPCODE_ARC700);
+
+  if(opcode)
+    {
+      enum arc_opcode_map mapping;
+      if((mapping = arc_map_opcode(opcode)) != MAP_NONE)
+      {
+
+      }
+      else
+      {
+        arc_debug_opcode(opcode, "Could not map opcode");
+      }
+    }
+
 
   if (opcode)
     {

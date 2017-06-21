@@ -2132,6 +2132,7 @@ static int arc_decode_major1F(DisasCtxt *ctx, uint32_t opcode)
     return ret;
 }
 
+#if 0
 int arc_decode(DisasCtxt *ctx)
 {
     unsigned curr_major;
@@ -2210,3 +2211,4 @@ int arc_decode(DisasCtxt *ctx)
 
     return  decode[curr_major](ctx, curr_opcode);
 }
+#endif
