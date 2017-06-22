@@ -1447,6 +1447,7 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
 enum arc_opcode_map {
   MAP_NONE = 0,
+  MAP_ADD = 1, /* TODO: This should be automatic */
   /* Add some include to generated files */
   MAP_LAST
 };
@@ -1454,6 +1455,8 @@ enum arc_opcode_map {
 enum arc_opcode_map
 arc_map_opcode (struct arc_opcode *opcode)
 {
+  if(strstr(opcode->name, "add") != 0)
+    return MAP_ADD;
   return MAP_NONE;
 }
 
@@ -1463,6 +1466,32 @@ arc_debug_opcode(struct arc_opcode *opcode, const char *msg)
   printf("%s for %s\n", msg, opcode->name);
 }
 
+TCGv
+arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
+{
+  TCGv ret;
+
+  operand_t operand = ctx->insn.operands[nop];
+  struct arc_operand *operand_info = &(arc_operands[operand.type]);
+
+  if(operand_info->flags & ARC_OPERAND_IR)
+    ret = cpu_r[operand.value];
+  else
+    {
+      int32_t i = operand.value;
+
+      // TODO: Verify this.
+      if(operand_info->flags & ARC_OPERAND_ALIGNED32)
+	i <<= 2;
+      if(operand_info->flags & ARC_OPERAND_ALIGNED32)
+	i <<= 1;
+
+      ret = tcg_const_local_i32(i);
+    }
+
+  return ret;
+}
+
 int arc_decodeNew (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
@@ -1470,6 +1499,7 @@ int arc_decodeNew (DisasCtxt *ctx)
   uint8_t length;
   uint64_t insn;
   bool sctlr_b = false;
+  static uint8_t should_stop = false;
 
   memset (&ctx->opt, 0, sizeof (ctx->opt));
   memset (&ctx->insn, 0, sizeof (ctx->insn));
@@ -1504,11 +1534,18 @@ int arc_decodeNew (DisasCtxt *ctx)
       enum arc_opcode_map mapping;
       if((mapping = arc_map_opcode(opcode)) != MAP_NONE)
       {
-
+	if(mapping == MAP_ADD)
+	{
+	  TCGv a = arc2_decode_operand(ctx, 0);
+	  TCGv b = arc2_decode_operand(ctx, 1);
+	  TCGv c = arc2_decode_operand(ctx, 2);
+	  arc2_gen_ADD(ctx, a, b, c);
+	}
       }
       else
       {
         arc_debug_opcode(opcode, "Could not map opcode");
+	should_stop = true;
       }
     }
 
@@ -1533,5 +1570,9 @@ int arc_decodeNew (DisasCtxt *ctx)
   ctx->npc = ctx->cpc + length;
   ctx->pcl = ctx->cpc & 0xfffffffc;
 
-  return (opcode ? BS_NONE : BS_EXCP);
+#ifdef DEBUG_TCG
+  #error "HERE"
+#endif
+  //return (opcode ? BS_NONE : BS_EXCP);
+  return (opcode && !should_stop ? BS_NONE : BS_EXCP);
 }

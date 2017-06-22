@@ -2852,3 +2852,167 @@ gen_set_label(label_done);
 
     return  BS_BRANCH;
 }
+
+/* --------------------- NEW CODE ----------------------- */
+
+TCGv
+arc_gen_verifyCCFlag(DisasCtxt *ctx)
+{
+  TCGv ret = tcg_temp_new_i32();
+
+  TCGv nZ = tcg_temp_new_i32();
+  TCGv nN = tcg_temp_new_i32();
+  TCGv nV = tcg_temp_new_i32();
+  TCGv nC = tcg_temp_new_i32();
+
+  TCGv c1 = tcg_temp_new_i32();
+
+  switch(ctx->insn.cc)
+    {
+      // AL, RA
+      case 0x00:
+	return ctx->one;
+	break;
+      // EQ, Z
+      case 0x01:
+	return cpu_Zf;
+	break;
+      // NE, NZ
+      case 0x02:
+	tcg_gen_not_tl(ret, cpu_Zf);
+	return ret;
+	break;
+      // PL, P
+      case 0x03:
+	tcg_gen_not_tl(ret, cpu_Nf);
+	return ret;
+	break;
+      // MI, N:
+      case 0x04:
+	return cpu_Nf;
+	break;
+      // CS, C, LO
+      case 0x05:
+	return cpu_Cf;
+	break;
+      // CC, NC, HS
+      case 0x06:
+	tcg_gen_not_tl(ret, cpu_Cf);
+	return ret;
+	break;
+      // VS, V
+      case 0x07:
+	return cpu_Vf;
+	break;
+      // VC, NV
+      case 0x08:
+	tcg_gen_not_tl(ret, cpu_Vf);
+	return ret;
+	break;
+      // GT
+      case 0x09:
+	//(N & V & !Z) | (!N & !V & !Z)
+	tcg_gen_not_tl(nZ, cpu_Zf);
+	tcg_gen_not_tl(nN, cpu_Nf);
+	tcg_gen_not_tl(nV, cpu_Vf);
+
+	TCGv c1 = tcg_temp_new_i32();
+	tcg_gen_and_tl(ret, c1, cpu_Nf);
+	tcg_gen_and_tl(ret, c1, cpu_Vf);
+	tcg_gen_and_tl(ret, c1, nZ);
+
+	tcg_gen_and_tl(ret, nN, nV);
+	tcg_gen_and_tl(ret, ret, nZ);
+
+	tcg_gen_or_tl(ret, ret, c1);
+	break;
+      // GE
+      case 0x0A:
+	//(N & V) | (!N & !V)
+	tcg_gen_not_tl(nN, cpu_Nf);
+	tcg_gen_not_tl(nV, cpu_Vf);
+
+	tcg_gen_and_tl(ret, cpu_Nf, cpu_Vf);
+
+	tcg_gen_and_tl(ret, nN, nV);
+
+	tcg_gen_or_tl(ret, ret, c1);
+	break;
+      // LT
+      case 0x0B:
+	//(N & !V) | (!N & V)
+	tcg_gen_not_tl(nN, cpu_Nf);
+	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_and_tl(ret, cpu_Nf, nV);
+
+	tcg_gen_and_tl(ret, nN, cpu_Vf);
+
+	tcg_gen_or_tl(ret, ret, c1);
+	break;
+      // LE
+      case 0x0C:
+	// Z | (N & !V) | (!N & V)
+	tcg_gen_not_tl(nN, cpu_Nf);
+	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_and_tl(ret, cpu_Nf, nV);
+
+	tcg_gen_and_tl(ret, nN, cpu_Vf);
+
+	tcg_gen_or_tl(ret, ret, c1);
+
+	tcg_gen_or_tl(ret, ret, cpu_Zf);
+	break;
+      // HI
+      case 0x0D:
+	// !C & !Z
+	tcg_gen_not_tl(nC, cpu_Cf);
+	tcg_gen_not_tl(nZ, cpu_Zf);
+
+	tcg_gen_and_tl(ret, nC, nZ);
+	break;
+      // LS
+      case 0x0E:
+	// C & Z
+	tcg_gen_or_tl(ret, cpu_Cf, cpu_Zf);
+	break;
+	break;
+      // PNZ
+      case 0x0F:
+	// !N & !Z
+	tcg_gen_not_tl(nN, cpu_Nf);
+	tcg_gen_not_tl(nZ, cpu_Zf);
+
+	tcg_gen_and_tl(ret, nN, nZ);
+	break;
+    }
+  return ret;
+}
+
+TCGv
+arc_gen_verifyFFlag(DisasCtxt *ctx)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_movi_tl(ret, ctx->insn.f != 0);
+  return ret;
+}
+
+void setNFlag(TCGv elem)
+{
+  // TODO: Check type of elem and set sign bit accordingly.
+  tcg_gen_shri_tl(cpu_Nf, elem, 31);
+}
+
+void
+setZFlag(int32_t elem)
+{
+  tcg_gen_movi_tl(cpu_Zf, elem != 0);
+}
+
+int
+arc2_get_tcgv_value(TCGv elem)
+{
+  return GET_TCGV_I32(elem);
+}
+
+
+#include "arc-semfunc.h"
