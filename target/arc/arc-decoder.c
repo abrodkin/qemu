@@ -1447,7 +1447,8 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
 enum arc_opcode_map {
   MAP_NONE = 0,
-  MAP_ADD = 1, /* TODO: This should be automatic */
+  MAP_ADD, /* TODO: This should be automatic */
+  MAP_MOV, /* TODO: This should be automatic */
   /* Add some include to generated files */
   MAP_LAST
 };
@@ -1457,6 +1458,8 @@ arc_map_opcode (struct arc_opcode *opcode)
 {
   if(strstr(opcode->name, "add") != 0)
     return MAP_ADD;
+  if(strstr(opcode->name, "mov") != 0)
+    return MAP_MOV;
   return MAP_NONE;
 }
 
@@ -1472,18 +1475,17 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
   TCGv ret;
 
   operand_t operand = ctx->insn.operands[nop];
-  struct arc_operand *operand_info = &(arc_operands[operand.type]);
 
-  if(operand_info->flags & ARC_OPERAND_IR)
+  if(operand.type & ARC_OPERAND_IR)
     ret = cpu_r[operand.value];
   else
     {
       int32_t i = operand.value;
 
       // TODO: Verify this.
-      if(operand_info->flags & ARC_OPERAND_ALIGNED32)
+      if(operand.type & ARC_OPERAND_ALIGNED32)
 	i <<= 2;
-      if(operand_info->flags & ARC_OPERAND_ALIGNED32)
+      if(operand.type & ARC_OPERAND_ALIGNED32)
 	i <<= 1;
 
       ret = tcg_const_local_i32(i);
@@ -1540,6 +1542,12 @@ int arc_decodeNew (DisasCtxt *ctx)
 	  TCGv b = arc2_decode_operand(ctx, 1);
 	  TCGv c = arc2_decode_operand(ctx, 2);
 	  arc2_gen_ADD(ctx, a, b, c);
+	}
+	if(mapping == MAP_MOV)
+	{
+	  TCGv a = arc2_decode_operand(ctx, 0);
+	  TCGv b = arc2_decode_operand(ctx, 1);
+	  arc2_gen_MOV(ctx, a, b);
 	}
       }
       else
