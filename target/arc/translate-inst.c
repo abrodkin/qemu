@@ -2879,12 +2879,12 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 	break;
       // NE, NZ
       case 0x02:
-	tcg_gen_not_tl(ret, cpu_Zf);
+	tcg_gen_xori_tl(ret, cpu_Zf, 1);
 	return ret;
 	break;
       // PL, P
       case 0x03:
-	tcg_gen_not_tl(ret, cpu_Nf);
+	tcg_gen_xori_tl(ret, cpu_Nf, 1);
 	return ret;
 	break;
       // MI, N:
@@ -2897,7 +2897,7 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 	break;
       // CC, NC, HS
       case 0x06:
-	tcg_gen_not_tl(ret, cpu_Cf);
+	tcg_gen_xori_tl(ret, cpu_Cf, 1);
 	return ret;
 	break;
       // VS, V
@@ -2906,15 +2906,15 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 	break;
       // VC, NV
       case 0x08:
-	tcg_gen_not_tl(ret, cpu_Vf);
+	tcg_gen_xori_tl(ret, cpu_Vf, 1);
 	return ret;
 	break;
       // GT
       case 0x09:
 	//(N & V & !Z) | (!N & !V & !Z)
-	tcg_gen_not_tl(nZ, cpu_Zf);
-	tcg_gen_not_tl(nN, cpu_Nf);
-	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
+	tcg_gen_xori_tl(nN, cpu_Nf, 1);
+	tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
 	TCGv c1 = tcg_temp_new_i32();
 	tcg_gen_and_tl(ret, c1, cpu_Nf);
@@ -2929,8 +2929,8 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
       // GE
       case 0x0A:
 	//(N & V) | (!N & !V)
-	tcg_gen_not_tl(nN, cpu_Nf);
-	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_xori_tl(nN, cpu_Nf, 1);
+	tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
 	tcg_gen_and_tl(ret, cpu_Nf, cpu_Vf);
 
@@ -2941,8 +2941,8 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
       // LT
       case 0x0B:
 	//(N & !V) | (!N & V)
-	tcg_gen_not_tl(nN, cpu_Nf);
-	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_xori_tl(nN, cpu_Nf, 1);
+	tcg_gen_xori_tl(nV, cpu_Vf, 1);
 	tcg_gen_and_tl(ret, cpu_Nf, nV);
 
 	tcg_gen_and_tl(ret, nN, cpu_Vf);
@@ -2952,8 +2952,8 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
       // LE
       case 0x0C:
 	// Z | (N & !V) | (!N & V)
-	tcg_gen_not_tl(nN, cpu_Nf);
-	tcg_gen_not_tl(nV, cpu_Vf);
+	tcg_gen_xori_tl(nN, cpu_Nf, 1);
+	tcg_gen_xori_tl(nV, cpu_Vf, 1);
 	tcg_gen_and_tl(ret, cpu_Nf, nV);
 
 	tcg_gen_and_tl(ret, nN, cpu_Vf);
@@ -2965,8 +2965,8 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
       // HI
       case 0x0D:
 	// !C & !Z
-	tcg_gen_not_tl(nC, cpu_Cf);
-	tcg_gen_not_tl(nZ, cpu_Zf);
+	tcg_gen_xori_tl(nC, cpu_Cf, 1);
+	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
 
 	tcg_gen_and_tl(ret, nC, nZ);
 	break;
@@ -2979,14 +2979,17 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
       // PNZ
       case 0x0F:
 	// !N & !Z
-	tcg_gen_not_tl(nN, cpu_Nf);
-	tcg_gen_not_tl(nZ, cpu_Zf);
+	tcg_gen_xori_tl(nN, cpu_Nf, 1);
+	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
 
 	tcg_gen_and_tl(ret, nN, nZ);
 	break;
     }
   return ret;
 }
+
+// TODO: To remove
+#define getCCFlag() arc_gen_verifyCCFlag(ctx)
 
 TCGv
 arc_gen_verifyFFlag(DisasCtxt *ctx)
@@ -2995,6 +2998,7 @@ arc_gen_verifyFFlag(DisasCtxt *ctx)
   tcg_gen_movi_tl(ret, ctx->insn.f != 0);
   return ret;
 }
+#define getFFlag() arc_gen_verifyFFlag(ctx)
 
 void setNFlag(TCGv elem)
 {
@@ -3015,4 +3019,4 @@ arc2_get_tcgv_value(TCGv elem)
 }
 
 
-#include "arc-semfunc.h"
+#include "arc-semfunc1.h"

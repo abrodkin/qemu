@@ -1446,22 +1446,43 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 #include "arc-decoder.h"
 
 enum arc_opcode_map {
-  MAP_NONE = 0,
-  MAP_ADD, /* TODO: This should be automatic */
-  MAP_MOV, /* TODO: This should be automatic */
+  MAP_NONE = -1,
+#define MAPPING(...)
+#define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
+  MAP_##NAME,
+#include "arc-semfunc_mapping.h"
+#undef MAPPING
+#undef SEMANTIC_FUNCTION
   /* Add some include to generated files */
   MAP_LAST
+};
+
+const char
+number_of_ops_semfunc[MAP_LAST] = {
+#define SEMANTIC_FUNCTION(NAME, NOPS, ...) NOPS,
+#define MAPPING(...)
+#include "arc-semfunc_mapping.h"
+#undef MAPPING
+#undef SEMANTIC_FUNCTION
 };
 
 enum arc_opcode_map
 arc_map_opcode (struct arc_opcode *opcode)
 {
-  if(strstr(opcode->name, "add") != 0)
-    return MAP_ADD;
-  if(strstr(opcode->name, "mov") != 0)
-    return MAP_MOV;
+#define SEMANTIC_FUNCTION(...)
+#define MAPPING(MNEMONIC, ENUM) \
+  if(strcmp(opcode->name, #MNEMONIC) == 0) \
+    return MAP_##ENUM;
+#include "arc-semfunc_mapping.h"
+#undef MAPPING
+#undef SEMANTIC_FUNCTION
+  //if(strstr(opcode->name, "add") != 0)
+  //  return MAP_ADD;
+  //if(strstr(opcode->name, "mov") != 0)
+  //  return MAP_MOV;
   return MAP_NONE;
 }
+
 
 void
 arc_debug_opcode(struct arc_opcode *opcode, const char *msg)
@@ -1485,7 +1506,7 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
       // TODO: Verify this.
       if(operand.type & ARC_OPERAND_ALIGNED32)
 	i <<= 2;
-      if(operand.type & ARC_OPERAND_ALIGNED32)
+      else if(operand.type & ARC_OPERAND_ALIGNED16)
 	i <<= 1;
 
       ret = tcg_const_local_i32(i);
@@ -1536,23 +1557,50 @@ int arc_decodeNew (DisasCtxt *ctx)
       enum arc_opcode_map mapping;
       if((mapping = arc_map_opcode(opcode)) != MAP_NONE)
       {
-	if(mapping == MAP_ADD)
-	{
-	  TCGv a = arc2_decode_operand(ctx, 0);
-	  TCGv b = arc2_decode_operand(ctx, 1);
-	  TCGv c = arc2_decode_operand(ctx, 2);
-	  arc2_gen_ADD(ctx, a, b, c);
-	}
-	if(mapping == MAP_MOV)
-	{
-	  TCGv a = arc2_decode_operand(ctx, 0);
-	  TCGv b = arc2_decode_operand(ctx, 1);
-	  arc2_gen_MOV(ctx, a, b);
-	}
+	TCGv ops[10];
+	int i;
+	for(i = 0; i < number_of_ops_semfunc[mapping]; i++)
+	  {
+	    ops[i] = arc2_decode_operand (ctx, i);
+	  }
+
+	switch(mapping)
+	  {
+#define a ops[0]
+#define b ops[1]
+#define c ops[2]
+#define d ops[3]
+
+#define MAPPING(...)
+#define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
+	    case MAP_##NAME: \
+	      arc2_gen_##NAME (ctx, __VA_ARGS__); \
+	      break;
+#include "arc-semfunc_mapping.h"
+#undef SEMANTIC_FUNCTION
+#undef MAPPING
+	    default:
+	      arc_debug_opcode(opcode, "Could not map opcode");
+	      should_stop = true;
+	      break;
+	  }
+	//if(mapping == MAP_ADD)
+	//{
+	//  TCGv a = arc2_decode_operand(ctx, 0);
+	//  TCGv b = arc2_decode_operand(ctx, 1);
+	//  TCGv c = arc2_decode_operand(ctx, 2);
+	//  arc2_gen_ADD(ctx, a, b, c);
+	//}
+	//if(mapping == MAP_MOV)
+	//{
+	//  TCGv a = arc2_decode_operand(ctx, 0);
+	//  TCGv b = arc2_decode_operand(ctx, 1);
+	//  arc2_gen_MOV(ctx, a, b);
+	//}
       }
       else
       {
-        arc_debug_opcode(opcode, "Could not map opcode");
+	arc_debug_opcode(opcode, "Could not identify opcode");
 	should_stop = true;
       }
     }
