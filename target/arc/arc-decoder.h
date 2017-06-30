@@ -173,13 +173,6 @@ struct arc_opcode
   unsigned char flags[MAX_INSN_FLGS + 1];
 };
 
-/* CPU Availability.  */
-#define ARC_OPCODE_NONE     0x0000
-#define ARC_OPCODE_ARC600   0x0001  /* ARC 600 specific insns.  */
-#define ARC_OPCODE_ARC700   0x0002  /* ARC 700 specific insns.  */
-#define ARC_OPCODE_ARCv2EM  0x0004  /* ARCv2 EM specific insns.  */
-#define ARC_OPCODE_ARCv2HS  0x0008  /* ARCv2 HS specific insns.  */
-
 /* CPU combi.  */
 #define ARC_OPCODE_ARCALL  (ARC_OPCODE_ARC600 | ARC_OPCODE_ARC700	\
 			    | ARC_OPCODE_ARCv2EM | ARC_OPCODE_ARCv2HS)

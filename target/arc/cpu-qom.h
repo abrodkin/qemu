@@ -23,7 +23,7 @@
 
 #include "qom/cpu.h"
 
-#define TYPE_ARC_CPU            "arc"
+#define TYPE_ARC_CPU            "arc-cpu"
 
 #define ARC_CPU_CLASS(klass)                                    \
     OBJECT_CLASS_CHECK(ARCCPUClass, (klass), TYPE_ARC_CPU)
@@ -36,49 +36,18 @@
 *  ARCCPUClass:
 *  @parent_realize: The parent class' realize handler.
 *  @parent_reset: The parent class' reset handler.
-*  @vr: Version Register value.
 *
 *  A ARC CPU model.
 */
 typedef struct ARCCPUClass {
-    CPUClass        parent_class;
+    /*< private >*/
+    CPUClass parent_class;
+    /*< public >*/
 
-    DeviceRealize   parent_realize;
+    DeviceRealize parent_realize;
     void (*parent_reset)(CPUState *cpu);
 } ARCCPUClass;
 
-/**
-*  ARCCPU:
-*  @env: #CPUARCState
-*
-*  A ARC CPU.
-*/
-typedef struct ARCCPU {
-    /*< private >*/
-    CPUState        parent_obj;
-    /*< public >*/
-
-    CPUARCState     env;
-} ARCCPU;
-
-static inline ARCCPU *arc_env_get_cpu(CPUARCState *env)
-{
-    return container_of(env, ARCCPU, env);
-}
-
-#define ENV_GET_CPU(e)          CPU(arc_env_get_cpu(e))
-#define ENV_OFFSET              offsetof(ARCCPU, env)
-
-#ifndef CONFIG_USER_ONLY
-extern const struct VMStateDescription vms_arc_cpu;
-#endif
-
-void arc_cpu_do_interrupt(CPUState *cpu);
-bool arc_cpu_exec_interrupt(CPUState *cpu, int int_req);
-void arc_cpu_dump_state(CPUState *cs, FILE *f,
-                            fprintf_function cpu_fprintf, int flags);
-hwaddr arc_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
-int arc_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
-int arc_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
+typedef struct ARCCPU ARCCPU;
 
 #endif

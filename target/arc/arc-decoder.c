@@ -1532,7 +1532,7 @@ int arc_decodeNew (DisasCtxt *ctx)
   if (bswap_code (sctlr_b))
     buffer[0] = bswap16 (buffer[0]);
 
-  length = arc_insn_length (buffer[0], ARC_OPCODE_ARC700);
+  length = arc_insn_length (buffer[0], ctx->env->family);
 
   switch (length)
     {
@@ -1550,7 +1550,7 @@ int arc_decodeNew (DisasCtxt *ctx)
       abort ();
     }
 
-  opcode = find_format (ctx, insn, length, ARC_OPCODE_ARC700);
+  opcode = find_format (ctx, insn, length, ctx->env->family);
 
   if(opcode)
     {

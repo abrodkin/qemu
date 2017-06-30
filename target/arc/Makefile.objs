@@ -26,4 +26,4 @@ obj-y   += translate-inst.o
 obj-y   += gdbstub.o
 obj-y   += decode.o
 obj-y   += arc-decoder.o
-obj-$(CONFIG_SOFTMMU) += machine.o
+# obj-$(CONFIG_SOFTMMU) += machine.o
