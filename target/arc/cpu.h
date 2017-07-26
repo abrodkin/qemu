@@ -56,8 +56,6 @@ enum arc_cpu_family {
   ARC_OPCODE_ARCv2HS = 1 << 3
 };
 
-typedef struct CPUARCState CPUARCState;
-
 #define CPU_GP(env)     ((env)->r[26])
 #define CPU_FP(env)     ((env)->r[27])
 #define CPU_SP(env)     ((env)->r[28])
@@ -71,7 +69,7 @@ typedef struct CPUARCState CPUARCState;
 #define CPU_IMM(env)    ((env)->r[62])
 #define CPU_PCL(env)    ((env)->r[63])
 
-struct CPUARCState {
+typedef struct CPUARCState {
   uint32_t        r[64];
 
   struct {
@@ -134,7 +132,8 @@ struct CPUARCState {
   uint64_t features;
   uint32_t family;
 
-};
+    void *irq[32];
+} CPUARCState;
 
 /**
  * ArcCPU:

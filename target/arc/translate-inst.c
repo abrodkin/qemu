@@ -19,7 +19,7 @@
  */
 
 /*
-    see <a  rel="nofollow" href="http://me.bios.io/images/d/dd/ARCompactISA_ProgrammersReference.pdf">http://me.bios.io/images/d/dd/ARCompactISA_ProgrammersReference.pdf</a>
+    see http://me.bios.io/images/d/dd/ARCompactISA_ProgrammersReference.pdf
 */
 
 #include "translate.h"
