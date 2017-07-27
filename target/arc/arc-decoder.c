@@ -1399,7 +1399,7 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
                     }
 
                 if (cl_flags->flag_class & F_CLASS_D)
-                  ctx->insn.d = true;
+                  ctx->insn.d = value ? true : false;
 
                 if (cl_flags->flag_class & F_CLASS_COND)
                   ctx->insn.cc = value;
