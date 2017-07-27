@@ -1277,7 +1277,8 @@ arc_insn_length (uint16_t insn, uint16_t cpu_type)
       return (major_opcode > 0xb) ? 2 : 4;
       break;
 
-    case ARC_OPCODE_ARCV2:
+    case ARC_OPCODE_ARCv2EM:
+    case ARC_OPCODE_ARCv2HS:
       return (major_opcode > 0x7) ? 2 : 4;
       break;
 

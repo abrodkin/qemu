@@ -67,7 +67,7 @@ static void cpu_arc_load_kernel(ram_addr_t ram_size,
 
     if (kernel_filename && !qtest_enabled()) {
         kernel_size = load_elf(kernel_filename, NULL, NULL,
-                               &elf_entry, NULL, NULL, 1, EM_ARC_COMPACT2,
+                               &elf_entry, NULL, NULL, 0, EM_ARC_COMPACT2,
                                1, 0);
         entry = elf_entry;
         if (kernel_size < 0) {
@@ -131,10 +131,10 @@ static void arc_sim_init(MachineState *machine)
 
 static void arc_sim_machine_init(MachineClass *mc)
 {
-    mc->desc = "ARCHS simulation";
+    mc->desc = "ARCxx simulation";
     mc->init = arc_sim_init;
     mc->max_cpus = 1;
     mc->is_default = 1;
 }
 
-DEFINE_MACHINE("archs-sim", arc_sim_machine_init)
+DEFINE_MACHINE("arc-sim", arc_sim_machine_init)
