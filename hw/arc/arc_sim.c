@@ -67,7 +67,8 @@ static void cpu_arc_load_kernel(ram_addr_t ram_size,
 
     if (kernel_filename && !qtest_enabled()) {
         kernel_size = load_elf(kernel_filename, NULL, NULL,
-                               &elf_entry, NULL, NULL, 0, EM_ARC_COMPACT2,
+                               &elf_entry, NULL, NULL, 0, cpu->env.family > 2 ?
+                               EM_ARC_COMPACT2 : EM_ARC_COMPACT,
                                1, 0);
         entry = elf_entry;
         if (kernel_size < 0) {
