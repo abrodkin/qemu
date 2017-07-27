@@ -1398,6 +1398,7 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
                       break;
                     }
 
+		// TODO: This has a problem: instruction "b label" sets this to true.
                 if (cl_flags->flag_class & F_CLASS_D)
                   ctx->insn.d = value ? true : false;
 
@@ -1505,10 +1506,10 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
       int32_t i = operand.value;
 
       // TODO: Verify this.
-      if(operand.type & ARC_OPERAND_ALIGNED32)
-	i <<= 2;
-      else if(operand.type & ARC_OPERAND_ALIGNED16)
-	i <<= 1;
+//      if(operand.type & ARC_OPERAND_ALIGNED32)
+//	i <<= 2;
+//      else if(operand.type & ARC_OPERAND_ALIGNED16)
+//	i <<= 1;
 
       ret = tcg_const_local_i32(i);
     }
@@ -1524,6 +1525,7 @@ int arc_decodeNew (DisasCtxt *ctx)
   uint64_t insn;
   bool sctlr_b = false;
   static uint8_t should_stop = false;
+  int ret = BS_NONE;
 
   memset (&ctx->opt, 0, sizeof (ctx->opt));
   memset (&ctx->insn, 0, sizeof (ctx->insn));
@@ -1553,6 +1555,28 @@ int arc_decodeNew (DisasCtxt *ctx)
 
   opcode = find_format (ctx, insn, length, ctx->env->family);
 
+
+
+  if (opcode)
+    {
+      if (ctx->insn.limm_p)
+        {
+          ctx->insn.limm = ARRANGE_ENDIAN (bswap_code (sctlr_b),
+                                           cpu_ldl_code (ctx->env,
+                                                         ctx->cpc + length));
+          length += 4;
+        }
+      else
+        ctx->insn.limm = 0;
+
+      ctx->insn.class = (uint32_t) opcode->insn_class;
+    }
+
+  ctx->insn.len = length;
+
+  ctx->npc = ctx->cpc + length;
+  ctx->pcl = ctx->cpc & 0xfffffffc;
+
   if(opcode)
     {
       enum arc_opcode_map mapping;
@@ -1572,10 +1596,20 @@ int arc_decodeNew (DisasCtxt *ctx)
 #define c ops[2]
 #define d ops[3]
 
+// B
+#define rd ops[0]
+// ABS
+#define src ops[0]
+#define dest ops[1]
+// LD
+#define dest ops[0]
+#define src1 ops[1]
+#define src2 ops[2]
+
 #define MAPPING(...)
 #define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
 	    case MAP_##NAME: \
-	      arc2_gen_##NAME (ctx, __VA_ARGS__); \
+	      ret = arc2_gen_##NAME (ctx, __VA_ARGS__); \
 	      break;
 #include "arc-semfunc_mapping.h"
 #undef SEMANTIC_FUNCTION
@@ -1606,30 +1640,9 @@ int arc_decodeNew (DisasCtxt *ctx)
       }
     }
 
-
-  if (opcode)
-    {
-      if (ctx->insn.limm_p)
-        {
-          ctx->insn.limm = ARRANGE_ENDIAN (bswap_code (sctlr_b),
-                                           cpu_ldl_code (ctx->env,
-                                                         ctx->cpc + length));
-          length += 4;
-        }
-      else
-        ctx->insn.limm = 0;
-
-      ctx->insn.class = (uint32_t) opcode->insn_class;
-    }
-
-  ctx->insn.len = length;
-
-  ctx->npc = ctx->cpc + length;
-  ctx->pcl = ctx->cpc & 0xfffffffc;
-
 #ifdef DEBUG_TCG
   #error "HERE"
 #endif
-  //return (opcode ? BS_NONE : BS_EXCP);
-  return (opcode && !should_stop ? BS_NONE : BS_EXCP);
+  ret = (!opcode || should_stop) ? BS_STOP : ret;
+  return ret;
 }

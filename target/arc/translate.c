@@ -304,16 +304,19 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
         tcg_gen_insn_start(ctx.cpc);
         num_insns++;
 
-        if (unlikely(cpu_breakpoint_test(cs, ctx.cpc, BP_ANY))) {
+        if (unlikely(cpu_breakpoint_test(cs, ctx.cpc, BP_ANY)))
+	  {
             tcg_gen_movi_i32(cpu_pc, ctx.cpc);
             gen_helper_debug(cpu_env);
             ctx.bstate = BS_EXCP;
             goto done_generating;
-        }
+          }
 
         ctx.bstate = arc_decodeNew(&ctx);
 
-        if (ctx.npc == env->lpe) {
+	/* Hardware loop control code */
+        if (ctx.npc == env->lpe)
+	  {
             TCGLabel *label_next = gen_new_label();
 
             tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
@@ -327,17 +330,20 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
 gen_set_label(label_next);
 
             ctx.bstate = BS_BRANCH;
-        }
+	  }
 
-        if (num_insns >= max_insns) {
+        if (num_insns >= max_insns)
+	  {
             break;      /* max translated instructions limit reached */
-        }
-        if (ctx.singlestep) {
+	  }
+        if (ctx.singlestep)
+	  {
             break;      /* single step */
-        }
-        if ((ctx.cpc & (TARGET_PAGE_SIZE - 1)) == 0) {
+	  }
+        if ((ctx.cpc & (TARGET_PAGE_SIZE - 1)) == 0)
+	  {
             break;      /* page boundary */
-        }
+	  }
 
     } while (ctx.bstate == BS_NONE && !tcg_op_buf_full());
 
