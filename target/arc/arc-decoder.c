@@ -1455,6 +1455,7 @@ enum arc_opcode_map {
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
+  MAP_ST,
   /* Add some include to generated files */
   MAP_LAST
 };
@@ -1466,6 +1467,7 @@ number_of_ops_semfunc[MAP_LAST] = {
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
+    2
 };
 
 enum arc_opcode_map
@@ -1504,6 +1506,8 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
   else
     {
       int32_t i = operand.value;
+      if (operand.type & ARC_OPERAND_LIMM)
+          i = ctx->insn.limm;
 
       // TODO: Verify this.
 //      if(operand.type & ARC_OPERAND_ALIGNED32)
@@ -1561,7 +1565,7 @@ int arc_decodeNew (DisasCtxt *ctx)
     {
       if (ctx->insn.limm_p)
         {
-          ctx->insn.limm = ARRANGE_ENDIAN (bswap_code (sctlr_b),
+          ctx->insn.limm = ARRANGE_ENDIAN (true,
                                            cpu_ldl_code (ctx->env,
                                                          ctx->cpc + length));
           length += 4;
@@ -1614,6 +1618,10 @@ int arc_decodeNew (DisasCtxt *ctx)
 #include "arc-semfunc_mapping.h"
 #undef SEMANTIC_FUNCTION
 #undef MAPPING
+          case MAP_ST:
+              tcg_gen_qemu_st_tl (ops[0], ops[1], ctx->memidx, MO_UL);
+              break;
+
 	    default:
 	      arc_debug_opcode(opcode, "Could not map opcode");
 	      should_stop = true;

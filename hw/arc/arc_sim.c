@@ -23,6 +23,7 @@
 #include "hw/char/serial.h"
 #include "net/net.h"
 #include "hw/loader.h"
+#include "exec/memory.h"
 #include "exec/address-spaces.h"
 #include "sysemu/sysemu.h"
 #include "hw/sysbus.h"
@@ -91,13 +92,37 @@ static void cpu_arc_load_kernel(ram_addr_t ram_size,
     }
 }
 
+static uint64_t arc_io_read(void *opaque, hwaddr addr,
+        unsigned size)
+{
+    return 0;
+}
+
+static void arc_io_write(void *opaque, hwaddr addr,
+        uint64_t val, unsigned size)
+{
+    switch (addr) {
+    case 0x08: /* board reset.  */
+        qemu_system_reset_request (SHUTDOWN_CAUSE_GUEST_RESET);
+        break;
+    default:
+        break;
+    }
+}
+
+static const MemoryRegionOps arc_io_ops = {
+    .read = arc_io_read,
+    .write = arc_io_write,
+    .endianness = DEVICE_NATIVE_ENDIAN,
+};
+
 static void arc_sim_init(MachineState *machine)
 {
     ram_addr_t ram_size = machine->ram_size;
     const char *cpu_model = machine->cpu_model;
     const char *kernel_filename = machine->kernel_filename;
     ARCCPU *cpu = NULL;
-    MemoryRegion *ram;
+    MemoryRegion *ram, *system_io;
     int n;
 
     if (!cpu_model) {
@@ -118,6 +143,11 @@ static void arc_sim_init(MachineState *machine)
     memory_region_init_ram(ram, NULL, "arc.ram", ram_size, &error_fatal);
     vmstate_register_ram_global(ram);
     memory_region_add_subregion(get_system_memory(), 0, ram);
+
+    system_io = g_malloc (sizeof (*system_io));
+    memory_region_init_io (system_io, NULL, &arc_io_ops, NULL, "arc.io",
+                           1024);
+    memory_region_add_subregion (get_system_memory(), 0xf0000000, system_io);
 
     serial_mm_init(get_system_memory(), 0x90000000, 0, cpu->env.irq[2],
                    115200, serial_hds[0], DEVICE_NATIVE_ENDIAN);
