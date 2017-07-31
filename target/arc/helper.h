@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see
- * <<a  rel="nofollow" href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>>
+ * href="http://www.gnu.org/licenses/lgpl-2.1.html
  */
 
 DEF_HELPER_1(debug, void, env)
@@ -26,3 +26,4 @@ DEF_HELPER_2(sr, void, i32, i32)
 DEF_HELPER_1(halt, void, env)
 DEF_HELPER_1(rtie, void, env)
 DEF_HELPER_1(flush, void, env)
+DEF_HELPER_2(raise_exception, void, env, i32)

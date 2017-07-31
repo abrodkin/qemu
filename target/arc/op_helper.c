@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see
- * <<a  rel="nofollow" href="http://www.gnu.org/licenses/lgpl-2.1.html">http://www.gnu.org/licenses/lgpl-2.1.html</a>>
+ * http://www.gnu.org/licenses/lgpl-2.1.html
  */
 
 #include "qemu/osdep.h"
@@ -440,4 +440,10 @@ void helper_rtie(CPUARCState *env)
 void helper_flush(CPUARCState *env)
 {
     tb_flush((CPUState *)arc_env_get_cpu(env));
+}
+
+void helper_raise_exception (CPUARCState *env, uint32_t index)
+{
+    CPUState *cs = CPU (arc_env_get_cpu(env));
+    cpu_loop_exit(cs);
 }
