@@ -366,6 +366,12 @@ gen_set_label(label_next);
             break;
         case BS_BRANCH:
         case BS_BRANCH_DS:
+	      {
+		TCGLabel *skip_fallthrough = gen_new_label();
+		tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, ctx.cpc, skip_fallthrough);
+		tcg_gen_movi_i32 (cpu_pc, ctx.npc);
+		gen_set_label (skip_fallthrough);
+	      }
         case BS_EXCP:
             tcg_gen_exit_tb(0);
             break;

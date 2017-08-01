@@ -2855,7 +2855,6 @@
 
 /* --------------------- NEW CODE ----------------------- */
 
-
 TCGv
 arc_gen_verifyCCFlag(DisasCtxt *ctx)
 {
@@ -3037,8 +3036,10 @@ to_implement_wo_abort(DisasCtxt *ctx)
 void
 arc2_gen_execute_delayslot(DisasCtxt *ctx)
 {
-  if (ctx->insn.limm_p == 0)
+  static int in_delay_slot = false;
+  if (ctx->insn.limm_p == 0 && !in_delay_slot)
     {
+      in_delay_slot = true;
       uint32_t cpc = ctx->cpc;
       uint32_t npc = ctx->npc;
       uint32_t dpc = ctx->dpc;
@@ -3064,17 +3065,19 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
       ctx->pcl = pcl;
       ctx->opt = opt;
       ctx->bstate = bstate;
+      in_delay_slot = false;
     }
   return;
 }
-#define executeDelaySlot() to_implement_wo_abort(ctx)
+#define executeDelaySlot() arc2_gen_execute_delayslot(ctx)
 
-TCGv
+bool
 arc2_gen_should_execute_delayslot(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
-  tcg_gen_movi_tl(ret, ctx->insn.d != 0);
-  return ret;
+  return ctx->insn.d != 0;
+  //TCGv ret = tcg_temp_new_i32();
+  //tcg_gen_movi_tl(ret, ctx->insn.d != 0);
+  //return ret;
 }
 #define shouldExecuteDelaySlot() arc2_gen_should_execute_delayslot(ctx)
 
@@ -3088,7 +3091,7 @@ void arc2_gen_getNFlag(TCGv elem)
 void
 setZFlag(int32_t elem)
 {
-  tcg_gen_movi_tl(cpu_Zf, elem != 0);
+  tcg_gen_movi_tl(cpu_Zf, elem);
 }
 
 int
@@ -3124,28 +3127,6 @@ arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
 #define setPC(NEW_PC) \
   arc2_set_pc(ctx, NEW_PC); \
   ret = ret == BS_NONE ? BS_BRANCH : ret
-
-void
-arc2_execute_delay_slot(DisasCtxt *ctx)
-{
-  static char in_delay_slot = 0;
-  // NOTE: Instruction in delay slot cannot be B or B_S
-  if(in_delay_slot == 0)
-    {
-      in_delay_slot = 1;
-
-      // TODO: Do the magic here!
-
-      in_delay_slot = 0;
-    }
-  else
-    {
-      // TODO: Print some error with illegal nesting of delay slots.
-    }
-}
-#define delaySlot(PC) \
-  arc2_execute_delay_slot(ctx); \
-  ret = ret == BS_NONE ? BS_BRANCH_DS : ret
 
 
 #undef true
