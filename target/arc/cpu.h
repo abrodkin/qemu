@@ -23,6 +23,7 @@
 
 #include "qemu-common.h"
 #include "cpu-qom.h"
+#include "arc-common.h"
 
 #define TARGET_LONG_BITS            32
 
@@ -46,14 +47,6 @@ enum arc_features {
   ARC_FEATURE_ARC600,
   ARC_FEATURE_ARC700,
   no_features,
-};
-
-enum arc_cpu_family {
-  ARC_OPCODE_NONE    = 0,
-  ARC_OPCODE_ARC600  = 1 << 0,
-  ARC_OPCODE_ARC700  = 1 << 1,
-  ARC_OPCODE_ARCv2EM = 1 << 2,
-  ARC_OPCODE_ARCv2HS = 1 << 3
 };
 
 #define CPU_GP(env)     ((env)->r[26])

@@ -270,7 +270,7 @@ const struct arc_operand arc_operands[] =
   /* SIMM21_A16_5 mask = 00000111111111102222222222000000.  */
 #define SIMM21_A16_5	   (UIMM6_8 + 1)
   {21, 0, 0, ARC_OPERAND_SIGNED
-   | ARC_OPERAND_ALIGNED16 | ARC_OPERAND_TRUNCATE,
+   | ARC_OPERAND_ALIGNED16 | ARC_OPERAND_TRUNCATE | ARC_OPERAND_PCREL,
    insert_simm21_a16_5, extract_simm21_a16_5},
 
   /* SIMM25_A16_5 mask = 00000111111111102222222222003333.  */
@@ -1163,6 +1163,43 @@ const struct arc_flag_class arc_flag_classes[] =
   { F_CLASS_OPTIONAL, { F_NPS_LDBIT_X2_2, F_NPS_LDBIT_X4_2, F_NULL }},
 };
 
+/* List with special cases instructions and the applicable flags.  */
+const struct arc_flag_special arc_flag_special_cases[] =
+{
+  { "b", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	   F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	   F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	   F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "bl", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	    F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	    F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	    F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "br", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	    F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	    F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	    F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "j", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	   F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	   F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	   F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "jl", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	    F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	    F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	    F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "lp", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	    F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	    F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	    F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "set", { F_ALWAYS, F_RA, F_EQUAL, F_ZERO, F_NOTEQUAL, F_NOTZERO, F_POZITIVE,
+	     F_PL, F_NEGATIVE, F_MINUS, F_CARRY, F_CARRYSET, F_LOWER, F_CARRYCLR,
+	     F_NOTCARRY, F_HIGHER, F_OVERFLOWSET, F_OVERFLOW, F_NOTOVERFLOW,
+	     F_OVERFLOWCLR, F_GT, F_GE, F_LT, F_LE, F_HI, F_LS, F_PNZ, F_NULL } },
+  { "ld", { F_SIZEB17, F_SIZEW17, F_H17, F_NULL } },
+  { "st", { F_SIZEB1, F_SIZEW1, F_H1, F_NULL } }
+};
+
+const unsigned arc_num_flag_special = ARRAY_SIZE (arc_flag_special_cases);
+
 /* The opcode table.
 
    The format of the opcode table is:
@@ -1241,7 +1278,7 @@ arc_getm32 (uint32_t data)
    The instruction lengths are calculated from the ARC_OPCODE table,
    and cached for later use.  */
 
-static unsigned int
+unsigned int
 arc_insn_length (uint16_t insn, uint16_t cpu_type)
 {
   uint8_t major_opcode;
@@ -1288,7 +1325,7 @@ arc_insn_length (uint16_t insn, uint16_t cpu_type)
 }
 
 static const struct arc_opcode *
-find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
+find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 {
   uint32_t i = 0;
   const struct arc_opcode *opcode = NULL;
@@ -1301,7 +1338,7 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
     uint32_t noperands = 0;
 
     opcode = &arc_opcodes[i++];
-    memset (&ctx->insn, 0, sizeof (ctx->insn));
+    memset (pinsn, 0, sizeof (*pinsn));
 
     if (!(opcode->cpu & isa_mask))
       continue;
@@ -1346,8 +1383,8 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
             && !(operand->flags & ARC_OPERAND_DUPLICATE))
           has_limm = true;
 
-        ctx->insn.operands[noperands].value = value;
-        ctx->insn.operands[noperands].type = operand->flags;
+        pinsn->operands[noperands].value = value;
+        pinsn->operands[noperands].type = operand->flags;
 	noperands += 1;
       }
 
@@ -1371,11 +1408,11 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
             if (cl_flags->flag_class & F_CLASS_IMPLICIT)
               {
                 if (cl_flags->flag_class & F_CLASS_COND)
-                  ctx->insn.cc = flg_operand->code;
+                  pinsn->cc = flg_operand->code;
                 else if (cl_flags->flag_class & F_CLASS_WB)
-                  ctx->insn.aa = flg_operand->code;
+                  pinsn->aa = flg_operand->code;
                 else if (cl_flags->flag_class & F_CLASS_ZZ)
-                  ctx->insn.zz = flg_operand->code;
+                  pinsn->zz = flg_operand->code;
                 continue;
               }
 
@@ -1387,35 +1424,35 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
                   switch (flg_operand->name[0])
                     {
                     case 'b':
-                      ctx->insn.zz = 1;
+                      pinsn->zz = 1;
                       break;
                     case 'h':
                     case 'w':
-                      ctx->insn.zz = 2;
+                      pinsn->zz = 2;
                       break;
                     default:
-                      ctx->insn.zz = 4;
+                      pinsn->zz = 4;
                       break;
                     }
 
 		// TODO: This has a problem: instruction "b label" sets this to true.
                 if (cl_flags->flag_class & F_CLASS_D)
-                  ctx->insn.d = value ? true : false;
+                  pinsn->d = value ? true : false;
 
                 if (cl_flags->flag_class & F_CLASS_COND)
-                  ctx->insn.cc = value;
+                  pinsn->cc = value;
 
                 if (cl_flags->flag_class & F_CLASS_WB)
-                  ctx->insn.aa = value;
+                  pinsn->aa = value;
 
                 if (cl_flags->flag_class & F_CLASS_F)
-                  ctx->insn.f = true;
+                  pinsn->f = true;
 
                 if (cl_flags->flag_class & F_CLASS_DI)
-                  ctx->insn.di = true;
+                  pinsn->di = true;
 
                 if (cl_flags->flag_class & F_CLASS_X)
-                  ctx->insn.x = true;
+                  pinsn->x = true;
 
                 foundA = true;
               }
@@ -1434,18 +1471,15 @@ find_format (DisasCtxt *ctx, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
       continue;
 
     /* The instruction is valid.  */
-    ctx->insn.limm_p = has_limm;
+    pinsn->limm_p = has_limm;
     /* FIXME! here add extra info about the instruction e.g. delay
        slot, data size, write back, etc.  */
     return opcode;
   } while (opcode->mask);
 
-  memset (&ctx->insn, 0, sizeof (ctx->insn));
+  memset (pinsn, 0, sizeof (*pinsn));
   return NULL;
 }
-
-
-#include "arc-decoder.h"
 
 enum arc_opcode_map {
   MAP_NONE = -1,
@@ -1521,6 +1555,13 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
   return ret;
 }
 
+struct arc_opcode *
+arc_find_format (insn_t *insnd, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
+{
+  memset (insnd, 0, sizeof (*insnd));
+  return find_format (insnd, insn, insn_len, isa_mask);
+}
+
 int arc_decodeNew (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
@@ -1530,6 +1571,7 @@ int arc_decodeNew (DisasCtxt *ctx)
   bool sctlr_b = false;
   static uint8_t should_stop = false;
   int ret = BS_NONE;
+  insn_t *pinsn;
 
   memset (&ctx->opt, 0, sizeof (ctx->opt));
   memset (&ctx->insn, 0, sizeof (ctx->insn));
@@ -1557,7 +1599,8 @@ int arc_decodeNew (DisasCtxt *ctx)
       abort ();
     }
 
-  opcode = find_format (ctx, insn, length, ctx->env->family);
+  pinsn = &ctx->insn;
+  opcode = find_format (pinsn, insn, length, ctx->env->family);
 
 
 
@@ -1654,3 +1697,7 @@ int arc_decodeNew (DisasCtxt *ctx)
   ret = (!opcode || should_stop) ? BS_STOP : ret;
   return ret;
 }
+/* Local variables:
+   eval: (c-set-style "gnu")
+   indent-tabs-mode: t
+   End:  */

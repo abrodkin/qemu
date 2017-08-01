@@ -10,6 +10,7 @@
 #define ARC_DECODER_H
 
 #include "qemu/osdep.h"
+#include "arc-common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -173,13 +174,6 @@ struct arc_opcode
   unsigned char flags[MAX_INSN_FLGS + 1];
 };
 
-/* CPU combi.  */
-#define ARC_OPCODE_ARCALL  (ARC_OPCODE_ARC600 | ARC_OPCODE_ARC700	\
-			    | ARC_OPCODE_ARCv2EM | ARC_OPCODE_ARCv2HS)
-#define ARC_OPCODE_ARCFPX  (ARC_OPCODE_ARC700 | ARC_OPCODE_ARCv2EM)
-#define ARC_OPCODE_ARCV2   (ARC_OPCODE_ARCv2EM | ARC_OPCODE_ARCv2HS)
-#define ARC_OPCODE_ARCMPY6E  (ARC_OPCODE_ARC700 | ARC_OPCODE_ARCV2)
-
 /* The operands table is an array of struct arc_operand.  */
 struct arc_operand
 {
@@ -235,6 +229,8 @@ struct arc_operand
   long long int (*extract) (unsigned long long instruction,
                             bool *invalid);
 };
+
+extern const struct arc_operand arc_operands[];
 
 /* Values defined for the flags field of a struct arc_operand.  */
 
@@ -323,6 +319,8 @@ struct arc_flag_operand
   unsigned char favail;
 };
 
+extern const struct arc_flag_operand arc_flag_operands[];
+
 /* The flag's class structure.  */
 struct arc_flag_class
 {
@@ -332,6 +330,24 @@ struct arc_flag_class
   /* List of valid flags (codes).  */
   unsigned flags[256];
 };
+
+extern const struct arc_flag_class arc_flag_classes[];
+
+/* Structure for special cases.  */
+struct arc_flag_special
+{
+  /* Name of special case instruction.  */
+  const char *name;
+
+  /* List of flags applicable for special case instruction.  */
+  unsigned flags[32];
+};
+
+extern const struct arc_flag_special arc_flag_special_cases[];
+extern const unsigned arc_num_flag_special;
+
+struct arc_opcode *arc_find_format (insn_t*, uint64_t, uint8_t, uint32_t);
+unsigned int arc_insn_length (uint16_t, uint16_t);
 
 #ifdef __cplusplus
 }

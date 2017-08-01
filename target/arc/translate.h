@@ -23,6 +23,7 @@
 
 
 #include "qemu/osdep.h"
+#include "arc-common.h"
 
 #include "tcg/tcg.h"
 #include "cpu.h"
@@ -165,27 +166,6 @@ typedef struct options_s {
     uint8_t aa;     /*  address writeback   */
     uint8_t zz;     /*  data size       */
 } options_t;
-
-typedef struct {
-    uint32_t value;
-    uint32_t type;
-} operand_t;
-
-typedef struct {
-    uint32_t class;
-    uint32_t limm;
-    uint8_t len;
-    bool limm_p;
-    operand_t operands[3];
-    uint8_t cc;
-    uint8_t aa;
-    uint8_t zz;
-    bool d;
-    bool f;
-    bool di;
-    bool x;
-} insn_t;
-
 
 struct DisasCtxt {
     struct TranslationBlock    *tb;

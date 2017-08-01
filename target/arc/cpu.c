@@ -58,7 +58,7 @@ static void arc_cpu_synchronize_from_tb(CPUState *cs, TranslationBlock *tb)
 static void arc_cpu_reset(CPUState *s)
 {
   ARCCPU *cpu = ARC_CPU(s);
-  ARCCPUClass *mcc = ARC_CPU_GET_CLASS(cpu);
+  ARCCPUClass *arcc = ARC_CPU_GET_CLASS(cpu);
   CPUARCState *env = &cpu->env;
 
   if (qemu_loglevel_mask(CPU_LOG_RESET)) {
@@ -66,7 +66,7 @@ static void arc_cpu_reset(CPUState *s)
     log_cpu_state(s, 0);
   }
 
-  mcc->parent_reset(s);
+  arcc->parent_reset(s);
 
   memset(env->r, 0, sizeof(env->r));
   // memset(env, 0, offsetof(CPUARCState, end_reset_fields));
@@ -76,16 +76,38 @@ static void arc_cpu_reset(CPUState *s)
   tlb_flush(s);
 }
 
-static void arc_cpu_disas_set_info(CPUState *cpu, disassemble_info *info)
+static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)
 {
-  info->mach = bfd_arch_arc;
-  info->print_insn = NULL;
+  ARCCPU *cpu = ARC_CPU (cs);
+  CPUARCState *env = &cpu->env;
+
+  switch (env->family)
+    {
+    case ARC_OPCODE_ARC700:
+      info->mach = bfd_mach_arc_arc700;
+      break;
+    case ARC_OPCODE_ARC600:
+      info->mach = bfd_mach_arc_arc600;
+      break;
+    case ARC_OPCODE_ARCv2EM:
+      info->mach = bfd_mach_arc_arcv2em;
+      break;
+    case ARC_OPCODE_ARCv2HS:
+      info->mach = bfd_mach_arc_arcv2hs;
+      break;
+    default:
+      info->mach = bfd_mach_arc_arcv2;
+      break;
+    }
+
+  info->print_insn = print_insn_arc;
+  info->endian = BFD_ENDIAN_LITTLE;
 }
 
 static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 {
   CPUState *cs = CPU (dev);
-  ARCCPUClass *mcc = ARC_CPU_GET_CLASS (dev);
+  ARCCPUClass *arcc = ARC_CPU_GET_CLASS (dev);
   Error *local_err = NULL;
 
   cpu_exec_realizefn (cs, &local_err);
@@ -97,7 +119,7 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
   qemu_init_vcpu(cs);
   cpu_reset(cs);
 
-  mcc->parent_realize(dev, errp);
+  arcc->parent_realize(dev, errp);
 }
 
 static void arc_cpu_set_int(void *opaque, int irq, int level)
@@ -152,12 +174,12 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
 {
   DeviceClass *dc = DEVICE_CLASS(oc);
   CPUClass *cc = CPU_CLASS(oc);
-  ARCCPUClass *mcc = ARC_CPU_CLASS(oc);
+  ARCCPUClass *arcc = ARC_CPU_CLASS(oc);
 
-  mcc->parent_realize = dc->realize;
+  arcc->parent_realize = dc->realize;
   dc->realize = arc_cpu_realizefn;
 
-  mcc->parent_reset = cc->reset;
+  arcc->parent_reset = cc->reset;
   cc->reset = arc_cpu_reset;
 
   cc->class_by_name = arc_cpu_class_by_name;
