@@ -58,6 +58,24 @@
 
 #endif
 
+#define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2 )  \
+    test_ ## testnum:`                                  \
+        mov  r12, testnum`                              \
+        mov  r1, val1`                                  \
+        mov  r2, val2`                                  \
+        sub.f 0,r1,r2`                                  \
+        inst 1f`                                        \
+        b @fail`                                        \
+        1:
+
+#define TEST_BR2_OP_NOTTAKEN( testnum, inst, val1, val2 ) \
+    test_ ## testnum:`                                    \
+    mov  r12,testnum`                                     \
+        mov  r1, val1`                                    \
+        mov  r2, val2`                                    \
+        sub.f 0,r1,r2`                                    \
+        inst @fail
+
 #define ARCTEST_BEGIN \
     .text`                                      \
         .align 4 `                              \

@@ -21,6 +21,8 @@ TESTCASES += check_andx.tst
 TESTCASES += check_orx.tst
 TESTCASES += check_subx.tst
 TESTCASES += check_xorx.tst
+TESTCASES += check_beqx.tst
+TESTCASES += check_bnex.tst
 
 all: $(TESTCASES)
 
