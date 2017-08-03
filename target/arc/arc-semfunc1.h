@@ -905,11 +905,76 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
 
 /* LD
  *    Variables: @src1, @src2, @dest
- *    Functions: getAAFlag, getZZFlag, setDebugLD, getZZSize, Memory, getFlagX, SignExtend, NoFurtherLoadsPending
+ *    Functions: getAAFlag, getZZFlag, setDebugLD, getMemory, getFlagX, SignExtend, NoFurtherLoadsPending
  */
 
 int
 arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
+{
+  int ret = BS_NONE;
+  int AA;
+  AA = getAAFlag ();
+  int ZZ;
+  ZZ = getZZFlag ();
+  TCGv address = tcg_temp_new_i32();
+  tcg_gen_movi_i32(address, 0);
+  if (((AA == 0) || (AA == 1)))
+    {
+    tcg_gen_add_i32(address, src1, src2);
+;
+    }
+  if ((AA == 2))
+    {
+    tcg_gen_mov_i32(address, src1);
+;
+    }
+  if (((AA == 3) && (ZZ == 0)))
+    {
+    TCGv temp_122 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_122, src2, 2);
+  tcg_gen_add_i32(address, src1, temp_122);
+;
+    }
+  if (((AA == 3) && (ZZ == 2)))
+    {
+    TCGv temp_123 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_123, src2, 1);
+  tcg_gen_add_i32(address, src1, temp_123);
+;
+    }
+  if (((AA == 1) || (AA == 2)))
+    {
+    tcg_gen_add_i32(src1, src1, src2);
+;
+    }
+  setDebugLD(1);
+  tcg_gen_mov_i32(dest, getMemory(address, ZZ));
+  if ((getFlagX () == 1))
+    {
+    tcg_gen_mov_i32(dest, SignExtend(dest, ZZ));
+;
+    }
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_121 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_121, NoFurtherLoadsPending(), 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_121, true, done_1);;
+  setDebugLD(0);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* ST
+ *    Variables: @src1, @src2, @dest
+ *    Functions: getAAFlag, getZZFlag, setMemory
+ */
+
+int
+arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 {
   int ret = BS_NONE;
   int AA;
@@ -942,29 +1007,12 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_add_i32(address, src1, temp_125);
 ;
     }
+  setMemory(address, ZZ, dest);
   if (((AA == 1) || (AA == 2)))
     {
     tcg_gen_add_i32(src1, src1, src2);
 ;
     }
-  setDebugLD(1);
-  TCGv size = tcg_temp_new_i32();
-  tcg_gen_mov_i32(size, getZZSize());
-  tcg_gen_mov_i32(dest, Memory(address, size));
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_121 = tcg_temp_new_i32();
-  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_121, getFlagX(), 1);
-  TCGv temp_122 = tcg_temp_new_i32();
-  tcg_gen_xori_i32(temp_122, temp_121, 1);
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_122, true, done_1);;
-  tcg_gen_mov_i32(dest, SignExtend(dest, size));
-  gen_set_label(done_1);
-  TCGLabel *done_2 = gen_new_label();
-  TCGv temp_123 = tcg_temp_new_i32();
-  tcg_gen_xori_i32(temp_123, NoFurtherLoadsPending(), 1);
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_123, true, done_2);;
-  setDebugLD(0);
-  gen_set_label(done_2);
 
   return ret;
 }

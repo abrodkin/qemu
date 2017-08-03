@@ -1489,7 +1489,6 @@ enum arc_opcode_map {
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
-  MAP_ST,
   /* Add some include to generated files */
   MAP_LAST
 };
@@ -1661,10 +1660,6 @@ int arc_decodeNew (DisasCtxt *ctx)
 #include "arc-semfunc_mapping.h"
 #undef SEMANTIC_FUNCTION
 #undef MAPPING
-          case MAP_ST:
-              tcg_gen_qemu_st_tl (ops[0], ops[1], ctx->memidx, MO_UL);
-              break;
-
 	    default:
 	      arc_debug_opcode(opcode, "Could not map opcode");
 	      should_stop = true;

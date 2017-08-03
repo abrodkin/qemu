@@ -3015,16 +3015,8 @@ to_implement(DisasCtxt *ctx)
   return ctx->zero;
 }
 
-#define getAAFlag() to_implement(ctx)
-#define getZZFlag() to_implement(ctx)
 #define Carry(A) to_implement(ctx)
 #define killDelaySlot() to_implement(ctx)
-#define setDebugLD(A) to_implement(ctx)
-#define getZZSize() to_implement(ctx)
-#define Memory(A,B) to_implement(ctx)
-#define getFlagX() to_implement(ctx)
-#define SignExtend(A,B) to_implement(ctx)
-#define NoFurtherLoadsPending() to_implement(ctx)
 
 
 TCGv
@@ -3032,6 +3024,113 @@ to_implement_wo_abort(DisasCtxt *ctx)
 {
   return ctx->zero;
 }
+
+TCGv
+arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend)
+{
+  switch (size)
+    {
+      case 0x00:
+        tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UL);
+        break;
+
+      case 0x01:
+        if (sign_extend)
+          tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_SB);
+        else
+          tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UB);
+        break;
+
+      case 0x02:
+        if (sign_extend)
+          tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_SW);
+        else
+          tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UW);
+        break;
+
+      case 0x03:
+        assert(!"reserved");
+	break;
+    }
+}
+#define setMemory(ADDRESS, SIZE, VALUE) arc2_gen_set_memory (ctx, ADDRESS, SIZE, VALUE, getFlagX())
+
+TCGv
+arc2_gen_get_memory (DisasCtxt *ctx, TCGv addr, int size, bool sign_extend)
+{
+  TCGv dest = tcg_temp_new_i32();
+
+  switch (size)
+    {
+      case 0x00:
+        tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UL);
+        break;
+
+      case 0x01:
+        if (sign_extend)
+          tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_SB);
+        else
+          tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UB);
+        break;
+
+      case 0x02:
+        if (sign_extend)
+          tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_SW);
+        else
+          tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UW);
+        break;
+
+      case 0x03:
+        assert(!"reserved");
+	break;
+    }
+  return dest;
+}
+#define getMemory(ADDRESS, SIZE) arc2_gen_get_memory (ctx, ADDRESS, SIZE, getFlagX())
+
+bool
+arc2_get_flag_x (DisasCtxt *ctx)
+{
+  return ctx->opt.x;
+}
+#define getFlagX() arc2_get_flag_x (ctx)
+
+int
+arc2_get_flag_zz (DisasCtxt *ctx)
+{
+  return ctx->opt.zz;
+}
+#define getZZFlag() arc2_get_flag_zz (ctx)
+
+int
+arc2_get_flag_aa (DisasCtxt *ctx)
+{
+  return ctx->opt.aa;
+}
+#define getAAFlag() arc2_get_flag_aa (ctx)
+
+TCGv
+arc2_gen_sign_extend(DisasCtxt *ctx, TCGv value, int size)
+{
+  // NOTE: This is just a place holder.
+  // Sign extension is already performed in getMemory and setMemory.
+  return value;
+}
+#define SignExtend(VALUE, SIZE) arc2_gen_sign_extend (ctx, VALUE, SIZE)
+
+TCGv
+arc2_gen_no_further_loads_pending(DisasCtxt *ctx)
+{
+  return ctx->one;
+}
+#define NoFurtherLoadsPending() to_implement_wo_abort(ctx)
+
+void
+arc2_gen_set_debug(DisasCtxt *ctx, bool value)
+{
+  // TODO: Could not find a reson to set this.
+}
+#define setDebugLD(A) arc2_gen_set_debug(ctx, A)
 
 void
 arc2_gen_execute_delayslot(DisasCtxt *ctx)
