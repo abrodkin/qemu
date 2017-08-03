@@ -13,6 +13,12 @@ ARCTEST_BEGIN
 	TEST_CASE(2, r0, 0x40000000, ld r1,[@tdat]` ld r0,[r1,@tdat])
 	TEST_CASE(3, r0, 0xbeef, mov r1, 16` ldw r0,[r1, @tdat])
 	TEST_CASE(4, r0, 0xbe, mov r1, 20` ldb r0,[r1, @tdat])
+	TEST_CASE(5, r0, 0xffffbeef, mov r1, 16` ldw.x r0,[r1, @tdat])
+	TEST_CASE(6, r0, 0xffffffbe, mov r1, 20` ldb.x r0,[r1, @tdat])
+
+	TEST_CASE(7, r0, 0xbeef, mov r1, @tdat` ldw.as r0,[r1,8])
+	TEST_CASE(8, r0, 0xcafebabe, mov r1, @tdat` ld.as r0,[r1, 5])
+
 
 ARCTEST_END
 #  TEST_DATA
