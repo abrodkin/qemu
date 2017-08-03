@@ -1,7 +1,7 @@
 -include ../../../config-host.mak
 
-#CROSS = arc-elf32-
-CROSS = arc-snps-linux-uclibc-
+CROSS = arc-elf32-
+#CROSS = arc-snps-linux-uclibc-
 
 SIM = ../../../arc-softmmu/qemu-system-arc
 SIM_FLAGS = -M arc-sim -m 128M -nographic -no-reboot -monitor none \
@@ -23,6 +23,7 @@ TESTCASES += check_subx.tst
 TESTCASES += check_xorx.tst
 TESTCASES += check_beqx.tst
 TESTCASES += check_bnex.tst
+TESTCASES += check_ldstx.tst
 
 all: $(TESTCASES)
 
