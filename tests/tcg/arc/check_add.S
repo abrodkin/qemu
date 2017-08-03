@@ -6,6 +6,6 @@
 	mov	r2,0x10ff01ff
 	mov	r3,0x10010001
 	add	r2,r2,r3
-	check_r2	0x20ff01ff
+	check_r2	0x21000200
 
 	end

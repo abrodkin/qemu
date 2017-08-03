@@ -1,6 +1,7 @@
 -include ../../../config-host.mak
 
-CROSS = arc-elf32-
+#CROSS = arc-elf32-
+CROSS = arc-snps-linux-uclibc-
 
 SIM = ../../../arc-softmmu/qemu-system-arc
 SIM_FLAGS = -M arc-sim -m 128M -nographic -no-reboot -monitor none \

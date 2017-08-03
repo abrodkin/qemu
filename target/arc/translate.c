@@ -297,6 +297,7 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
     ctx.npc = pc_start;
     ctx.env = env;
     ctx.ds = 0;
+
     do {
         ctx.cpc = ctx.npc;
         ctx.pcl = ctx.cpc & 0xfffffffc;
@@ -366,12 +367,16 @@ gen_set_label(label_next);
             break;
         case BS_BRANCH:
         case BS_BRANCH_DS:
-	      {
-		TCGLabel *skip_fallthrough = gen_new_label();
-		tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, ctx.cpc, skip_fallthrough);
-		tcg_gen_movi_i32 (cpu_pc, ctx.npc);
-		gen_set_label (skip_fallthrough);
-	      }
+	    {
+	      TCGLabel *skip_fallthrough = gen_new_label();
+	      // NOTE: cpu_pc is not update on every single instruction on non single step mode.
+	      // For that reason we should compare cpu_pc with tb->pc instead of the instruction pc.
+	      tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
+	      tcg_gen_movi_tl (cpu_pc, ctx.npc);
+	      gen_set_label (skip_fallthrough);
+	      tcg_gen_exit_tb(0);
+	    }
+	    break;
         case BS_EXCP:
             tcg_gen_exit_tb(0);
             break;
