@@ -25,26 +25,6 @@
 #include "arc-fxi.h"
 #include "translate.h"
 
-static inline bool bswap_code(bool sctlr_b)
-{
-#ifdef CONFIG_USER_ONLY
-    /* BE8 (SCTLR.B = 0, TARGET_WORDS_BIGENDIAN = 1) is mixed endian.
-     * The invalid combination SCTLR.B=1/CPSR.E=1/TARGET_WORDS_BIGENDIAN=0
-     * would also end up as a mixed-endian mode with BE code, LE data.
-     */
-    return
-#ifdef TARGET_WORDS_BIGENDIAN
-        1 ^
-#endif
-        sctlr_b;
-#else
-    /* All code access in ARM is little endian, and there are no loaders
-     * doing swaps that need to be reversed
-     */
-    return 0;
-#endif
-}
-
 #define ARRANGE_ENDIAN(endianess, buf)          \
   ((endianess) ? arc_getm32 (buf) : bswap32 (buf))
 
@@ -1472,6 +1452,8 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
     /* The instruction is valid.  */
     pinsn->limm_p = has_limm;
+    pinsn->class = (uint32_t) opcode->insn_class;
+
     /* FIXME! here add extra info about the instruction e.g. delay
        slot, data size, write back, etc.  */
     return opcode;
@@ -1479,6 +1461,76 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
   memset (pinsn, 0, sizeof (*pinsn));
   return NULL;
+}
+
+static bool
+read_and_decode_context (DisasCtxt *ctx,
+                         const struct arc_opcode **opcode_p)
+{
+  uint16_t buffer[2];
+  uint8_t length;
+  uint64_t insn;
+
+  /* Read the first 16 bits, figure it out what kind of instruction it is.  */
+  buffer[0] = cpu_lduw_code(ctx->env, ctx->cpc);
+  length = arc_insn_length (buffer[0], ctx->env->family);
+
+  switch (length)
+    {
+    case 2:
+      /* 16-bit instructions.  */
+      insn = (uint64_t) buffer[0];
+      break;
+    case 4:
+      /* 32-bit instructions.  */
+      buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
+      uint32_t buf = (buffer[0] << 16) | buffer[1];
+      insn = buf;
+      break;
+    default:
+      abort ();
+    }
+
+  /* Now, we have read the entire opcode, decode it and place the
+   * relevant info into opcode and ctx->insn.  */
+  *opcode_p = find_format (&ctx->insn, insn, length, ctx->env->family);
+
+  if (*opcode_p == NULL)
+    return false;
+
+  /* If the instruction requires long immediate, read the extra 4
+   * bytes and initialize the relevant fields.  */
+  if (ctx->insn.limm_p)
+    {
+      ctx->insn.limm = ARRANGE_ENDIAN (true,
+                                       cpu_ldl_code (ctx->env,
+                                                     ctx->cpc + length));
+      length += 4;
+    }
+  else
+    ctx->insn.limm = 0;
+
+  /* Update context.  */
+  ctx->insn.len = length;
+  ctx->npc = ctx->cpc + length;
+  ctx->pcl = ctx->cpc & 0xfffffffc;
+
+  return true;
+}
+
+static int arc_gen_INVALID (DisasCtxt *ctx)
+{
+    printf("invalid inst @:%08x\n", ctx->cpc);
+    return BS_NONE;
+}
+
+/* Helper to be used by the disassembler.  */
+
+const struct arc_opcode *
+arc_find_format (insn_t *insnd, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
+{
+  memset (insnd, 0, sizeof (*insnd));
+  return find_format (insnd, insn, insn_len, isa_mask);
 }
 
 enum arc_opcode_map {
@@ -1494,7 +1546,7 @@ enum arc_opcode_map {
 };
 
 const char
-number_of_ops_semfunc[MAP_LAST] = {
+number_of_ops_semfunc[MAP_LAST + 1] = {
 #define SEMANTIC_FUNCTION(NAME, NOPS, ...) NOPS,
 #define MAPPING(...)
 #include "arc-semfunc_mapping.h"
@@ -1503,8 +1555,8 @@ number_of_ops_semfunc[MAP_LAST] = {
     2
 };
 
-enum arc_opcode_map
-arc_map_opcode (struct arc_opcode *opcode)
+static enum arc_opcode_map
+arc_map_opcode (const struct arc_opcode *opcode)
 {
 #define SEMANTIC_FUNCTION(...)
 #define MAPPING(MNEMONIC, ENUM) \
@@ -1513,21 +1565,16 @@ arc_map_opcode (struct arc_opcode *opcode)
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
-  //if(strstr(opcode->name, "add") != 0)
-  //  return MAP_ADD;
-  //if(strstr(opcode->name, "mov") != 0)
-  //  return MAP_MOV;
   return MAP_NONE;
 }
 
-
-void
-arc_debug_opcode(struct arc_opcode *opcode, const char *msg)
+static void
+arc_debug_opcode(const struct arc_opcode *opcode, const char *msg)
 {
   printf("%s for %s\n", msg, opcode->name);
 }
 
-TCGv
+static TCGv
 arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
 {
   TCGv ret;
@@ -1540,13 +1587,7 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
     {
       int32_t i = operand.value;
       if (operand.type & ARC_OPERAND_LIMM)
-          i = ctx->insn.limm;
-
-      // TODO: Verify this.
-//      if(operand.type & ARC_OPERAND_ALIGNED32)
-//	i <<= 2;
-//      else if(operand.type & ARC_OPERAND_ALIGNED16)
-//	i <<= 1;
+        i = ctx->insn.limm;
 
       ret = tcg_const_local_i32(i);
     }
@@ -1554,89 +1595,29 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
   return ret;
 }
 
-struct arc_opcode *
-arc_find_format (insn_t *insnd, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
-{
-  memset (insnd, 0, sizeof (*insnd));
-  return find_format (insnd, insn, insn_len, isa_mask);
-}
-
-int arc_decodeNew (DisasCtxt *ctx)
+int arc_decode (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
-  uint16_t buffer[2];
-  uint8_t length;
-  uint64_t insn;
-  bool sctlr_b = false;
-  static uint8_t should_stop = false;
+  static bool should_stop = false;
   int ret = BS_NONE;
-  insn_t *pinsn;
+  enum arc_opcode_map mapping;
 
-  memset (&ctx->opt, 0, sizeof (ctx->opt));
-  memset (&ctx->insn, 0, sizeof (ctx->insn));
+  /* Call the disassembler.  */
+  if (!read_and_decode_context (ctx, &opcode))
+    return arc_gen_INVALID (ctx);
 
-  /* Read the first 16 bits, figure it out what kind of instruction it is.  */
-  buffer[0] = cpu_lduw_code(ctx->env, ctx->cpc);
-  if (bswap_code (sctlr_b))
-    buffer[0] = bswap16 (buffer[0]);
-
-  length = arc_insn_length (buffer[0], ctx->env->family);
-
-  switch (length)
+  /* Do the mapping.  */
+  if((mapping = arc_map_opcode (opcode)) != MAP_NONE)
     {
-    case 2:
-      /* 16-bit instructions.  */
-      insn = (uint64_t) buffer[0];
-      break;
-    case 4:
-      /* 32-bit instructions.  */
-      buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
-      uint32_t buf = (buffer[0] << 16) | buffer[1];
-      insn = buf; //ARRANGE_ENDIAN (bswap_code (sctlr_b), (uint32_t) buf);
-      break;
-    default:
-      abort ();
-    }
-
-  pinsn = &ctx->insn;
-  opcode = find_format (pinsn, insn, length, ctx->env->family);
-
-
-
-  if (opcode)
-    {
-      if (ctx->insn.limm_p)
+      TCGv ops[10];
+      int i;
+      for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
         {
-          ctx->insn.limm = ARRANGE_ENDIAN (true,
-                                           cpu_ldl_code (ctx->env,
-                                                         ctx->cpc + length));
-          length += 4;
+          ops[i] = arc2_decode_operand (ctx, i);
         }
-      else
-        ctx->insn.limm = 0;
 
-      ctx->insn.class = (uint32_t) opcode->insn_class;
-    }
-
-  ctx->insn.len = length;
-
-  ctx->npc = ctx->cpc + length;
-  ctx->pcl = ctx->cpc & 0xfffffffc;
-
-  if(opcode)
-    {
-      enum arc_opcode_map mapping;
-      if((mapping = arc_map_opcode(opcode)) != MAP_NONE)
-      {
-	TCGv ops[10];
-	int i;
-	for(i = 0; i < number_of_ops_semfunc[mapping]; i++)
-	  {
-	    ops[i] = arc2_decode_operand (ctx, i);
-	  }
-
-	switch(mapping)
-	  {
+      switch(mapping)
+        {
 #define a ops[0]
 #define b ops[1]
 #define c ops[2]
@@ -1660,30 +1641,16 @@ int arc_decodeNew (DisasCtxt *ctx)
 #include "arc-semfunc_mapping.h"
 #undef SEMANTIC_FUNCTION
 #undef MAPPING
-	    default:
-	      arc_debug_opcode(opcode, "Could not map opcode");
-	      should_stop = true;
-	      break;
-	  }
-	//if(mapping == MAP_ADD)
-	//{
-	//  TCGv a = arc2_decode_operand(ctx, 0);
-	//  TCGv b = arc2_decode_operand(ctx, 1);
-	//  TCGv c = arc2_decode_operand(ctx, 2);
-	//  arc2_gen_ADD(ctx, a, b, c);
-	//}
-	//if(mapping == MAP_MOV)
-	//{
-	//  TCGv a = arc2_decode_operand(ctx, 0);
-	//  TCGv b = arc2_decode_operand(ctx, 1);
-	//  arc2_gen_MOV(ctx, a, b);
-	//}
-      }
-      else
-      {
-	arc_debug_opcode(opcode, "Could not identify opcode");
-	should_stop = true;
-      }
+        default:
+          arc_debug_opcode(opcode, "Could not map opcode");
+          should_stop = true;
+          break;
+        }
+    }
+  else
+    {
+      arc_debug_opcode(opcode, "Could not identify opcode");
+      should_stop = true;
     }
 
 #ifdef DEBUG_TCG

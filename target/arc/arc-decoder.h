@@ -346,7 +346,7 @@ struct arc_flag_special
 extern const struct arc_flag_special arc_flag_special_cases[];
 extern const unsigned arc_num_flag_special;
 
-struct arc_opcode *arc_find_format (insn_t*, uint64_t, uint8_t, uint32_t);
+const struct arc_opcode *arc_find_format (insn_t*, uint64_t, uint8_t, uint32_t);
 unsigned int arc_insn_length (uint16_t, uint16_t);
 
 #ifdef __cplusplus

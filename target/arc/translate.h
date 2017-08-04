@@ -156,17 +156,6 @@ enum {
 
 typedef struct DisasCtxt DisasCtxt;
 
-/*This is the state at translation time.  */
-typedef struct options_s {
-    bool di;        /*  direct data cache bypass   */
-    bool f;         /*  set flags      */
-    bool d;         /*  delay slot mode*/
-    bool x;         /*  sign extend    */
-    bool limm;
-    uint8_t aa;     /*  address writeback   */
-    uint8_t zz;     /*  data size       */
-} options_t;
-
 struct DisasCtxt {
     struct TranslationBlock    *tb;
 
@@ -180,14 +169,7 @@ struct DisasCtxt {
 
     TCGv one;       /*  0x00000000      */
     TCGv zero;      /*  0x00000000      */
-    TCGv msb32;     /*  0x80000000      */
-    TCGv msb16;     /*  0x00008000      */
-    TCGv smax16;    /*  0x7fffffff      */
-    TCGv smax32;    /*  0x00007fff      */
-    TCGv smax5;     /*  0x0000001f      */
-    TCGv smin5;     /*  0xffffffe1      */
 
-    options_t opt;
     insn_t insn;
 
     int memidx;
@@ -198,8 +180,6 @@ struct DisasCtxt {
 };
 
 int arc_decode(DisasCtxt *ctx);
-int arc_decodeNew(DisasCtxt *ctx);
-int arc_gen_INVALID(DisasCtxt *ctx);
 
 static inline void  gen_goto_tb(CPUARCState *env, DisasCtxt *ctx,
                         int n, target_ulong dest)
@@ -220,6 +200,5 @@ static inline void  gen_goto_tb(CPUARCState *env, DisasCtxt *ctx,
         tcg_gen_exit_tb(0);
     }
 }
-
 
 #endif

@@ -253,12 +253,6 @@ void arc_translate_init(void)
     init_not_done = 0;
 }
 
-int arc_gen_INVALID(DisasCtxt *ctx)
-{
-    printf("invalid inst @:%08x\n", ctx->cpc);
-    return BS_NONE;
-}
-
 void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
 {
     ARCCPU *cpu = arc_env_get_cpu(env);
@@ -287,12 +281,6 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
 
     ctx.zero = tcg_const_local_i32(0);
     ctx.one = tcg_const_local_i32(1);
-    ctx.msb32 = tcg_const_local_i32(0x80000000);
-    ctx.msb16 = tcg_const_local_i32(0x00008000);
-    ctx.smax16 = tcg_const_local_i32(0x7fffffff);
-    ctx.smax32 = tcg_const_local_i32(0x00007fff);
-    ctx.smax5 = tcg_const_local_i32(0x0000001f);
-    ctx.smin5 = tcg_const_local_i32(0xffffffe1);
 
     ctx.npc = pc_start;
     ctx.env = env;
@@ -313,7 +301,7 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
             goto done_generating;
           }
 
-        ctx.bstate = arc_decodeNew(&ctx);
+        ctx.bstate = arc_decode (&ctx);
 
 	/* Hardware loop control code */
         if (ctx.npc == env->lpe)
@@ -328,7 +316,7 @@ void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
 
             tcg_gen_mov_tl(cpu_pc, cpu_lps);
 
-gen_set_label(label_next);
+            gen_set_label(label_next);
 
             ctx.bstate = BS_BRANCH;
 	  }
@@ -388,12 +376,6 @@ gen_set_label(label_next);
 done_generating:
     tcg_temp_free_i32(ctx.one);
     tcg_temp_free_i32(ctx.zero);
-    tcg_temp_free_i32(ctx.msb32);
-    tcg_temp_free_i32(ctx.msb16);
-    tcg_temp_free_i32(ctx.smax16);
-    tcg_temp_free_i32(ctx.smax32);
-    tcg_temp_free_i32(ctx.smax5);
-    tcg_temp_free_i32(ctx.smin5);
 
     gen_tb_end(tb, num_insns);
 
