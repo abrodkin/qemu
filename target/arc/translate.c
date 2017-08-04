@@ -253,10 +253,9 @@ void arc_translate_init(void)
     init_not_done = 0;
 }
 
-void gen_intermediate_code(CPUARCState *env, struct TranslationBlock *tb)
+void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
+    CPUARCState *env = cs->env_ptr;
     DisasCtxt ctx;
     target_ulong pc_start;
     int num_insns;
