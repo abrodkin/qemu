@@ -51,7 +51,6 @@ static void sample_init(MachineState *machine)
 
     memory_region_init_ram(ram, NULL, "ram", SIZE_RAM, &error_fatal);
     memory_region_add_subregion(get_system_memory(), PHYS_BASE_RAM, ram);
-    vmstate_register_ram_global(ram);
 
     char const *firmware = NULL;
     char const *filename;
