@@ -351,33 +351,45 @@ arc2_gen_should_execute_delayslot(DisasCtxt *ctx)
 }
 #define shouldExecuteDelaySlot() arc2_gen_should_execute_delayslot(ctx)
 
-void arc2_gen_getNFlag(TCGv elem)
+static void arc2_gen_setNFlag(TCGv elem)
 {
   // TODO: Check type of elem and set sign bit accordingly.
   tcg_gen_shri_tl(cpu_Nf, elem, 31);
 }
-#define setNFlag(ELEM) arc2_gen_getNFlag(ELEM)
+#define setNFlag(ELEM) arc2_gen_setNFlag(ELEM)
+static TCGv arc2_gen_getNFlag()
+{
+  return cpu_Nf;
+}
+#define getNFlag() arc2_gen_getNFlag()
 
-void arc2_gen_getCFlag(TCGv elem)
+static void arc2_gen_getCFlag(TCGv elem)
 {
   // TODO: Check type of elem and set sign bit accordingly.
   tcg_gen_mov_tl(cpu_Cf, elem);
 }
-#define setCFlag(ELEM) arc2_gen_getNFlag(ELEM)
+#define setCFlag(ELEM) arc2_gen_getCFlag(ELEM)
 
-void
+static void arc2_gen_getVFlag(TCGv elem)
+{
+  // TODO: Check type of elem and set sign bit accordingly.
+  tcg_gen_mov_tl(cpu_Vf, elem);
+}
+#define setVFlag(ELEM) arc2_gen_getVFlag(ELEM)
+
+static void
 setZFlag(int32_t elem)
 {
   tcg_gen_movi_tl(cpu_Zf, elem);
 }
 
-int
+static int
 arc2_get_tcgv_value(TCGv elem)
 {
   return GET_TCGV_I32(elem);
 }
 
-TCGv
+static TCGv
 arc2_get_pc(DisasCtxt *ctx)
 {
   return cpu_pc;
@@ -387,7 +399,7 @@ arc2_get_pc(DisasCtxt *ctx)
 }
 #define getPC() arc2_get_pc(ctx)
 
-TCGv
+static TCGv
 arc2_gen_get_pcl(DisasCtxt *ctx)
 {
   TCGv ret = tcg_temp_new_i32();
@@ -396,7 +408,7 @@ arc2_gen_get_pcl(DisasCtxt *ctx)
 }
 #define getPCL() arc2_gen_get_pcl(ctx)
 
-void
+static void
 arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
 {
   tcg_gen_mov_i32(cpu_pc, new_pc);
@@ -405,6 +417,102 @@ arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
   arc2_set_pc(ctx, NEW_PC); \
   ret = ret == BS_NONE ? BS_BRANCH : ret
 
+static TCGv
+arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
+{
+    TCGv t1 = tcg_temp_new_i32();
+    TCGv t2 = tcg_temp_new_i32();
+    TCGv t3 = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_new_i32();
+
+    tcg_gen_and_tl(t1, src1, src2); /*  t1 = src1 & src2                    */
+    tcg_gen_andc_tl(t2, src1, dest);/*  t2 = src1 & ~dest                   */
+    tcg_gen_andc_tl(t3, src2, dest);/*  t3 = src2 & ~dest                   */
+    tcg_gen_or_tl(t1, t1, t2);      /*  t1 = t1 | t2 | t3                   */
+    tcg_gen_or_tl(t1, t1, t3);
+
+    tcg_gen_shri_tl(ret, t1, 31);/*  Cf = t1(31)                         */
+
+    tcg_temp_free_i32(t3);
+    tcg_temp_free_i32(t2);
+    tcg_temp_free_i32(t1);
+
+    return ret;
+}
+#define CarryADD(A, B, C) arc2_gen_add_Cf(A, B, C)
+
+static TCGv arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
+{
+    TCGv t1 = tcg_temp_new_i32();
+    TCGv t2 = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_new_i32();
+
+    /*
+
+    src1 & src2 & ~dest | ~src1 & ~src2 & dest = (src1 ^ dest) & ~(src1 ^ src2)
+
+    */
+    tcg_gen_xor_tl(t1, src1, dest); /*  t1 = src1 ^ dest                    */
+    tcg_gen_xor_tl(t2, src1, src2); /*  t2 = src1 ^ src2                    */
+    tcg_gen_andc_tl(t1, t1, t2);    /*  t1 = (src1 ^ src2) & ~(src1 ^ src2) */
+
+    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31)                         */
+
+    tcg_temp_free_i32(t2);
+    tcg_temp_free_i32(t1);
+
+    return ret;
+}
+#define OverflowADD(A, B, C) arc2_gen_add_Vf(A, B, C)
+
+static TCGv arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
+{
+    TCGv t1 = tcg_temp_new_i32();
+    TCGv t2 = tcg_temp_new_i32();
+    TCGv t3 = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_new_i32();
+
+    tcg_gen_not_tl(t1, src1);       /*  t1 = ~src1                          */
+    tcg_gen_and_tl(t2, t1, src2);   /*  t2 = ~src1 & src2                   */
+    tcg_gen_or_tl(t3, t1, src2);    /*  t3 = (~src1 | src2) & dest          */
+    tcg_gen_and_tl(t3, t3, dest);
+    tcg_gen_or_tl(t2, t2, t3);      /*  t2 = ~src1 & src2
+                                           | ~src1 & dest
+                                           | dest & src2                    */
+    tcg_gen_shri_tl(ret, t2, 31);/*  Cf = t2(31)                         */
+
+    tcg_temp_free_i32(t3);
+    tcg_temp_free_i32(t2);
+    tcg_temp_free_i32(t1);
+
+    return ret;
+}
+#define CarrySUB(A, B, C) arc2_gen_sub_Cf(A, B, C)
+
+static TCGv
+arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
+{
+    TCGv t1 = tcg_temp_new_i32();
+    TCGv t2 = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_new_i32();
+
+    /*
+        t1 = src1 & ~src2 & ~dest
+           | ~src1 & src2 & dest
+           = (src1 ^ dest) & (src1 ^ dest)*/
+    tcg_gen_xor_tl(t1, src1, dest);
+    tcg_gen_xor_tl(t2, src1, src2);
+    tcg_gen_and_tl(t1, t1, t2);
+    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31) */
+
+    tcg_temp_free_i32(t2);
+    tcg_temp_free_i32(t1);
+
+    return ret;
+}
+#define OverflowSUB(A, B, C) arc2_gen_sub_Vf(A, B, C)
+
+#define Zero() (ctx->zero)
 
 #undef true
 #undef false
