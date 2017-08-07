@@ -378,10 +378,11 @@ static void arc2_gen_getVFlag(TCGv elem)
 #define setVFlag(ELEM) arc2_gen_getVFlag(ELEM)
 
 static void
-setZFlag(int32_t elem)
+arc2_gen_set_zflag(int32_t elem)
 {
   tcg_gen_movi_tl(cpu_Zf, elem);
 }
+#define setZFlag(ELEM) arc2_gen_set_zflag (ELEM)
 
 static int
 arc2_get_tcgv_value(TCGv elem)
@@ -398,6 +399,30 @@ arc2_get_pc(DisasCtxt *ctx)
   //return ret;
 }
 #define getPC() arc2_get_pc(ctx)
+
+
+
+static TCGv
+arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_mov_tl(ret, ctx->dpc);
+  return ret;
+}
+#define nextInsnAddressAfterDelaySlot() arc2_get_next_insn_address_after_delayslot (ctx)
+
+static TCGv
+arc2_get_next_insn_address(DisasCtxt *ctx)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_mov_tl(ret, ctx->npc);
+  return ret;
+}
+#define nextInsnAddress() arc2_get_next_insn_address (ctx)
+
+
+
+
 
 static TCGv
 arc2_gen_get_pcl(DisasCtxt *ctx)
@@ -416,6 +441,13 @@ arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
 #define setPC(NEW_PC) \
   arc2_set_pc(ctx, NEW_PC); \
   ret = ret == BS_NONE ? BS_BRANCH : ret
+
+static void
+arc2_set_blink(DisasCtxt *ctx, TCGv blink_addr)
+{
+  tcg_gen_mov_i32(cpu_blink, blink_addr);
+}
+#define setBLINK(BLINK_ADDR) arc2_set_blink(ctx, BLINK_ADDR);
 
 static TCGv
 arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
