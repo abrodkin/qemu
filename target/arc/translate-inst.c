@@ -544,6 +544,24 @@ arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
 }
 #define OverflowSUB(A, B, C) arc2_gen_sub_Vf(A, B, C)
 
+static TCGv
+arc2_gen_unsigned_LT(TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_LTU, ret, b, c);
+  return ret;
+}
+#define unsignedLT(B, C) arc2_gen_unsigned_LT (B, C)
+
+static TCGv
+arc2_gen_unsigned_GE(TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_GEU, ret, b, c);
+  return ret;
+}
+#define unsignedGE(B, C) arc2_gen_unsigned_GE (B, c)
+
 #define Zero() (ctx->zero)
 
 #undef true

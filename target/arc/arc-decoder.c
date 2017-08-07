@@ -1618,25 +1618,18 @@ int arc_decode (DisasCtxt *ctx)
 
       switch(mapping)
         {
-#define a ops[0]
-#define b ops[1]
-#define c ops[2]
-#define d ops[3]
 
-// B
-#define rd ops[0]
-// ABS
-#define src ops[0]
-#define dest ops[1]
-// LD
-#define dest ops[0]
-#define src1 ops[1]
-#define src2 ops[2]
+#define SEMANTIC_FUNCTION_CALL_1(NAME) \
+  arc2_gen_##NAME (ctx, ops[0]);
+#define SEMANTIC_FUNCTION_CALL_2(NAME) \
+  arc2_gen_##NAME (ctx, ops[0], ops[1]);
+#define SEMANTIC_FUNCTION_CALL_3(NAME) \
+  arc2_gen_##NAME (ctx, ops[0], ops[1], ops[2]);
 
 #define MAPPING(...)
 #define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
 	    case MAP_##NAME: \
-	      ret = arc2_gen_##NAME (ctx, __VA_ARGS__); \
+	      ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME); \
 	      break;
 #include "arc-semfunc_mapping.h"
 #undef SEMANTIC_FUNCTION

@@ -1075,6 +1075,176 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 
 
 
+/* BREQ
+ *    Variables: @b, @c, @offset
+ *    Functions: setPC, getPCL
+ */
+
+int
+arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_165 = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_165, b, c);
+  TCGv temp_166 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_166, temp_165, 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_166, true, done_1);;
+  TCGv temp_168 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_168, getPCL());
+  TCGv temp_167 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_167, temp_168, offset);
+  setPC(temp_167);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRNE
+ *    Variables: @b, @c, @offset
+ *    Functions: setPC, getPCL
+ */
+
+int
+arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_169 = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_NE, temp_169, b, c);
+  TCGv temp_170 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_170, temp_169, 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_170, true, done_1);;
+  TCGv temp_172 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_172, getPCL());
+  TCGv temp_171 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_171, temp_172, offset);
+  setPC(temp_171);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRLT
+ *    Variables: @b, @c, @offset
+ *    Functions: setPC, getPCL
+ */
+
+int
+arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_173 = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_LT, temp_173, b, c);
+  TCGv temp_174 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_174, temp_173, 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_174, true, done_1);;
+  TCGv temp_176 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_176, getPCL());
+  TCGv temp_175 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_175, temp_176, offset);
+  setPC(temp_175);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRGE
+ *    Variables: @b, @c, @offset
+ *    Functions: setPC, getPCL
+ */
+
+int
+arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_177 = tcg_temp_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_GE, temp_177, b, c);
+  TCGv temp_178 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_178, temp_177, 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_178, true, done_1);;
+  TCGv temp_180 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_180, getPCL());
+  TCGv temp_179 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_179, temp_180, offset);
+  setPC(temp_179);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRLO
+ *    Variables: @b, @c, @offset
+ *    Functions: unsignedLT, setPC, getPCL
+ */
+
+int
+arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_181 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_181, unsignedLT(b, c), 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_181, true, done_1);;
+  TCGv temp_183 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_183, getPCL());
+  TCGv temp_182 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_182, temp_183, offset);
+  setPC(temp_182);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRHS
+ *    Variables: @b, @c, @offset
+ *    Functions: unsignedGE, setPC, getPCL
+ */
+
+int
+arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_184 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_184, unsignedGE(b, c), 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_184, true, done_1);;
+  TCGv temp_186 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_186, getPCL());
+  TCGv temp_185 = tcg_temp_new_i32();
+  tcg_gen_add_i32(temp_185, temp_186, offset);
+  setPC(temp_185);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
 /* LD
  *    Variables: @src1, @src2, @dest
  *    Functions: getAAFlag, getZZFlag, setDebugLD, getMemory, getFlagX, SignExtend, NoFurtherLoadsPending
@@ -1102,16 +1272,16 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     }
   if (((AA == 3) && (ZZ == 0)))
     {
-    TCGv temp_166 = tcg_temp_new_i32();
-  tcg_gen_shli_i32(temp_166, src2, 2);
-  tcg_gen_add_i32(address, src1, temp_166);
+    TCGv temp_188 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_188, src2, 2);
+  tcg_gen_add_i32(address, src1, temp_188);
 ;
     }
   if (((AA == 3) && (ZZ == 2)))
     {
-    TCGv temp_167 = tcg_temp_new_i32();
-  tcg_gen_shli_i32(temp_167, src2, 1);
-  tcg_gen_add_i32(address, src1, temp_167);
+    TCGv temp_189 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_189, src2, 1);
+  tcg_gen_add_i32(address, src1, temp_189);
 ;
     }
   if (((AA == 1) || (AA == 2)))
@@ -1127,9 +1297,9 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 ;
     }
   TCGLabel *done_1 = gen_new_label();
-  TCGv temp_165 = tcg_temp_new_i32();
-  tcg_gen_xori_i32(temp_165, NoFurtherLoadsPending(), 1);
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_165, true, done_1);;
+  TCGv temp_187 = tcg_temp_new_i32();
+  tcg_gen_xori_i32(temp_187, NoFurtherLoadsPending(), 1);
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_187, true, done_1);;
   setDebugLD(0);
   gen_set_label(done_1);
 
@@ -1167,16 +1337,16 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     }
   if (((AA == 3) && (ZZ == 0)))
     {
-    TCGv temp_168 = tcg_temp_new_i32();
-  tcg_gen_shli_i32(temp_168, src2, 2);
-  tcg_gen_add_i32(address, src1, temp_168);
+    TCGv temp_190 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_190, src2, 2);
+  tcg_gen_add_i32(address, src1, temp_190);
 ;
     }
   if (((AA == 3) && (ZZ == 2)))
     {
-    TCGv temp_169 = tcg_temp_new_i32();
-  tcg_gen_shli_i32(temp_169, src2, 1);
-  tcg_gen_add_i32(address, src1, temp_169);
+    TCGv temp_191 = tcg_temp_new_i32();
+  tcg_gen_shli_i32(temp_191, src2, 1);
+  tcg_gen_add_i32(address, src1, temp_191);
 ;
     }
   setMemory(address, ZZ, dest);
