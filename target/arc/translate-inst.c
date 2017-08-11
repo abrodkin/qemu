@@ -562,6 +562,48 @@ arc2_gen_unsigned_GE(TCGv b, TCGv c)
 }
 #define unsignedGE(B, C) arc2_gen_unsigned_GE (B, c)
 
+static TCGv
+arc2_gen_logical_shift_right (TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_sar_i32 (ret, b, c);
+  return ret;
+}
+#define logicalShiftRight(B, C) \
+  arc2_gen_logical_shift_right (B, C)
+
+static TCGv
+arc2_gen_logical_shift_left (TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_shl_i32 (ret, b, c);
+  return ret;
+}
+#define logicalShiftLeft(B, C) \
+  arc2_gen_logical_shift_left (B, C)
+
+static TCGv
+arc2_gen_get_bit (TCGv a, TCGv pos)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_rotl_i32 (ret, a, pos);
+  tcg_gen_andi_tl(ret, ret, 1);
+  return ret;
+}
+#define getBit(A, POS) \
+  arc2_gen_get_bit(A, POS)
+
+
+static void
+tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
+{
+  TCGv tmp = tcg_temp_new_i32();
+  tcg_gen_movi_i32 (tmp, b);
+  tcg_gen_shl_i32 (a, tmp, c);
+  tcg_temp_free (tmp);
+}
+
+
 #define Zero() (ctx->zero)
 
 #undef true
