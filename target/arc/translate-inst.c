@@ -594,6 +594,26 @@ arc2_gen_get_bit (TCGv a, TCGv pos)
   arc2_gen_get_bit(A, POS)
 
 
+static TCGv
+arc2_gen_read_aux_reg (TCGv a)
+{
+  TCGv ret = tcg_temp_new_i32();
+  gen_helper_lr(ret, cpu_env, a);
+  return ret;
+}
+#define readAuxReg(A) \
+  arc2_gen_read_aux_reg(A)
+
+static void
+arc2_gen_write_aux_reg (TCGv a, TCGv b)
+{
+  TCGv ret = tcg_temp_new_i32();
+  gen_helper_sr(a, b);
+}
+#define writeAuxReg(A, B) \
+  arc2_gen_write_aux_reg(A, B)
+
+
 static void
 tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
 {
@@ -602,6 +622,28 @@ tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
   tcg_gen_shl_i32 (a, tmp, c);
   tcg_temp_free (tmp);
 }
+
+
+static TCGv
+arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
+{
+  TCGv ret = tcg_temp_new_i32();
+
+  TCGv tmp1 = tcg_temp_new_i32();
+
+  tcg_gen_shr_i32 (ret, a, end);
+
+  tcg_gen_sub_i32 (tmp1, start, end);
+  tcg_gen_shlfi_i32 (tmp1, 1, tmp1);
+  tcg_gen_subi_i32 (tmp1, tmp1, 1);
+
+  tcg_gen_and_i32 (ret, ret, tmp1);
+
+  tcg_temp_free (tmp1);
+  return ret;
+}
+#define extractBits(ELEM, START, END) \
+  arc2_gen_extract_bits(ELEM, START, END)
 
 
 #define Zero() (ctx->zero)
