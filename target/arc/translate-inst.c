@@ -646,6 +646,36 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
   arc2_gen_extract_bits(ELEM, START, END)
 
 
+enum arc_registers {
+  SP = 0,
+};
+
+static TCGv
+arc2_gen_get_register(enum arc_registers reg)
+{
+  switch(reg)
+  {
+    case SP:
+      return cpu_sp;
+      break;
+  }
+}
+#define getRegister(REG) \
+  arc2_gen_get_register(REG)
+
+static void
+arc2_gen_set_register(enum arc_registers reg, TCGv value)
+{
+  switch(reg)
+  {
+    case SP:
+      tcg_gen_mov_i32 (cpu_sp, value);
+      break;
+  }
+}
+#define setRegister(REG, VALUE) \
+  arc2_gen_set_register(REG, VALUE)
+
 #define Zero() (ctx->zero)
 
 #undef true
