@@ -70,8 +70,8 @@ static void arc_cpu_reset(CPUState *s)
 
   memset(env->r, 0, sizeof(env->r));
   // memset(env, 0, offsetof(CPUARCState, end_reset_fields));
-  env->pc = 0x100;   /* TODO: this is just for testing */
-  CPU_PCL(env) = 0x100;   /* TODO: this is just for testing */
+//  env->pc = 0x100;   /* TODO: this is just for testing */
+//  CPU_PCL(env) = 0x100;   /* TODO: this is just for testing */
 
   tlb_flush(s);
 }
