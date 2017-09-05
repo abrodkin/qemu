@@ -36,6 +36,8 @@
 #include "exec/helper-gen.h"
 #include "exec/log.h"
 
+#include "aux-reg.h"
+
 extern TCGv_env cpu_env;
 
 extern TCGv     cpu_gp;
@@ -143,6 +145,8 @@ extern TCGv     cpu_debug_IS;
 extern TCGv     cpu_debug_FH;
 extern TCGv     cpu_debug_SS;
 
+//extern TCGv	cpu_aux_regs[AUX_REG_SIZE];
+
 enum {
     BS_NONE      = 0x00,     /*  Nothing special (none of the below          */
     BS_STOP      = 0x01,     /*  We want to stop translation for any reason  */
@@ -150,6 +154,7 @@ enum {
     BS_BRANCH_DS = 0x03,     /*  A branch condition is reached               */
     BS_EXCP      = 0x04,     /*  An exception condition is reached           */
     BS_BREAK     = 0x05,
+    BS_BRANCH_HW_LOOP,	     /*  A branch condition in LP_END for hardware loops  */
 };
 
 #define BS_DELAYED_SLOT(n)  ((n) ? BS_BRANCH_DS : BS_BRANCH)
@@ -164,6 +169,7 @@ struct DisasCtxt {
     uint32_t dpc;   /*  next next pc    */
     uint32_t pcl;
     uint32_t lpe;
+    uint32_t lps;
 
     unsigned ds;    /*  we are within ds*/
 

@@ -111,6 +111,7 @@ TCGv     cpu_bta_l2;
 
 TCGv     cpu_pc;
 TCGv     cpu_lpc;
+// replaced by AUX_REG array
 TCGv     cpu_lps;
 TCGv     cpu_lpe;
 
@@ -224,7 +225,7 @@ void arc_translate_init(void)
 
         sprintf(name, "r[%d]", i);
 
-        cpu_r[i] = tcg_global_mem_new_i32(cpu_env, ARC_REG_OFFS(r[i]), name);
+        cpu_r[i] = tcg_global_mem_new_i32(cpu_env, ARC_REG_OFFS(r[i]), strdup(name));
     }
 
     cpu_gp = cpu_r[26];
@@ -303,21 +304,19 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
         ctx.bstate = arc_decode (&ctx);
 
 	/* Hardware loop control code */
-        if (ctx.npc == env->lpe)
+	if (ctx.npc == env->lpe)
 	  {
             TCGLabel *label_next = gen_new_label();
-
+            TCGLabel *label_done = gen_new_label();
             tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-
-            tcg_gen_movi_tl(cpu_pc,  ctx.npc);
-
-            tcg_gen_brcondi_tl(TCG_COND_EQ, cpu_lpc, 0, label_next);
-
-            tcg_gen_mov_tl(cpu_pc, cpu_lps);
-
+            tcg_gen_brcondi_i32(TCG_COND_NEVER, cpu_lpc, 0, label_next);
+	    tcg_gen_mov_i32(cpu_pc, cpu_lps);
+	    tcg_gen_br(label_done);
             gen_set_label(label_next);
+            tcg_gen_movi_i32(cpu_pc, ctx.npc);
+            gen_set_label(label_done);
 
-            ctx.bstate = BS_BRANCH;
+            ctx.bstate = BS_BRANCH_HW_LOOP;
 	  }
 
         if (num_insns >= max_insns)
@@ -364,6 +363,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	      tcg_gen_exit_tb(0);
 	    }
 	    break;
+	case BS_BRANCH_HW_LOOP:
         case BS_EXCP:
             tcg_gen_exit_tb(0);
             break;

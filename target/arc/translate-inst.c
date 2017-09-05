@@ -378,9 +378,9 @@ static void arc2_gen_getVFlag(TCGv elem)
 #define setVFlag(ELEM) arc2_gen_getVFlag(ELEM)
 
 static void
-arc2_gen_set_zflag(int32_t elem)
+arc2_gen_set_zflag(TCGv elem)
 {
-  tcg_gen_movi_tl(cpu_Zf, elem);
+  tcg_gen_mov_tl(cpu_Zf, elem);
 }
 #define setZFlag(ELEM) arc2_gen_set_zflag (ELEM)
 
@@ -406,7 +406,7 @@ static TCGv
 arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
 {
   TCGv ret = tcg_temp_new_i32();
-  tcg_gen_mov_tl(ret, ctx->dpc);
+  tcg_gen_movi_tl(ret, ctx->dpc);
   return ret;
 }
 #define nextInsnAddressAfterDelaySlot() arc2_get_next_insn_address_after_delayslot (ctx)
@@ -415,7 +415,7 @@ static TCGv
 arc2_get_next_insn_address(DisasCtxt *ctx)
 {
   TCGv ret = tcg_temp_new_i32();
-  tcg_gen_mov_tl(ret, ctx->npc);
+  tcg_gen_movi_tl(ret, ctx->npc);
   return ret;
 }
 #define nextInsnAddress() arc2_get_next_insn_address (ctx)
@@ -595,23 +595,23 @@ arc2_gen_get_bit (TCGv a, TCGv pos)
 
 
 static TCGv
-arc2_gen_read_aux_reg (TCGv a)
+arc2_gen_read_aux_reg (int reg)
 {
   TCGv ret = tcg_temp_new_i32();
-  gen_helper_lr(ret, cpu_env, a);
+  gen_helper_lr(ret, cpu_env, reg);
   return ret;
 }
 #define readAuxReg(A) \
   arc2_gen_read_aux_reg(A)
 
 static void
-arc2_gen_write_aux_reg (TCGv a, TCGv b)
+arc2_gen_write_aux_reg (int reg, TCGv b)
 {
   TCGv ret = tcg_temp_new_i32();
-  gen_helper_sr(a, b);
+  gen_helper_sr(b, reg);
 }
-#define writeAuxReg(A, B) \
-  arc2_gen_write_aux_reg(A, B)
+#define writeAuxReg(NAME, B) \
+  arc2_gen_write_aux_reg(NAME, B)
 
 
 static void

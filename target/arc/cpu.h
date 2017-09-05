@@ -24,6 +24,7 @@
 #include "qemu-common.h"
 #include "cpu-qom.h"
 #include "arc-common.h"
+//#include "aux-reg.h"
 
 #define TARGET_LONG_BITS            32
 
@@ -113,6 +114,9 @@ typedef struct CPUARCState {
     uint32_t    FH;     /*  force halt              */
     uint32_t    SS;     /*  single step             */
   } debug;
+
+//  uint32_t aux_regs[AUX_REG_SIZE];
+
   bool            stopped;
 
   /* Fields up to this point are cleared by a CPU reset */

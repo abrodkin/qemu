@@ -1535,9 +1535,9 @@ arc_find_format (insn_t *insnd, uint64_t insn, uint8_t insn_len, uint32_t isa_ma
 
 enum arc_opcode_map {
   MAP_NONE = -1,
-#define MAPPING(...)
-#define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
-  MAP_##NAME,
+#define SEMANTIC_FUNCTION(...)
+#define MAPPING(MNEMONIC, NAME, NOPS, ...) \
+  MAP_##MNEMONIC##_##NAME,
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
@@ -1547,8 +1547,8 @@ enum arc_opcode_map {
 
 const char
 number_of_ops_semfunc[MAP_LAST + 1] = {
-#define SEMANTIC_FUNCTION(NAME, NOPS, ...) NOPS,
-#define MAPPING(...)
+#define SEMANTIC_FUNCTION(...)
+#define MAPPING(MNEMONIC, NAME, NOPS, ...) NOPS,
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
@@ -1559,9 +1559,9 @@ static enum arc_opcode_map
 arc_map_opcode (const struct arc_opcode *opcode)
 {
 #define SEMANTIC_FUNCTION(...)
-#define MAPPING(MNEMONIC, ENUM) \
+#define MAPPING(MNEMONIC, NAME, ...) \
   if(strcmp(opcode->name, #MNEMONIC) == 0) \
-    return MAP_##ENUM;
+    return MAP_##MNEMONIC##_##NAME;
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
@@ -1616,24 +1616,34 @@ int arc_decode (DisasCtxt *ctx)
           ops[i] = arc2_decode_operand (ctx, i);
         }
 
+      /* Store some elements statically to implement less dynamic features of instructions.
+       * Started by the need to keep a static reference to LP_START and LP_END.  */
+      switch(mapping) {
+	case MAP_lp_LP:
+	  ctx->env->lps = ctx->npc;
+	  ctx->env->lpe = ctx->pcl + ctx->insn.operands[0].value;
+	default:
+	  break;
+      }
+
       switch(mapping)
         {
 
-#define SEMANTIC_FUNCTION_CALL_1(NAME) \
-  arc2_gen_##NAME (ctx, ops[0]);
-#define SEMANTIC_FUNCTION_CALL_2(NAME) \
-  arc2_gen_##NAME (ctx, ops[0], ops[1]);
-#define SEMANTIC_FUNCTION_CALL_3(NAME) \
-  arc2_gen_##NAME (ctx, ops[0], ops[1], ops[2]);
+#define SEMANTIC_FUNCTION_CALL_1(NAME, A) \
+  arc2_gen_##NAME (ctx, ops[A]);
+#define SEMANTIC_FUNCTION_CALL_2(NAME, A, B) \
+  arc2_gen_##NAME (ctx, ops[A], ops[B]);
+#define SEMANTIC_FUNCTION_CALL_3(NAME, A, B, C) \
+  arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C]);
 
-#define MAPPING(...)
-#define SEMANTIC_FUNCTION(NAME, NOPS, ...) \
-	    case MAP_##NAME: \
-	      ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME); \
+#define SEMANTIC_FUNCTION(...)
+#define MAPPING(MNEMONIC, NAME, NOPS, ...) \
+	    case MAP_##MNEMONIC##_##NAME: \
+	      ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME, __VA_ARGS__); \
 	      break;
 #include "arc-semfunc_mapping.h"
-#undef SEMANTIC_FUNCTION
 #undef MAPPING
+#undef SEMANTIC_FUNCTION
         default:
           arc_debug_opcode(opcode, "Could not map opcode");
           should_stop = true;
