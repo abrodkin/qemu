@@ -309,7 +309,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
             TCGLabel *label_next = gen_new_label();
             TCGLabel *label_done = gen_new_label();
             tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-            tcg_gen_brcondi_i32(TCG_COND_NEVER, cpu_lpc, 0, label_next);
+            tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label_next);
 	    tcg_gen_mov_i32(cpu_pc, cpu_lps);
 	    tcg_gen_br(label_done);
             gen_set_label(label_next);

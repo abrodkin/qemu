@@ -1513,6 +1513,7 @@ read_and_decode_context (DisasCtxt *ctx,
   /* Update context.  */
   ctx->insn.len = length;
   ctx->npc = ctx->cpc + length;
+  ctx->dpc = ctx->npc;
   ctx->pcl = ctx->cpc & 0xfffffffc;
 
   return true;
@@ -1569,9 +1570,9 @@ arc_map_opcode (const struct arc_opcode *opcode)
 }
 
 static void
-arc_debug_opcode(const struct arc_opcode *opcode, const char *msg)
+arc_debug_opcode(const struct arc_opcode *opcode, DisasCtxt *ctx, const char *msg)
 {
-  printf("%s for %s\n", msg, opcode->name);
+  printf("%s for %s at 0x%08x\n", msg, opcode->name, ctx->cpc);
 }
 
 static TCGv
@@ -1645,14 +1646,14 @@ int arc_decode (DisasCtxt *ctx)
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
         default:
-          arc_debug_opcode(opcode, "Could not map opcode");
+          arc_debug_opcode(opcode, ctx, "Could not map opcode");
           should_stop = true;
           break;
         }
     }
   else
     {
-      arc_debug_opcode(opcode, "Could not identify opcode");
+      arc_debug_opcode(opcode, ctx, "Could not identify opcode");
       should_stop = true;
     }
 

@@ -2746,6 +2746,10 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
     executeDelaySlot();
 ;
     }
+  else
+    {
+  ;
+    }
   TCGv temp_4 = tcg_temp_new_i32();
   tcg_gen_mov_i32(temp_4, getPCL());
   TCGv temp_3 = tcg_temp_new_i32();
@@ -2820,6 +2824,10 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
     executeDelaySlot();
 ;
     }
+  else
+    {
+  ;
+    }
   TCGv temp_7 = tcg_temp_new_i32();
   tcg_gen_mov_i32(temp_7, getPCL());
   TCGv temp_6 = tcg_temp_new_i32();
@@ -2865,6 +2873,10 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
     executeDelaySlot();
 ;
     }
+  else
+    {
+  ;
+    }
   TCGv temp_7 = tcg_temp_new_i32();
   tcg_gen_mov_i32(temp_7, getPCL());
   TCGv temp_6 = tcg_temp_new_i32();
@@ -2882,7 +2894,7 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 
 /* BL
  *    Variables: @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, executeDelaySlot, nextInsnAddress, setPC, getPCL
+ *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC, getPCL
  */
 
 int
@@ -2897,10 +2909,17 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    TCGv temp_3 = tcg_temp_new_i32();
+    executeDelaySlot();
+  TCGv temp_3 = tcg_temp_new_i32();
   tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
   setBLINK(temp_3);
-  executeDelaySlot();
+;
+    }
+  else
+    {
+    TCGv temp_4 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_4, nextInsnAddress());
+  setBLINK(temp_4);
 ;
     }
   TCGv temp_6 = tcg_temp_new_i32();
@@ -2937,6 +2956,10 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
     executeDelaySlot();
 ;
     }
+  else
+    {
+  ;
+    }
   setPC(src);
   gen_set_label(done_1);
 
@@ -2949,7 +2972,7 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
 
 /* JL
  *    Variables: @src
- *    Functions: getCCFlag, shouldExecuteDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, executeDelaySlot, nextInsnAddress, setPC
+ *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC
  */
 
 int
@@ -2964,10 +2987,17 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    TCGv temp_3 = tcg_temp_new_i32();
+    executeDelaySlot();
+  TCGv temp_3 = tcg_temp_new_i32();
   tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
   setBLINK(temp_3);
-  executeDelaySlot();
+;
+    }
+  else
+    {
+    TCGv temp_4 = tcg_temp_new_i32();
+  tcg_gen_mov_i32(temp_4, nextInsnAddress());
+  setBLINK(temp_4);
 ;
     }
   setPC(src);
@@ -3416,10 +3446,18 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     tcg_gen_add_i32(address, src1, src2);
 ;
     }
+  else
+    {
+  ;
+    }
   if ((AA == 2))
     {
     tcg_gen_mov_i32(address, src1);
 ;
+    }
+  else
+    {
+  ;
     }
   if (((AA == 3) && (ZZ == 0)))
     {
@@ -3428,6 +3466,10 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_add_i32(address, src1, temp_2);
 ;
     }
+  else
+    {
+  ;
+    }
   if (((AA == 3) && (ZZ == 2)))
     {
     TCGv temp_3 = tcg_temp_new_i32();
@@ -3435,10 +3477,18 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_add_i32(address, src1, temp_3);
 ;
     }
+  else
+    {
+  ;
+    }
   if (((AA == 1) || (AA == 2)))
     {
     tcg_gen_add_i32(src1, src1, src2);
 ;
+    }
+  else
+    {
+  ;
     }
   TCGv temp_4 = tcg_temp_new_i32();
   tcg_gen_movi_i32(temp_4, 1);
@@ -3448,6 +3498,10 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     {
     tcg_gen_mov_i32(dest, SignExtend(dest, ZZ));
 ;
+    }
+  else
+    {
+  ;
     }
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_new_i32();
@@ -3485,10 +3539,18 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     tcg_gen_add_i32(address, src1, src2);
 ;
     }
+  else
+    {
+  ;
+    }
   if ((AA == 2))
     {
     tcg_gen_mov_i32(address, src1);
 ;
+    }
+  else
+    {
+  ;
     }
   if (((AA == 3) && (ZZ == 0)))
     {
@@ -3497,6 +3559,10 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_add_i32(address, src1, temp_1);
 ;
     }
+  else
+    {
+  ;
+    }
   if (((AA == 3) && (ZZ == 2)))
     {
     TCGv temp_2 = tcg_temp_new_i32();
@@ -3504,11 +3570,19 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_add_i32(address, src1, temp_2);
 ;
     }
+  else
+    {
+  ;
+    }
   setMemory(address, ZZ, dest);
   if (((AA == 1) || (AA == 2)))
     {
     tcg_gen_add_i32(src1, src1, src2);
 ;
+    }
+  else
+    {
+  ;
     }
 
   return ret;

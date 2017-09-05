@@ -188,7 +188,6 @@ to_implement(DisasCtxt *ctx)
 }
 
 #define Carry(A) to_implement(ctx)
-#define killDelaySlot() to_implement(ctx)
 
 
 TCGv
@@ -196,6 +195,13 @@ to_implement_wo_abort(DisasCtxt *ctx)
 {
   return ctx->zero;
 }
+
+void
+no_semantics(DisasCtxt *ctx)
+{
+  return;
+}
+#define killDelaySlot() no_semantics(ctx)
 
 TCGv
 arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend)
@@ -313,7 +319,7 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
       in_delay_slot = true;
       uint32_t cpc = ctx->cpc;
       uint32_t npc = ctx->npc;
-      uint32_t dpc = ctx->dpc;
+      //uint32_t dpc = ctx->dpc;
       uint32_t pcl = ctx->pcl;
       insn_t insn = ctx->insn;
       int bstate = ctx->bstate;
@@ -329,9 +335,13 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
 
       --ctx->ds;
 
+      /* Make dpc(delay_slot next pc) become npc(next pc) of the delayslot
+       * instruction.  */
+      ctx->dpc = ctx->npc;
+
+      /* Restore old values.  */
       ctx->cpc = cpc;
       ctx->npc = npc;
-      ctx->dpc = dpc;
       ctx->pcl = pcl;
       ctx->insn = insn;
       ctx->bstate = bstate;
