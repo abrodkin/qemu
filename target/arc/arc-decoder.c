@@ -1647,6 +1647,7 @@ int arc_decode (DisasCtxt *ctx)
 #undef SEMANTIC_FUNCTION
         default:
           arc_debug_opcode(opcode, ctx, "Could not map opcode");
+	  ret = BS_NONE;
           should_stop = true;
           break;
         }
@@ -1654,6 +1655,7 @@ int arc_decode (DisasCtxt *ctx)
   else
     {
       arc_debug_opcode(opcode, ctx, "Could not identify opcode");
+      ret = BS_NONE;
       should_stop = true;
     }
 

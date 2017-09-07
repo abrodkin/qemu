@@ -187,24 +187,7 @@ struct DisasCtxt {
 
 int arc_decode(DisasCtxt *ctx);
 
-static inline void  gen_goto_tb(CPUARCState *env, DisasCtxt *ctx,
-                        int n, target_ulong dest)
-{
-    TranslationBlock   *tb;
-
-    tb = ctx->tb;
-
-    if (ctx->singlestep == 0) {
-        tcg_gen_goto_tb(n);
-        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
-        tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-        tcg_gen_exit_tb((uintptr_t)tb + n);
-    } else {
-        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
-        tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-        gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(0);
-    }
-}
+void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest);
 
 #endif
+

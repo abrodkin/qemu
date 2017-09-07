@@ -132,6 +132,41 @@ TCGv     cpu_debug_SS;
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
+static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
+{
+#ifndef CONFIG_USER_ONLY
+    return (dc->tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+#else
+    return true;
+#endif
+}
+
+void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
+{
+    TranslationBlock   *tb;
+    tb = ctx->tb;
+
+    tcg_gen_mov_tl(cpu_pc,  dest);
+    tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
+    tcg_gen_exit_tb(0);
+}
+static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
+{
+    TranslationBlock   *tb;
+    tb = ctx->tb;
+
+    if (use_goto_tb(ctx, dest)) {
+        tcg_gen_goto_tb(n);
+        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
+        tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
+        tcg_gen_exit_tb((uintptr_t)tb + n);
+    } else {
+        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
+        tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
+        tcg_gen_exit_tb(0);
+    }
+}
+
 void arc_translate_init(void)
 {
     int i;
@@ -141,6 +176,7 @@ void arc_translate_init(void)
         return;
     }
 #define ARC_REG_OFFS(x) offsetof(CPUARCState, x)
+
 #define NEW_ARC_REG(x) \
         tcg_global_mem_new_i32(cpu_env, offsetof(CPUARCState, x), #x)
 
@@ -310,10 +346,10 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
             TCGLabel *label_done = gen_new_label();
             tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
             tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label_next);
-	    tcg_gen_mov_i32(cpu_pc, cpu_lps);
+	    gen_goto_tb(&ctx, 0, cpu_lps);
 	    tcg_gen_br(label_done);
             gen_set_label(label_next);
-            tcg_gen_movi_i32(cpu_pc, ctx.npc);
+	    gen_gotoi_tb(&ctx, 1, ctx.npc);
             gen_set_label(label_done);
 
             ctx.bstate = BS_BRANCH_HW_LOOP;
@@ -339,6 +375,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
     }
 
     if (ctx.singlestep) {
+	assert(0); // TODO
         if (ctx.bstate == BS_STOP || ctx.bstate == BS_NONE) {
             tcg_gen_movi_tl(cpu_pc, ctx.npc);
             tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
@@ -349,23 +386,24 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
         switch (ctx.bstate) {
         case BS_STOP:
         case BS_NONE:
-            gen_goto_tb(env, &ctx, 0, ctx.npc);
+            gen_gotoi_tb(&ctx, 0, ctx.npc);
             break;
         case BS_BRANCH:
         case BS_BRANCH_DS:
 	    {
-	      TCGLabel *skip_fallthrough = gen_new_label();
-	      // NOTE: cpu_pc is not update on every single instruction on non single step mode.
-	      // For that reason we should compare cpu_pc with tb->pc instead of the instruction pc.
-	      tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
-	      tcg_gen_movi_tl (cpu_pc, ctx.npc);
-	      gen_set_label (skip_fallthrough);
-	      tcg_gen_exit_tb(0);
+	    //  TCGLabel *skip_fallthrough = gen_new_label();
+	    //  // NOTE: cpu_pc is not update on every single instruction on non single step mode.
+	    //  // For that reason we should compare cpu_pc with tb->pc instead of the instruction pc.
+	    //  tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
+	    //  //tcg_gen_movi_tl (cpu_pc, ctx.npc);
+	      gen_gotoi_tb(&ctx, 0, ctx.npc);
+	    //  //tcg_gen_exit_tb(0);
+	    //  gen_set_label (skip_fallthrough);
 	    }
 	    break;
 	case BS_BRANCH_HW_LOOP:
         case BS_EXCP:
-            tcg_gen_exit_tb(0);
+            //tcg_gen_exit_tb(0);
             break;
         default:
             break;

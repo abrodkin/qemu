@@ -446,7 +446,7 @@ arc2_gen_get_pcl(DisasCtxt *ctx)
 static void
 arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
 {
-  tcg_gen_mov_i32(cpu_pc, new_pc);
+  gen_goto_tb(ctx, 1, new_pc);
 }
 #define setPC(NEW_PC) \
   arc2_set_pc(ctx, NEW_PC); \

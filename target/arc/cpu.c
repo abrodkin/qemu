@@ -52,6 +52,7 @@ static void arc_cpu_synchronize_from_tb(CPUState *cs, TranslationBlock *tb)
   ARCCPU      *cpu = ARC_CPU(cs);
   CPUARCState *env = &cpu->env;
 
+  CPU_PCL (&cpu->env) = tb->pc & 0xfffffffc;
   env->pc = tb->pc;
 }
 
