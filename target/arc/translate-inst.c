@@ -175,7 +175,7 @@ TCGv
 arc_gen_verifyFFlag(DisasCtxt *ctx)
 {
   TCGv ret = tcg_temp_new_i32();
-  tcg_gen_movi_tl(ret, ctx->insn.f != 0);
+  tcg_gen_movi_tl(ret, (int) ctx->insn.f != 0);
   return ret;
 }
 #define getFFlag() arc_gen_verifyFFlag(ctx)
@@ -509,9 +509,9 @@ static TCGv arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
 
 static TCGv arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
 {
-    TCGv t1 = tcg_temp_new_i32();
-    TCGv t2 = tcg_temp_new_i32();
-    TCGv t3 = tcg_temp_new_i32();
+    TCGv t1 = tcg_temp_local_new_i32();
+    TCGv t2 = tcg_temp_local_new_i32();
+    TCGv t3 = tcg_temp_local_new_i32();
     TCGv ret = tcg_temp_new_i32();
 
     tcg_gen_not_tl(t1, src1);       /*  t1 = ~src1                          */
@@ -692,5 +692,9 @@ arc2_gen_set_register(enum arc_registers reg, TCGv value)
 #undef false
 #define true (ctx->one)
 #define false (ctx->zero)
+
+#define LONG 0
+#define BYTE 1
+#define WORD 2
 
 #include "arc-semfunc1.h"
