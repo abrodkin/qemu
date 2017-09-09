@@ -143,9 +143,6 @@ static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
 
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
 {
-    TranslationBlock   *tb;
-    tb = ctx->tb;
-
     tcg_gen_mov_tl(cpu_pc,  dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
     tcg_gen_exit_tb(0);

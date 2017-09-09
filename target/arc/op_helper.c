@@ -22,6 +22,7 @@
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "exec/ioport.h"
+#include "translate-all.h"
 
 #define AUX_ID_STATUS           0x000
 #define AUX_ID_SEMAPHORE        0x001
@@ -452,9 +453,9 @@ void helper_raise_exception (CPUARCState *env, uint32_t index)
 
 static void tb_invalidate_virtual_addr(CPUARCState *env, uint32_t vaddr)
 {
-    uint32_t paddr;
-    uint32_t page_size;
-    unsigned access;
+    //uint32_t paddr;
+    //uint32_t page_size;
+    //unsigned access;
     // TODO: Change this when MMU is done.
     //int ret = xtensa_get_physical_addr(env, false, vaddr, 2, 0,
     //        &paddr, &page_size, &access);

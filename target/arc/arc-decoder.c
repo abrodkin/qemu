@@ -23,7 +23,7 @@
 #include "cpu.h"
 #include "arc-functions.h"
 #include "arc-fxi.h"
-#include "translate.h"
+#include "arc-semfunc.h"
 
 #define ARRANGE_ENDIAN(endianess, buf)          \
   ((endianess) ? arc_getm32 (buf) : bswap32 (buf))
