@@ -339,15 +339,12 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	/* Hardware loop control code */
 	if (ctx.npc == env->lpe)
 	  {
-            TCGLabel *label_next = gen_new_label();
-            TCGLabel *label_done = gen_new_label();
+            TCGLabel *label = gen_new_label();
             tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-            tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label_next);
+            tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
 	    gen_goto_tb(&ctx, 0, cpu_lps);
-	    tcg_gen_br(label_done);
-            gen_set_label(label_next);
+            gen_set_label(label);
 	    gen_gotoi_tb(&ctx, 1, ctx.npc);
-            gen_set_label(label_done);
 
             ctx.bstate = BS_BRANCH_HW_LOOP;
 	  }
