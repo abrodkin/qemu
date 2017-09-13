@@ -313,8 +313,6 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
     {
       in_delay_slot = true;
       uint32_t cpc = ctx->cpc;
-      uint32_t npc = ctx->npc;
-      //uint32_t dpc = ctx->dpc;
       uint32_t pcl = ctx->pcl;
       insn_t insn = ctx->insn;
       int bstate = ctx->bstate;
@@ -339,7 +337,6 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
 
       /* Restore old values.  */
       ctx->cpc = cpc;
-      ctx->npc = npc;
       ctx->pcl = pcl;
       ctx->insn = insn;
       ctx->bstate = bstate;
