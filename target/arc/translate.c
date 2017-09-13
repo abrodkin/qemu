@@ -143,9 +143,19 @@ static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
 
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
 {
+  TranslationBlock   *tb;
+  tb = ctx->tb;
+
+#if 1
+    tcg_gen_goto_tb(n);
+    tcg_gen_mov_tl(cpu_pc, dest);
+    tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
+    tcg_gen_exit_tb((uintptr_t)tb + n);
+#else
     tcg_gen_mov_tl(cpu_pc,  dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
     tcg_gen_exit_tb(0);
+#endif
 }
 static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
 {
@@ -154,11 +164,11 @@ static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
 
     if (use_goto_tb(ctx, dest)) {
         tcg_gen_goto_tb(n);
-        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
+        tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
         tcg_gen_exit_tb((uintptr_t)tb + n);
     } else {
-        tcg_gen_movi_tl(cpu_pc,  dest & 0xfffffffe);  /* TODO ??? */
+        tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
         tcg_gen_exit_tb(0);
     }
@@ -294,12 +304,15 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
     target_ulong pc_start;
     int num_insns;
     int max_insns;
+    uint32_t next_page_start;
 
     pc_start = tb->pc;
     ctx.tb = tb;
     ctx.memidx = 0;
     ctx.bstate = BS_NONE;
     ctx.singlestep = cs->singlestep_enabled;
+
+    next_page_start = (pc_start & TARGET_PAGE_MASK) + TARGET_PAGE_SIZE;
     num_insns = 0;
     max_insns = tb->cflags & CF_COUNT_MASK;
 
@@ -331,10 +344,18 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
             tcg_gen_movi_i32(cpu_pc, ctx.cpc);
             gen_helper_debug(cpu_env);
             ctx.bstate = BS_EXCP;
-            goto done_generating;
+            break;
           }
 
-        ctx.bstate = arc_decode (&ctx);
+        if (num_insns == max_insns && (tb->cflags & CF_LAST_IO)) {
+            gen_io_start();
+        }
+
+        int tmp = arc_decode (&ctx);
+        if (ctx.bstate == BS_BRANCH_DS)
+          num_insns++;
+        else
+          ctx.bstate = tmp;
 
 	/* Hardware loop control code */
 	if (ctx.npc == env->lpe)
@@ -349,20 +370,11 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
             ctx.bstate = BS_BRANCH_HW_LOOP;
 	  }
 
-        if (num_insns >= max_insns)
-	  {
-            break;      /* max translated instructions limit reached */
-	  }
-        if (ctx.singlestep)
-	  {
-            break;      /* single step */
-	  }
-        if ((ctx.cpc & (TARGET_PAGE_SIZE - 1)) == 0)
-	  {
-            break;      /* page boundary */
-	  }
-
-    } while (ctx.bstate == BS_NONE && !tcg_op_buf_full());
+    } while (ctx.bstate == BS_NONE
+             && !tcg_op_buf_full()
+             && !ctx.singlestep
+             && (num_insns < max_insns)
+             && (ctx.cpc < next_page_start));
 
     if (tb->cflags & CF_LAST_IO) {
         gen_io_end();
@@ -375,15 +387,16 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
             tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
         }
         gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(0);
+        //tcg_gen_exit_tb(0);
     } else {
         switch (ctx.bstate) {
         case BS_STOP:
         case BS_NONE:
             gen_gotoi_tb(&ctx, 0, ctx.npc);
             break;
-        case BS_BRANCH:
         case BS_BRANCH_DS:
+          //ctx.npc = ctx.dpc;
+        case BS_BRANCH:
 	    {
 	    //  TCGLabel *skip_fallthrough = gen_new_label();
 	    //  // NOTE: cpu_pc is not update on every single instruction on non single step mode.
@@ -391,7 +404,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	    //  tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
 	    //  //tcg_gen_movi_tl (cpu_pc, ctx.npc);
 	      gen_gotoi_tb(&ctx, 0, ctx.npc);
-	    //  //tcg_gen_exit_tb(0);
+	    //tcg_gen_exit_tb(0);
 	    //  gen_set_label (skip_fallthrough);
 	    }
 	    break;
@@ -404,7 +417,6 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
         }
     }
 
-done_generating:
     tcg_temp_free_i32(ctx.one);
     tcg_temp_free_i32(ctx.zero);
 
@@ -419,7 +431,8 @@ done_generating:
         qemu_log_lock();
         qemu_log("------------------\n");
         log_target_disas(cs, pc_start, ctx.npc - pc_start, 0);
-        qemu_log("\n");
+        qemu_log("\nisize=%d osize=%d\n",
+                 ctx.npc - pc_start, tcg_op_buf_count());
         qemu_log_unlock();
     }
 #endif

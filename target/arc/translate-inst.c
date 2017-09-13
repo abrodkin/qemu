@@ -326,9 +326,8 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
 
       arc_decode (ctx);
 
-#ifdef DEBUG_DISAS
-      qemu_log_mask (CPU_LOG_TB_IN_ASM, "0x%8.8x: delayslot\n", ctx->cpc);
-#endif
+      assert (ctx->bstate == BS_NONE);
+
       --ctx->ds;
 
       /* Make dpc(delay_slot next pc) become npc(next pc) of the delayslot
@@ -339,7 +338,7 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
       ctx->cpc = cpc;
       ctx->pcl = pcl;
       ctx->insn = insn;
-      ctx->bstate = bstate;
+      ctx->bstate = BS_BRANCH_DS;
       in_delay_slot = false;
     }
   return;

@@ -1417,7 +1417,11 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
 		// TODO: This has a problem: instruction "b label" sets this to true.
                 if (cl_flags->flag_class & F_CLASS_D)
-                  pinsn->d = value ? true : false;
+                  {
+                    pinsn->d = value ? true : false;
+                    if (cl_flags->flags[0] == F_DFAKE)
+                      pinsn->d = true;
+                  }
 
                 if (cl_flags->flag_class & F_CLASS_COND)
                   pinsn->cc = value;
@@ -1572,7 +1576,8 @@ arc_map_opcode (const struct arc_opcode *opcode)
 static void
 arc_debug_opcode(const struct arc_opcode *opcode, DisasCtxt *ctx, const char *msg)
 {
-  printf("%s for %s at 0x%08x\n", msg, opcode->name, ctx->cpc);
+  qemu_log_mask(LOG_UNIMP,
+                "%s for %s at pc=0x%08x\n", msg, opcode->name, ctx->cpc);
 }
 
 static TCGv
@@ -1583,14 +1588,22 @@ arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
   operand_t operand = ctx->insn.operands[nop];
 
   if(operand.type & ARC_OPERAND_IR)
-    ret = cpu_r[operand.value];
+    {
+      ret = cpu_r[operand.value];
+      if (operand.value == 63)
+        tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+    }
   else
     {
-      int32_t i = operand.value;
+      int32_t limm = operand.value;
       if (operand.type & ARC_OPERAND_LIMM)
-        i = ctx->insn.limm;
-
-      ret = tcg_const_local_i32(i);
+      {
+        limm = ctx->insn.limm;
+        tcg_gen_movi_tl (cpu_limm, limm);
+        ret = cpu_r[62];
+      } else {
+        ret = tcg_const_local_i32(limm);
+      }
     }
 
   return ret;
@@ -1651,6 +1664,17 @@ int arc_decode (DisasCtxt *ctx)
           should_stop = false;
           break;
         }
+
+      for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
+        {
+          operand_t operand = ctx->insn.operands[i];
+          if (!(operand.type & ARC_OPERAND_LIMM)
+              && !(operand.type & ARC_OPERAND_IR))
+            {
+              tcg_temp_free_i32 (ops[i]);
+            }
+        }
+
     }
   else
     {
