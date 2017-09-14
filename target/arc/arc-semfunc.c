@@ -27,6 +27,27 @@
 /* ADD
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b + @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -82,6 +103,27 @@ arc2_gen_ADD (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ADD1
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b + (@c << 1));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -139,6 +181,27 @@ arc2_gen_ADD1 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ADD2
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b + (@c << 2));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -196,6 +259,27 @@ arc2_gen_ADD2 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ADD3
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b + (@c << 3));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -253,6 +337,27 @@ arc2_gen_ADD3 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ADC
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = ((@b + @c) + getCFlag ());
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -312,6 +417,27 @@ arc2_gen_ADC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* SBC
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarryADD, setVFlag, OverflowADD
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = ((@b - @c) - getCFlag ());
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarryADD (@a, @b, @c));
+          setVFlag (OverflowADD (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -371,6 +497,27 @@ arc2_gen_SBC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* SUB
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b - @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -426,6 +573,27 @@ arc2_gen_SUB (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* SUB1
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b - (@c << 1));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -483,6 +651,27 @@ arc2_gen_SUB1 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* SUB2
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b - (@c << 2));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -540,6 +729,27 @@ arc2_gen_SUB2 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* SUB3
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b - (@c << 3));
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -597,6 +807,35 @@ arc2_gen_SUB3 (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* MAX
  *    Variables: @b, @c, @a
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      alu = (@b - @c);
+      if((@c >= @b))
+        {
+          @a = @c;
+        }
+      else
+        {
+          @a = @b;
+        };
+      if((getFFlag () == true))
+        {
+          if((alu == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (alu);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -665,6 +904,35 @@ arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* MIN
  *    Variables: @b, @c, @a
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      alu = (@b - @c);
+      if((@c <= @b))
+        {
+          @a = @c;
+        }
+      else
+        {
+          @a = @b;
+        };
+      if((getFFlag () == true))
+        {
+          if((alu == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (alu);
+          setCFlag (CarrySUB (@a, @b, @c));
+          setVFlag (OverflowSUB (@a, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -733,6 +1001,27 @@ arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* CMP
  *    Variables: @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, CarrySUB, setVFlag, OverflowSUB
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      alu = (@b - @c);
+      if((getFFlag () == true))
+        {
+          if((alu == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (alu);
+          setCFlag (CarrySUB (alu, @b, @c));
+          setVFlag (OverflowSUB (alu, @b, @c));
+        };
+    };
+}
  */
 
 int
@@ -789,6 +1078,25 @@ arc2_gen_CMP (DisasCtxt *ctx, TCGv b, TCGv c)
 /* AND
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b & @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -838,6 +1146,25 @@ arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* OR
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b | @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -887,6 +1214,25 @@ arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* XOR
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b ^ @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -936,6 +1282,25 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* MOV
  *    Variables: @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = @b;
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -985,6 +1350,33 @@ arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
 /* ASL
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, getBit
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b << @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          if((@c == 0))
+            {
+              setCFlag (0);
+            }
+          else
+            {
+              setCFlag (getBit (@b, (32 - @c)));
+            };
+        };
+    };
+}
  */
 
 int
@@ -1052,6 +1444,33 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ASR
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setCFlag, getBit
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b >> @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          if((@c == 0))
+            {
+              setCFlag (0);
+            }
+          else
+            {
+              setCFlag (getBit (@b, (@c - 1)));
+            };
+        };
+    };
+}
  */
 
 int
@@ -1119,6 +1538,25 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ASR8
  *    Variables: @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b >> 16);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1168,6 +1606,25 @@ arc2_gen_ASR8 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* ASR16
  *    Variables: @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b >> 16);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1217,6 +1674,25 @@ arc2_gen_ASR16 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* LSL16
  *    Variables: @a, @b
  *    Functions: getCCFlag, logicalShiftLeft, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = logicalShiftLeft (@b, 16);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1268,6 +1744,25 @@ arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* LSL8
  *    Variables: @a, @b
  *    Functions: getCCFlag, logicalShiftLeft, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = logicalShiftLeft (@b, 8);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1319,6 +1814,33 @@ arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* LSR
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, logicalShiftRight, getFFlag, setZFlag, setNFlag, setCFlag, getBit
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = logicalShiftRight (@b, @c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+          if((@c == 0))
+            {
+              setCFlag (0);
+            }
+          else
+            {
+              setCFlag (getBit (@b, (@c - 1)));
+            };
+        };
+    };
+}
  */
 
 int
@@ -1386,6 +1908,25 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* LSR16
  *    Variables: @a, @b
  *    Functions: getCCFlag, logicalShiftRight, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = logicalShiftRight (@b, 16);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1437,6 +1978,25 @@ arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* LSR8
  *    Variables: @a, @b
  *    Functions: getCCFlag, logicalShiftRight, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = logicalShiftRight (@b, 8);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1488,6 +2048,25 @@ arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
 /* BIC
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = (@b & ~@c);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1539,6 +2118,26 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* BCLR
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << (@c & 31));
+      @a = (@b & ~tmp);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1594,6 +2193,25 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 /* TST
  *    Variables: @b, @c
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      alu = (@b & @c);
+      if((getFFlag () == true))
+        {
+          if((alu == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (alu);
+        };
+    };
+}
  */
 
 int
@@ -1644,6 +2262,27 @@ arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
 /* BMSK
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp1 = ((@c & 31) + 1);
+      tmp2 = ((1 << tmp1) - 1);
+      @a = (@b & tmp2);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1701,6 +2340,27 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 /* BMSKN
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp1 = ((@c & 31) + 1);
+      tmp2 = ((1 << tmp1) - 1);
+      @a = (@b & ~tmp2);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1760,6 +2420,26 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 /* BSET
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << (@c & 31));
+      @a = (@b | tmp);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1813,6 +2493,26 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 /* BTST
  *    Variables: @c, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << (@c & 31));
+      alu = (@b & tmp);
+      if((getFFlag () == true))
+        {
+          if((alu == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (alu);
+        };
+    };
+}
  */
 
 int
@@ -1867,6 +2567,26 @@ arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
 /* BXOR
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << @c);
+      @a = (@b ^ tmp);
+      if((getFFlag () == true))
+        {
+          if((@a == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@a);
+        };
+    };
+}
  */
 
 int
@@ -1918,6 +2638,29 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 /* ROL
  *    Variables: @n, @src, @dest
  *    Functions: getCCFlag, logicalShiftRight, extractBits, getFFlag, setZFlag, setNFlag, setCFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      shr = (32 - @n);
+      tmp1 = logicalShiftRight (extractBits (@src, 31, (31 - @n)), shr);
+      tmp2 = (@src << @n);
+      @dest = (tmp1 | tmp2);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+          setCFlag (extractBits (@src, (@n - 1), (@n - 1)));
+        };
+    };
+}
  */
 
 int
@@ -1986,6 +2729,29 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv n, TCGv src, TCGv dest)
 /* ROR
  *    Variables: @n, @src, @dest
  *    Functions: getCCFlag, extractBits, getFFlag, setZFlag, setNFlag, setCFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      shl = (32 - @n);
+      tmp1 = (extractBits (@src, (@n - 1), 0) << shl);
+      tmp2 = (@src >> @n);
+      @dest = (tmp1 | tmp2);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+          setCFlag (extractBits (@src, (@n - 1), (@n - 1)));
+        };
+    };
+}
  */
 
 int
@@ -2054,6 +2820,27 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv n, TCGv src, TCGv dest)
 /* RLC
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getCFlag, getFFlag, setZFlag, setNFlag, setCFlag, extractBits
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = (@src << 1);
+      @dest = (@dest | getCFlag ());
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+          setCFlag (extractBits (@src, 31, 31));
+        };
+    };
+}
  */
 
 int
@@ -2113,6 +2900,27 @@ arc2_gen_RLC (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* RRC
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getCFlag, getFFlag, setZFlag, setNFlag, setCFlag, extractBits
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = (@src >> 1);
+      @dest = (@dest | (getCFlag () << 31));
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+          setCFlag (extractBits (@src, 0, 0));
+        };
+    };
+}
  */
 
 int
@@ -2174,6 +2982,25 @@ arc2_gen_RRC (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* SEXB
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = ((@src << 24) >> 24);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+        };
+    };
+}
  */
 
 int
@@ -2225,6 +3052,25 @@ arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* SEXH
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = ((@src << 16) >> 16);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+        };
+    };
+}
  */
 
 int
@@ -2276,6 +3122,25 @@ arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* EXTB
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = (@src & 255);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+        };
+    };
+}
  */
 
 int
@@ -2325,6 +3190,25 @@ arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* EXTH
  *    Variables: @dest, @src
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @dest = (@src & 65535);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+          setNFlag (@dest);
+        };
+    };
+}
  */
 
 int
@@ -2374,6 +3258,28 @@ arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* XBFU
  *    Variables: @src2, @src1, @dest
  *    Functions: getCCFlag, extractBits, getFFlag, setZFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      N = extractBits (@src2, 4, 0);
+      M = (extractBits (@src2, 9, 5) + 1);
+      tmp1 = (@src1 >> N);
+      tmp2 = ((1 << M) - 1);
+      @dest = (tmp1 & tmp2);
+      if((getFFlag () == true))
+        {
+          if((@dest == 0))
+            {
+              setZFlag (1);
+            }
+          else
+            {
+              setZFlag (0);
+            };
+        };
+    };
+}
  */
 
 int
@@ -2442,6 +3348,15 @@ arc2_gen_XBFU (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 /* AEX
  *    Variables: @src2, @b
  *    Functions: getCCFlag, readAuxReg, writeAuxReg
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = readAuxReg (@src2);
+      writeAuxReg (@src2, @b);
+      @b = tmp;
+    };
+}
  */
 
 int
@@ -2470,6 +3385,10 @@ arc2_gen_AEX (DisasCtxt *ctx, TCGv src2, TCGv b)
 /* LR
  *    Variables: @dest, @src
  *    Functions: readAuxReg
+--- code ---
+{
+  @dest = readAuxReg (@src);
+}
  */
 
 int
@@ -2488,6 +3407,10 @@ arc2_gen_LR (DisasCtxt *ctx, TCGv dest, TCGv src)
 /* SR
  *    Variables: @src2, @src1
  *    Functions: writeAuxReg
+--- code ---
+{
+  writeAuxReg (@src2, @src1);
+}
  */
 
 int
@@ -2506,6 +3429,13 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 /* MPY
  *    Variables: @a, @b, @c
  *    Functions: getCCFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      @a = ((@b * @c) & 4294967295);
+    };
+}
  */
 
 int
@@ -2533,6 +3463,32 @@ arc2_gen_MPY (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 /* ABS
  *    Variables: @src, @dest
  *    Functions: Carry, getFFlag, setZFlag, setNFlag, setCFlag, Zero, setVFlag, getNFlag
+--- code ---
+{
+  alu = (0 - @src);
+  if((Carry (@src) == 1))
+    {
+      @dest = alu;
+    }
+  else
+    {
+      @dest = @src;
+    };
+  if((getFFlag () == true))
+    {
+      if((@dest == 0))
+        {
+          setZFlag (1);
+        }
+      else
+        {
+          setZFlag (0);
+        };
+      setNFlag (@dest);
+      setCFlag (Zero ());
+      setVFlag (getNFlag ());
+    };
+}
  */
 
 int
@@ -2594,6 +3550,24 @@ arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
 /* SWAP
  *    Variables: @src, @dest
  *    Functions: getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  tmp1 = (@src << 16);
+  tmp2 = ((@src >> 16) & 65535);
+  @dest = (tmp1 | tmp2);
+  if((getFFlag () == true))
+    {
+      if((@dest == 0))
+        {
+          setZFlag (1);
+        }
+      else
+        {
+          setZFlag (0);
+        };
+      setNFlag (@dest);
+    };
+}
  */
 
 int
@@ -2642,6 +3616,26 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
 /* SWAPE
  *    Variables: @src, @dest
  *    Functions: getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  tmp1 = ((@src << 24) & 4278190080);
+  tmp2 = ((@src << 8) & 16711680);
+  tmp3 = ((@src >> 8) & 65280);
+  tmp4 = ((@src >> 24) & 255);
+  @dest = (((tmp1 | tmp2) | tmp3) | tmp4);
+  if((getFFlag () == true))
+    {
+      if((@dest == 0))
+        {
+          setZFlag (1);
+        }
+      else
+        {
+          setZFlag (0);
+        };
+      setNFlag (@dest);
+    };
+}
  */
 
 int
@@ -2704,6 +3698,10 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
 /* BI
  *    Variables: @c
  *    Functions: setPC, getPCL
+--- code ---
+{
+  setPC ((getPCL () + (@c << 2)));
+}
  */
 
 int
@@ -2728,6 +3726,10 @@ arc2_gen_BI (DisasCtxt *ctx, TCGv c)
 /* BIH
  *    Variables: @c
  *    Functions: setPC, getPCL
+--- code ---
+{
+  setPC ((getPCL () + (@c << 1)));
+}
  */
 
 int
@@ -2751,19 +3753,24 @@ arc2_gen_BIH (DisasCtxt *ctx, TCGv c)
 
 /* B
  *    Variables: @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, getCCFlag, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == true))
+    {
+      executeDelaySlot ();
+    };
+  if((getCCFlag () == true))
+    {
+      setPC ((getPCL () + @rd));
+    };
+}
  */
 
 int
 arc2_gen_B (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == true))
     {
     executeDelaySlot();
@@ -2773,6 +3780,12 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
     {
   ;
     }
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   TCGv temp_4 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(temp_4, getPCL());
   TCGv temp_3 = tcg_temp_local_new_i32();
@@ -2790,6 +3803,14 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
 /* B_S
  *    Variables: @rd
  *    Functions: getCCFlag, killDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      killDelaySlot ();
+      setPC ((getPCL () + @rd));
+    };
+}
  */
 
 int
@@ -2820,6 +3841,21 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 /* BBIT0
  *    Variables: @c, @b, @rd
  *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << @c);
+      if(((@b && tmp) == 0))
+        {
+          if((shouldExecuteDelaySlot () == true))
+            {
+              executeDelaySlot ();
+            };
+          setPC ((getPCL () + @rd));
+        };
+    };
+}
  */
 
 int
@@ -2869,6 +3905,21 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 /* BBIT1
  *    Variables: @c, @b, @rd
  *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << @c);
+      if(((@b && tmp) == 1))
+        {
+          if((shouldExecuteDelaySlot () == true))
+            {
+              executeDelaySlot ();
+            };
+          setPC ((getPCL () + @rd));
+        };
+    };
+}
  */
 
 int
@@ -2917,13 +3968,41 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 
 /* BL
  *    Variables: @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC, getPCL
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, getCCFlag, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((getCCFlag () == true))
+    {
+      if((shouldExecuteDelaySlot () == 1))
+        {
+          setBLINK (nextInsnAddressAfterDelaySlot ());
+        }
+      else
+        {
+          setBLINK (nextInsnAddress ());
+        };
+      setPC ((getPCL () + @rd));
+    };
+}
  */
 
 int
 arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
@@ -2932,8 +4011,7 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+    TCGv temp_3 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
   setBLINK(temp_3);
 ;
@@ -2962,6 +4040,17 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 /* J
  *    Variables: @src
  *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      if((shouldExecuteDelaySlot () == 1))
+        {
+          executeDelaySlot ();
+        };
+      setPC (@src);
+    };
+}
  */
 
 int
@@ -2995,13 +4084,41 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
 
 /* JL
  *    Variables: @src
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, getCCFlag, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((getCCFlag () == true))
+    {
+      if((shouldExecuteDelaySlot () == 1))
+        {
+          setBLINK (nextInsnAddressAfterDelaySlot ());
+        }
+      else
+        {
+          setBLINK (nextInsnAddress ());
+        };
+      setPC (@src);
+    };
+}
  */
 
 int
 arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
@@ -3010,8 +4127,7 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+    TCGv temp_3 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
   setBLINK(temp_3);
 ;
@@ -3035,13 +4151,36 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 
 /* BREQ
  *    Variables: @b, @c, @offset
- *    Functions: setPC, getPCL
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((@b == @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
  */
 
 int
 arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
   int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3065,9 +4204,185 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 
 
 
+/* BRNE
+ *    Variables: @b, @c, @offset
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((@b != @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
+ */
+
+int
+arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_NE, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  tcg_gen_mov_i32(temp_4, getPCL());
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  tcg_gen_add_i32(temp_3, temp_4, offset);
+  setPC(temp_3);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRLT
+ *    Variables: @b, @c, @offset
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((@b < @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
+ */
+
+int
+arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_LT, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  tcg_gen_mov_i32(temp_4, getPCL());
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  tcg_gen_add_i32(temp_3, temp_4, offset);
+  setPC(temp_3);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BRGE
+ *    Variables: @b, @c, @offset
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+--- code ---
+{
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
+  if((@b >= @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
+ */
+
+int
+arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
+{
+  int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_GE, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  tcg_gen_mov_i32(temp_4, getPCL());
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  tcg_gen_add_i32(temp_3, temp_4, offset);
+  setPC(temp_3);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
 /* SETEQ
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b == @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3094,41 +4409,20 @@ arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 
 
-/* BRNE
- *    Variables: @b, @c, @offset
- *    Functions: setPC, getPCL
- */
-
-int
-arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_NE, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  TCGv temp_4 = tcg_temp_local_new_i32();
-  tcg_gen_mov_i32(temp_4, getPCL());
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  tcg_gen_add_i32(temp_3, temp_4, offset);
-  setPC(temp_3);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
 /* SETNE
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b != @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3155,41 +4449,20 @@ arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 
 
-/* BRLT
- *    Variables: @b, @c, @offset
- *    Functions: setPC, getPCL
- */
-
-int
-arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_LT, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  TCGv temp_4 = tcg_temp_local_new_i32();
-  tcg_gen_mov_i32(temp_4, getPCL());
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  tcg_gen_add_i32(temp_3, temp_4, offset);
-  setPC(temp_3);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
 /* SETLT
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b < @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3216,41 +4489,20 @@ arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 
 
-/* BRGE
- *    Variables: @b, @c, @offset
- *    Functions: setPC, getPCL
- */
-
-int
-arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_GE, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  TCGv temp_4 = tcg_temp_local_new_i32();
-  tcg_gen_mov_i32(temp_4, getPCL());
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  tcg_gen_add_i32(temp_3, temp_4, offset);
-  setPC(temp_3);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
 /* SETGE
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b >= @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3280,6 +4532,17 @@ arc2_gen_SETGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* SETLE
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b <= @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3309,6 +4572,17 @@ arc2_gen_SETLE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* SETGT
  *    Variables: @b, @c, @a
  *    Functions:
+--- code ---
+{
+  if((@b > @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3338,6 +4612,16 @@ arc2_gen_SETGT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* BRLO
  *    Variables: @b, @c, @offset
  *    Functions: unsignedLT, setPC, getPCL
+--- code ---
+{
+  if(unsignedLT (@b, @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
  */
 
 int
@@ -3368,6 +4652,17 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 /* SETLO
  *    Variables: @b, @c, @a
  *    Functions: unsignedLT
+--- code ---
+{
+  if(unsignedLT (@b, @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3395,6 +4690,16 @@ arc2_gen_SETLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* BRHS
  *    Variables: @b, @c, @offset
  *    Functions: unsignedGE, setPC, getPCL
+--- code ---
+{
+  if(unsignedGE (@b, @c))
+    {
+      setPC ((getPCL () + @offset));
+    }
+  else
+    {
+    };
+}
  */
 
 int
@@ -3425,6 +4730,17 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 /* SETHS
  *    Variables: @b, @c, @a
  *    Functions: unsignedGE
+--- code ---
+{
+  if(unsignedGE (@b, @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
  */
 
 int
@@ -3452,6 +4768,42 @@ arc2_gen_SETHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 /* LD
  *    Variables: @src1, @src2, @dest
  *    Functions: getAAFlag, getZZFlag, setDebugLD, getMemory, getFlagX, SignExtend, NoFurtherLoadsPending
+--- code ---
+{
+  AA = getAAFlag ();
+  ZZ = getZZFlag ();
+  address = 0;
+  if(((AA == 0) || (AA == 1)))
+    {
+      address = (@src1 + @src2);
+    };
+  if((AA == 2))
+    {
+      address = @src1;
+    };
+  if(((AA == 3) && (ZZ == 0)))
+    {
+      address = (@src1 + (@src2 << 2));
+    };
+  if(((AA == 3) && (ZZ == 2)))
+    {
+      address = (@src1 + (@src2 << 1));
+    };
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (@src1 + @src2);
+    };
+  setDebugLD (1);
+  @dest = getMemory (address, ZZ);
+  if((getFlagX () == 1))
+    {
+      @dest = SignExtend (@dest, ZZ);
+    };
+  if(NoFurtherLoadsPending ())
+    {
+      setDebugLD (0);
+    };
+}
  */
 
 int
@@ -3545,6 +4897,40 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 /* LDD
  *    Variables: @src1, @src2, @dest
  *    Functions: getAAFlag, getZZFlag, setDebugLD, getMemory, nextReg, NoFurtherLoadsPending
+--- code ---
+{
+  AA = getAAFlag ();
+  ZZ = getZZFlag ();
+  address = 0;
+  if(((AA == 0) || (AA == 1)))
+    {
+      address = (@src1 + @src2);
+    };
+  if((AA == 2))
+    {
+      address = @src1;
+    };
+  if(((AA == 3) && (ZZ == 0)))
+    {
+      address = (@src1 + (@src2 << 2));
+    };
+  if(((AA == 3) && (ZZ == 2)))
+    {
+      address = (@src1 + (@src2 << 1));
+    };
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (@src1 + @src2);
+    };
+  setDebugLD (1);
+  @dest = getMemory (address, LONG);
+  pair = nextReg (@dest);
+  pair = getMemory ((address + 4), LONG);
+  if(NoFurtherLoadsPending ())
+    {
+      setDebugLD (0);
+    };
+}
  */
 
 int
@@ -3634,6 +5020,33 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 /* ST
  *    Variables: @src1, @src2, @dest
  *    Functions: getAAFlag, getZZFlag, setMemory
+--- code ---
+{
+  AA = getAAFlag ();
+  ZZ = getZZFlag ();
+  address = 0;
+  if(((AA == 0) || (AA == 1)))
+    {
+      address = (@src1 + @src2);
+    };
+  if((AA == 2))
+    {
+      address = @src1;
+    };
+  if(((AA == 3) && (ZZ == 0)))
+    {
+      address = (@src1 + (@src2 << 2));
+    };
+  if(((AA == 3) && (ZZ == 2)))
+    {
+      address = (@src1 + (@src2 << 1));
+    };
+  setMemory (address, ZZ, @dest);
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (@src1 + @src2);
+    };
+}
  */
 
 int
@@ -3707,6 +5120,35 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 /* STD
  *    Variables: @src1, @src2, @dest
  *    Functions: getAAFlag, getZZFlag, setMemory, nextReg
+--- code ---
+{
+  AA = getAAFlag ();
+  ZZ = getZZFlag ();
+  address = 0;
+  if(((AA == 0) || (AA == 1)))
+    {
+      address = (@src1 + @src2);
+    };
+  if((AA == 2))
+    {
+      address = @src1;
+    };
+  if(((AA == 3) && (ZZ == 0)))
+    {
+      address = (@src1 + (@src2 << 2));
+    };
+  if(((AA == 3) && (ZZ == 2)))
+    {
+      address = (@src1 + (@src2 << 1));
+    };
+  setMemory (address, LONG, @dest);
+  pair = nextReg (@dest);
+  setMemory ((address + 4), LONG, pair);
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (@src1 + @src2);
+    };
+}
  */
 
 int
@@ -3785,6 +5227,11 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 /* POP
  *    Variables: @dest
  *    Functions: getMemory, getRegister, setRegister
+--- code ---
+{
+  @dest = getMemory (getRegister (R_SP), LONG);
+  setRegister (R_SP, (getRegister (R_SP) + 4));
+}
  */
 
 int
@@ -3810,6 +5257,11 @@ arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
 /* PUSH
  *    Variables: @src
  *    Functions: setRegister, getRegister, setMemory
+--- code ---
+{
+  setRegister (R_SP, (getRegister (R_SP) - 4));
+  setMemory (getRegister (R_SP), LONG, @src);
+}
  */
 
 int
@@ -3835,6 +5287,18 @@ arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
 /* LP
  *    Variables: @rd
  *    Functions: getCCFlag, writeAuxReg, getRegIndex, nextInsnAddress, getPCL, setPC
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      writeAuxReg (getRegIndex (LP_START), nextInsnAddress ());
+      writeAuxReg (getRegIndex (LP_END), (getPCL () + @rd));
+    }
+  else
+    {
+      setPC ((getPCL () + @rd));
+    };
+}
  */
 
 int
