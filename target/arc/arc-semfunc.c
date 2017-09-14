@@ -3182,6 +3182,46 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 
 
 
+/* SETEQ
+ *    Variables: @b, @c, @a
+ *    Functions:
+--- code ---
+{
+  if((@b == @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
+ */
+
+int
+arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
+{
+  int ret = BS_NONE;
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  tcg_gen_mov_i32(a, arc_true);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  tcg_gen_mov_i32(a, arc_false);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
 /* BRNE
  *    Variables: @b, @c, @offset
  *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
@@ -3228,6 +3268,46 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   setPC(temp_3);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* SETNE
+ *    Variables: @b, @c, @a
+ *    Functions:
+--- code ---
+{
+  if((@b != @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
+ */
+
+int
+arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
+{
+  int ret = BS_NONE;
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_NE, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  tcg_gen_mov_i32(a, arc_true);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  tcg_gen_mov_i32(a, arc_false);
   gen_set_label(done_1);
 
   return ret;
@@ -3292,6 +3372,46 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 
 
 
+/* SETLT
+ *    Variables: @b, @c, @a
+ *    Functions:
+--- code ---
+{
+  if((@b < @c))
+    {
+      @a = true;
+    }
+  else
+    {
+      @a = false;
+    };
+}
+ */
+
+int
+arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
+{
+  int ret = BS_NONE;
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_LT, temp_1, b, c);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  tcg_gen_mov_i32(a, arc_true);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  tcg_gen_mov_i32(a, arc_false);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
 /* BRGE
  *    Variables: @b, @c, @offset
  *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
@@ -3338,126 +3458,6 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   setPC(temp_3);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
-/* SETEQ
- *    Variables: @b, @c, @a
- *    Functions:
---- code ---
-{
-  if((@b == @c))
-    {
-      @a = true;
-    }
-  else
-    {
-      @a = false;
-    };
-}
- */
-
-int
-arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(a, arc_true);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  tcg_gen_mov_i32(a, arc_false);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
-/* SETNE
- *    Variables: @b, @c, @a
- *    Functions:
---- code ---
-{
-  if((@b != @c))
-    {
-      @a = true;
-    }
-  else
-    {
-      @a = false;
-    };
-}
- */
-
-int
-arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_NE, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(a, arc_true);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  tcg_gen_mov_i32(a, arc_false);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
-/* SETLT
- *    Variables: @b, @c, @a
- *    Functions:
---- code ---
-{
-  if((@b < @c))
-    {
-      @a = true;
-    }
-  else
-    {
-      @a = false;
-    };
-}
- */
-
-int
-arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
-{
-  int ret = BS_NONE;
-  TCGLabel *else_1 = gen_new_label();
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_LT, temp_1, b, c);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(a, arc_true);
-  tcg_gen_br(done_1);
-  gen_set_label(else_1);
-  tcg_gen_mov_i32(a, arc_false);
   gen_set_label(done_1);
 
   return ret;
@@ -3589,9 +3589,13 @@ arc2_gen_SETGT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRLO
  *    Variables: @b, @c, @offset
- *    Functions: unsignedLT, setPC, getPCL
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, unsignedLT, setPC, getPCL
 --- code ---
 {
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
   if(unsignedLT (@b, @c))
     {
       setPC ((getPCL () + @offset));
@@ -3606,6 +3610,15 @@ int
 arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
   int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3667,9 +3680,13 @@ arc2_gen_SETLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRHS
  *    Variables: @b, @c, @offset
- *    Functions: unsignedGE, setPC, getPCL
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, unsignedGE, setPC, getPCL
 --- code ---
 {
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
   if(unsignedGE (@b, @c))
     {
       setPC ((getPCL () + @offset));
@@ -3684,6 +3701,15 @@ int
 arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
   int ret = BS_NONE;
+  if ((shouldExecuteDelaySlot () == 1))
+    {
+    executeDelaySlot();
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
