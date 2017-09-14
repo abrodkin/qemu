@@ -3017,15 +3017,15 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 
 /* J
  *    Variables: @src
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC
+ *    Functions: shouldExecuteDelaySlot, executeDelaySlot, getCCFlag, setPC
 --- code ---
 {
+  if((shouldExecuteDelaySlot () == 1))
+    {
+      executeDelaySlot ();
+    };
   if((getCCFlag () == true))
     {
-      if((shouldExecuteDelaySlot () == 1))
-        {
-          executeDelaySlot ();
-        };
       setPC (@src);
     };
 }
@@ -3035,12 +3035,6 @@ int
 arc2_gen_J (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
     executeDelaySlot();
@@ -3050,6 +3044,12 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
     {
   ;
     }
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   setPC(src);
   gen_set_label(done_1);
 
@@ -3975,7 +3975,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   setDebugLD(temp_4);
   tcg_gen_mov_i32(dest, getMemory(address, LONG));
   TCGv pair;
-  pair = nextReg (@dest);
+  pair = nextReg (dest);
   TCGv temp_5 = tcg_temp_local_new_i32();
   tcg_gen_addi_i32(temp_5, address, 4);
   tcg_gen_mov_i32(pair, getMemory(temp_5, LONG));
@@ -4181,7 +4181,7 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     }
   setMemory(address, LONG, dest);
   TCGv pair;
-  pair = nextReg (@dest);
+  pair = nextReg (dest);
   TCGv temp_3 = tcg_temp_local_new_i32();
   tcg_gen_addi_i32(temp_3, address, 4);
   setMemory(temp_3, LONG, pair);
