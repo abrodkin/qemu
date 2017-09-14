@@ -1366,6 +1366,7 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
         pinsn->operands[noperands].value = value;
         pinsn->operands[noperands].type = operand->flags;
 	noperands += 1;
+        pinsn->n_ops = noperands;
       }
 
     /* Check the flags.  */
@@ -1581,10 +1582,27 @@ arc_debug_opcode(const struct arc_opcode *opcode, DisasCtxt *ctx, const char *ms
 }
 
 static TCGv
-arc2_decode_operand(DisasCtxt *ctx, unsigned char nop)
+arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned char nop)
 {
   TCGv ret;
 
+
+  if (nop == ctx->insn.n_ops)
+    {
+      switch (ctx->insn.class)
+        {
+        case LOGICAL:
+          qemu_log_mask(LOG_UNIMP,
+                        "Make operand %d for %s one.\n", nop, opcode->name);
+          return ctx->one;
+        default:
+          qemu_log_mask(LOG_UNIMP,
+                        "Make operand %d for %s zero.\n", nop, opcode->name);
+          return ctx->zero;
+        }
+    }
+
+  assert (nop < ctx->insn.n_ops);
   operand_t operand = ctx->insn.operands[nop];
 
   if(operand.type & ARC_OPERAND_IR)
@@ -1627,7 +1645,7 @@ int arc_decode (DisasCtxt *ctx)
       int i;
       for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
         {
-          ops[i] = arc2_decode_operand (ctx, i);
+          ops[i] = arc2_decode_operand (opcode, ctx, i);
         }
 
       /* Store some elements statically to implement less dynamic features of instructions.
@@ -1665,7 +1683,9 @@ int arc_decode (DisasCtxt *ctx)
           break;
         }
 
-      for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
+      for (i = 0;
+           i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
+           i++)
         {
           operand_t operand = ctx->insn.operands[i];
           if (!(operand.type & ARC_OPERAND_LIMM)

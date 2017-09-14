@@ -146,7 +146,7 @@ void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
   TranslationBlock   *tb;
   tb = ctx->tb;
 
-#if 1
+#if 0
     tcg_gen_goto_tb(n);
     tcg_gen_mov_tl(cpu_pc, dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
@@ -381,13 +381,13 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
     }
 
     if (ctx.singlestep) {
-	assert(0); // TODO
+	//assert(0); // TODO
         if (ctx.bstate == BS_STOP || ctx.bstate == BS_NONE) {
             tcg_gen_movi_tl(cpu_pc, ctx.npc);
             tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
         }
         gen_helper_debug(cpu_env);
-        //tcg_gen_exit_tb(0);
+        tcg_gen_exit_tb(0);
     } else {
         switch (ctx.bstate) {
         case BS_STOP:
