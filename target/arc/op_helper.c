@@ -450,34 +450,3 @@ void helper_raise_exception (CPUARCState *env, uint32_t index)
     CPUState *cs = CPU (arc_env_get_cpu(env));
     cpu_loop_exit(cs);
 }
-
-static void tb_invalidate_virtual_addr(CPUARCState *env, uint32_t vaddr)
-{
-    //uint32_t paddr;
-    //uint32_t page_size;
-    //unsigned access;
-    // TODO: Change this when MMU is done.
-    //int ret = xtensa_get_physical_addr(env, false, vaddr, 2, 0,
-    //        &paddr, &page_size, &access);
-    //if (ret == 0) {
-    //    tb_invalidate_phys_addr(&address_space_memory, paddr);
-    //}
-    tb_invalidate_phys_page_range(vaddr, vaddr + 1, 0);
-}
-
-void HELPER(sr_lp_begin)(CPUARCState *env, uint32_t v)
-{
-    if (env->lps != v) {
-        tb_invalidate_virtual_addr(env, env->lpe - 1);
-        env->lps = v;
-    }
-}
-
-void HELPER(sr_lp_end)(CPUARCState *env, uint32_t v)
-{
-    if (env->lpe != v) {
-        tb_invalidate_virtual_addr(env, env->lpe - 1);
-        env->lpe = v;
-        tb_invalidate_virtual_addr(env, env->lpe - 1);
-    }
-}
