@@ -45,7 +45,7 @@ static void sample_init(MachineState *machine)
     mem = g_new(MemoryRegion, 1);
     ram = g_new(MemoryRegion, 1);
 
-    cpu_arc = cpu_arc_init("any");
+    cpu_arc = ARC_CPU (cpu_generic_init (TYPE_ARC_CPU, "any"));
 
     memory_region_allocate_system_memory(mem, NULL, "arc.mem", SIZE_RAM);
 

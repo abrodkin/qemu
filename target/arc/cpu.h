@@ -253,9 +253,7 @@ static inline int cpu_mmu_index(CPUARCState *env, bool ifetch)
 
 void arc_translate_init(void);
 
-ARCCPU *cpu_arc_init(const char *cpu_model);
-
-#define cpu_init(cpu_model) CPU(cpu_arc_init(cpu_model))
+#define cpu_init(cpu_model) cpu_generic_init(TYPE_ARC_CPU, cpu_model)
 
 void arc_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 int cpu_arc_exec(CPUState *cpu);

@@ -70,11 +70,6 @@ static void arc_cpu_reset(CPUState *s)
   arcc->parent_reset(s);
 
   memset(env->r, 0, sizeof(env->r));
-  // memset(env, 0, offsetof(CPUARCState, end_reset_fields));
-//  env->pc = 0x100;   /* TODO: this is just for testing */
-//  CPU_PCL(env) = 0x100;   /* TODO: this is just for testing */
-
-  tlb_flush(s);
 }
 
 static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)
@@ -131,18 +126,12 @@ static void arc_cpu_initfn(Object *obj)
 {
   CPUState *cs = CPU(obj);
   ARCCPU *cpu = ARC_CPU(obj);
-  static bool inited;
 
   cs->env_ptr = &cpu->env;
 
 #ifndef CONFIG_USER_ONLY
   qdev_init_gpio_in(DEVICE(cpu), arc_cpu_set_int, 37);
 #endif
-
-  if (tcg_enabled() && !inited) {
-    inited = true;
-    arc_translate_init();
-  }
 }
 
 static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
@@ -177,8 +166,8 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
   CPUClass *cc = CPU_CLASS(oc);
   ARCCPUClass *arcc = ARC_CPU_CLASS(oc);
 
-  arcc->parent_realize = dc->realize;
-  dc->realize = arc_cpu_realizefn;
+  device_class_set_parent_realize (dc, arc_cpu_realizefn,
+				   &arcc->parent_realize);
 
   arcc->parent_reset = cc->reset;
   cc->reset = arc_cpu_reset;
@@ -251,15 +240,6 @@ static const ARCCPUInfo arc_cpus[] = {
   { .name = "archs", .initfn = archs_initfn },
   { .name = "any", .initfn = arc_any_initfn },
 };
-
-ARCCPU *cpu_arc_init (const char *cpu_model)
-{
-  ARCCPU *cpu = ARC_CPU (cpu_generic_init (TYPE_ARC_CPU, cpu_model));
-
-  object_property_set_bool (OBJECT (cpu), true, "realized", NULL);
-
-  return cpu;
-}
 
 static void cpu_register(const ARCCPUInfo *info)
 {

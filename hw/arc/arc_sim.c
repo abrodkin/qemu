@@ -130,7 +130,7 @@ static void arc_sim_init(MachineState *machine)
     }
 
     for (n = 0; n < smp_cpus; n++) {
-        cpu = cpu_arc_init(cpu_model);
+        cpu = ARC_CPU (cpu_generic_init (TYPE_ARC_CPU, cpu_model));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
