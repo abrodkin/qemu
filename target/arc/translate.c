@@ -20,7 +20,7 @@
 
 #include "translate.h"
 
-TCGv_env cpu_env;
+//TCGv_env cpu_env;
 
 TCGv     cpu_gp;        /*  Global Pointer                      */
 TCGv     cpu_fp;        /*  Frame Pointer                       */
@@ -143,8 +143,8 @@ static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
 
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
 {
-  TranslationBlock   *tb;
-  tb = ctx->tb;
+  //TranslationBlock   *tb;
+  //tb = ctx->tb;
 
 #if 0
     tcg_gen_goto_tb(n);
@@ -187,7 +187,8 @@ void arc_translate_init(void)
 #define NEW_ARC_REG(x) \
         tcg_global_mem_new_i32(cpu_env, offsetof(CPUARCState, x), #x)
 
-    cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    // TODO: Check
+    //cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
 
     cpu_S1f = NEW_ARC_REG(macmod.S1);
     cpu_S2f = NEW_ARC_REG(macmod.S2);
@@ -430,9 +431,9 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
         && qemu_log_in_addr_range(pc_start)) {
         qemu_log_lock();
         qemu_log("------------------\n");
-        log_target_disas(cs, pc_start, ctx.npc - pc_start, 0);
-        qemu_log("\nisize=%d osize=%d\n",
-                 ctx.npc - pc_start, tcg_op_buf_count());
+        log_target_disas(cs, pc_start, ctx.npc - pc_start);
+//        qemu_log("\nisize=%d osize=%d\n",
+//                 ctx.npc - pc_start, tcg_op_buf_count());
         qemu_log_unlock();
     }
 #endif

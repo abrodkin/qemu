@@ -76,7 +76,8 @@ void arc_cpu_list (FILE *f, fprintf_function cpu_fprintf)
   g_slist_free (list);
 }
 
-void tlb_fill(CPUState *cs, target_ulong vaddr, MMUAccessType access_type,
+void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
+	      MMUAccessType access_type,
               int mmu_idx, uintptr_t retaddr)
 {
   target_ulong page_size = TARGET_PAGE_SIZE;

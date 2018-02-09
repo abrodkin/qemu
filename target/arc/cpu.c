@@ -203,6 +203,9 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
   cc->gdb_write_register = arc_cpu_gdb_write_register;
   cc->gdb_num_core_regs = 68;
 
+#ifdef CONFIG_TCG
+    cc->tcg_initialize = arc_translate_init;
+#endif
 }
 
 static void arc_any_initfn (Object *obj)

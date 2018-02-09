@@ -38,8 +38,6 @@
 
 #include "aux-reg.h"
 
-extern TCGv_env cpu_env;
-
 extern TCGv     cpu_gp;
 extern TCGv     cpu_fp;
 extern TCGv     cpu_sp;

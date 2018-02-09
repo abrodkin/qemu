@@ -384,10 +384,13 @@ arc2_gen_set_zflag(TCGv elem)
   tcg_temp_free_i32 (zero);
 }
 
+
 int
 arc2_get_tcgv_value(TCGv elem)
 {
-  return GET_TCGV_I32(elem);
+  assert(0);
+  return 0;
+  //return GET_TCGV_I32(elem);
 }
 
 TCGv
