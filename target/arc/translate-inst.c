@@ -168,6 +168,15 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
   return ret;
 }
 
+TCGv
+arc_gen_getMSB(DisasCtxt *ctx, TCGv src)
+{
+  TCGv ret = tcg_temp_new_i32();
+
+  tcg_gen_shri_tl(ret, src, 31);
+
+  return ret;
+}
 
 TCGv
 arc_gen_getCarry(DisasCtxt *ctx)

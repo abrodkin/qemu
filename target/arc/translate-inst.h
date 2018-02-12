@@ -188,7 +188,8 @@ TCGv arc_gen_verifyFFlag(DisasCtxt *ctx);
 #define getFFlag() arc_gen_verifyFFlag(ctx)
 TCGv to_implement(DisasCtxt *ctx);
 TCGv to_implement_wo_abort(DisasCtxt *ctx);
-#define Carry(A) to_implement(ctx)
+TCGv arc_gen_getMSB(DisasCtxt *ctx, TCGv src);
+#define Carry(A) arc_gen_getMSB(ctx, A)
 void no_semantics(DisasCtxt *ctx);
 #define killDelaySlot() no_semantics(ctx)
 void arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend);
