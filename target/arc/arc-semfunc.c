@@ -3002,6 +3002,44 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
 
 
 
+/* NOT
+ *    Variables: @dest, @src
+ *    Functions: getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  @dest = ~@src;
+  if((getFFlag () == true))
+    {
+      setZFlag (@dest);
+      setNFlag (@dest);
+    };
+}
+ */
+
+int
+arc2_gen_NOT (DisasCtxt *ctx, TCGv dest, TCGv src)
+{
+  int ret = BS_NONE;
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_not_i32(dest, src);
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getFFlag(), arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  setZFlag(dest);
+  setNFlag(dest);
+  gen_set_label(done_1);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+
+  return ret;
+}
+
+
+
+
+
 /* BI
  *    Variables: @c
  *    Functions: setPC, getPCL
