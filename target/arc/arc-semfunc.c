@@ -1564,53 +1564,6 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 
 
 
-/* TST
- *    Variables: @b, @c
- *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
---- code ---
-{
-  if((getCCFlag () == true))
-    {
-      alu = (@b & @c);
-      if((getFFlag () == true))
-        {
-          setZFlag (alu);
-          setNFlag (alu);
-        };
-    };
-}
- */
-
-int
-arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
-{
-  int ret = BS_NONE;
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  TCGv alu = tcg_temp_local_new_i32();
-  tcg_gen_and_i32(alu, b, c);
-  //TCGLabel *done_2 = gen_new_label();
-  //TCGv temp_3 = tcg_temp_local_new_i32();
-  //tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
-  //TCGv temp_4 = tcg_temp_local_new_i32();
-  //tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
-  //tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
-  setZFlag(alu);
-  setNFlag(alu);
-  //gen_set_label(done_2);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
 /* BMSK
  *    Variables: @c, @a, @b
  *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
@@ -1767,58 +1720,6 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
-  gen_set_label(done_1);
-
-  return ret;
-}
-
-
-
-
-
-/* BTST
- *    Variables: @c, @b
- *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag
---- code ---
-{
-  if((getCCFlag () == true))
-    {
-      tmp = (1 << (@c & 31));
-      alu = (@b & tmp);
-      if((getFFlag () == true))
-        {
-          setZFlag (alu);
-          setNFlag (alu);
-        };
-    };
-}
- */
-
-int
-arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
-{
-  int ret = BS_NONE;
-  TCGLabel *done_1 = gen_new_label();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
-  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  tcg_gen_andi_i32(temp_5, c, 31);
-  TCGv tmp = tcg_temp_local_new_i32();
-  tcg_gen_shlfi_i32(tmp, 1, temp_5);
-  TCGv alu = tcg_temp_local_new_i32();
-  tcg_gen_and_i32(alu, b, tmp);
-  //TCGLabel *done_2 = gen_new_label();
-  // TCGv temp_3 = tcg_temp_local_new_i32();
-  //tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
-  //TCGv temp_4 = tcg_temp_local_new_i32();
-  //tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
-  //tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
-  setZFlag(alu);
-  setNFlag(alu);
-  //gen_set_label(done_2);
   gen_set_label(done_1);
 
   return ret;
@@ -2038,7 +1939,6 @@ int
 arc2_gen_RLC (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
-
   TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
@@ -2313,6 +2213,85 @@ arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_2);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* BTST
+ *    Variables: @c, @b
+ *    Functions: getCCFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      tmp = (1 << (@c & 31));
+      alu = (@b & tmp);
+      setZFlag (alu);
+      setNFlag (alu);
+    };
+}
+ */
+
+int
+arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  tcg_gen_andi_i32(temp_3, c, 31);
+  TCGv tmp = tcg_temp_local_new_i32();
+  tcg_gen_shlfi_i32(tmp, 1, temp_3);
+  TCGv alu = tcg_temp_local_new_i32();
+  tcg_gen_and_i32(alu, b, tmp);
+  setZFlag(alu);
+  setNFlag(alu);
+  gen_set_label(done_1);
+
+  return ret;
+}
+
+
+
+
+
+/* TST
+ *    Variables: @b, @c
+ *    Functions: getCCFlag, setZFlag, setNFlag
+--- code ---
+{
+  if((getCCFlag () == true))
+    {
+      alu = (@b & @c);
+      setZFlag (alu);
+      setNFlag (alu);
+    };
+}
+ */
+
+int
+arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
+{
+  int ret = BS_NONE;
+  TCGLabel *done_1 = gen_new_label();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  TCGv alu = tcg_temp_local_new_i32();
+  tcg_gen_and_i32(alu, b, c);
+  setZFlag(alu);
+  setNFlag(alu);
   gen_set_label(done_1);
 
   return ret;
@@ -3621,7 +3600,7 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   ;
     }
   TCGLabel *else_1 = gen_new_label();
-  //TCGLabel *done_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_xori_i32(temp_1, unsignedLT(b, c), 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, else_1);;
@@ -3630,9 +3609,9 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_add_i32(temp_2, temp_3, offset);
   setPC(temp_2);
-  //tcg_gen_br(done_1);
+  tcg_gen_br(done_1);
   gen_set_label(else_1);
-  //gen_set_label(done_1);
+  gen_set_label(done_1);
 
   return ret;
 }
