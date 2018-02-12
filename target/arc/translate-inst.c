@@ -172,9 +172,7 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 TCGv
 arc_gen_getCarry(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
-  tcg_gen_movi_tl(ret, ctx->env->stat.Cf != 0);
-  return ret;
+  return cpu_Cf;
 }
 
 TCGv
