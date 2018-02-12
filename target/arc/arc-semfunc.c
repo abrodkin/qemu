@@ -1691,7 +1691,7 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_neg_i32(temp_5, c);
+  tcg_gen_not_i32(temp_5, c);
   tcg_gen_and_i32(a, b, temp_5);
   TCGLabel *done_2 = gen_new_label();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
@@ -1749,7 +1749,7 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_andi_i32(temp_5, c, 31);
   tcg_gen_shlfi_i32(tmp, 1, temp_5);
-  tcg_gen_neg_i32(temp_6, tmp);
+  tcg_gen_not_i32(temp_6, tmp);
   tcg_gen_and_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
@@ -1878,7 +1878,7 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_addi_i32(tmp1, temp_5, 1);
   tcg_gen_shlfi_i32(temp_6, 1, tmp1);
   tcg_gen_subi_i32(tmp2, temp_6, 1);
-  tcg_gen_neg_i32(temp_7, tmp2);
+  tcg_gen_not_i32(temp_7, tmp2);
   tcg_gen_and_i32(a, b, temp_7);
   TCGLabel *done_2 = gen_new_label();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
