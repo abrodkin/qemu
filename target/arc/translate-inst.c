@@ -577,7 +577,7 @@ TCGv
 arc2_gen_get_bit (TCGv a, TCGv pos)
 {
   TCGv ret = tcg_temp_new_i32();
-  tcg_gen_rotl_i32 (ret, a, pos);
+  tcg_gen_rotr_i32 (ret, a, pos);
   tcg_gen_andi_tl(ret, ret, 1);
   return ret;
 }

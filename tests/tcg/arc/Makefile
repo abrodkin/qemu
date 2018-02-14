@@ -28,6 +28,7 @@ TESTCASES += check_ldstx.tst
 TESTCASES += check_beq.tst
 TESTCASES += check_carry.tst
 TESTCASES += check_t01.tst
+TESTCASES += check_t02.tst
 
 all: $(TESTCASES)
 
