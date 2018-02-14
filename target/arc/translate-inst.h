@@ -218,8 +218,8 @@ TCGv arc2_gen_getNFlag(void);
 #define getNFlag() arc2_gen_getNFlag()
 
 
-void arc2_gen_getCFlag(TCGv elem);
-#define setCFlag(ELEM) arc2_gen_getCFlag(ELEM)
+void arc2_gen_setCarry(TCGv elem);
+#define setCFlag(ELEM) arc2_gen_setCarry(ELEM)
 void arc2_gen_getVFlag(TCGv elem);
 #define setVFlag(ELEM) arc2_gen_getVFlag(ELEM)
 void arc2_gen_set_zflag(TCGv elem);

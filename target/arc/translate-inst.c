@@ -178,6 +178,13 @@ arc_gen_getMSB(DisasCtxt *ctx, TCGv src)
   return ret;
 }
 
+void
+arc2_gen_setCarry(TCGv elem)
+{
+  // TODO: Check type of elem and set sign bit accordingly.
+  tcg_gen_mov_tl(cpu_Cf, elem);
+}
+
 TCGv
 arc_gen_getCarry(DisasCtxt *ctx)
 {
@@ -367,13 +374,6 @@ void arc2_gen_setNFlag(TCGv elem)
 TCGv arc2_gen_getNFlag(void)
 {
   return cpu_Nf;
-}
-
-void
-arc2_gen_getCFlag(TCGv elem)
-{
-  // TODO: Check type of elem and set sign bit accordingly.
-  tcg_gen_mov_tl(cpu_Cf, elem);
 }
 
 void
