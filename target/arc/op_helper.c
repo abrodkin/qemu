@@ -90,7 +90,7 @@ target_ulong helper_normw(CPUARCState *env, uint32_t src1)
     }
 }
 
-void helper_sr(uint32_t val, uint32_t aux)
+void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
     switch (aux) {
         case AUX_ID_STATUS: {
@@ -100,9 +100,11 @@ void helper_sr(uint32_t val, uint32_t aux)
         } break;
 
         case AUX_ID_LP_START: {
+	  env->lps = val;
         } break;
 
         case AUX_ID_LP_END: {
+	  env->lpe = val;
         } break;
 
         case AUX_ID_IDENTITY: {

@@ -601,7 +601,7 @@ arc2_gen_read_aux_reg (TCGv reg_id)
 void
 arc2_gen_write_aux_reg (TCGv reg_id, TCGv b)
 {
-  gen_helper_sr(b, reg_id);
+  gen_helper_sr(cpu_env, b, reg_id);
 }
 
 
