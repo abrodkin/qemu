@@ -17,9 +17,11 @@ ASFLAGS = -mcpu=archs
 
 TESTCASES = check_add.tst
 TESTCASES += check_lp.tst
+TESTCASES += check_lp02.tst
 TESTCASES += check_addx.tst
 TESTCASES += check_andx.tst
 TESTCASES += check_orx.tst
+TESTCASES += check_rorx.tst
 TESTCASES += check_subx.tst
 TESTCASES += check_xorx.tst
 TESTCASES += check_beqx.tst

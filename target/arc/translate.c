@@ -411,7 +411,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	    break;
 	case BS_BRANCH_HW_LOOP:
         case BS_EXCP:
-            //tcg_gen_exit_tb(0);
+            tcg_gen_exit_tb(0);
             break;
         default:
             break;
