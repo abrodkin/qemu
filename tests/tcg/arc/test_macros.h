@@ -56,6 +56,44 @@
                inst r1, r1, r1                               \
         )
 
+#define TEST_2OP_CARRY( testnum, inst, expected, val1, val2) \
+    test_ ## testnum:                  \
+    mov  r12, testnum`                 \
+        mov  r1, MASK_XLEN(val1)`      \
+        mov  r2, MASK_XLEN(val2)`      \
+        inst.f   0, r1, r2`            \
+        mov.cs.f  0,(~expected) & 0x01`       \
+        mov.cc.f  0, (expected) & 0x01`       \
+    bne       @fail
+
+#define TEST_2OP_ZERO( testnum, inst, expected, val1, val2)  \
+    test_ ## testnum:                                        \
+    mov  r12, testnum`                                       \
+        mov  r1, MASK_XLEN(val1)`                            \
+        mov  r2, MASK_XLEN(val2)`                            \
+        inst.f   0, r1, r2`                                  \
+        mov.eq.f  0, (~expected) & 0x01`                     \
+        mov.ne.f  0, (expected) & 0x01`                      \
+        bne       @fail
+
+#define TEST_OVERFLOW( testnum, expected) \
+    test_ ## testnum:                     \
+    mov  r12, testnum`                    \
+    mov.vs.f  0,~expected`                \
+    mov.vc.f  0, expected`                \
+    bne       @fail
+
+#define TEST_2OP_NEGATIVE( testnum, inst, expected, val1, val2)  \
+    test_ ## testnum:                                           \
+    mov  r12, testnum`                                          \
+        mov  r1, MASK_XLEN(val1)`                               \
+        mov  r2, MASK_XLEN(val2)`                               \
+        inst.f   0, r1, r2`                                     \
+        mov.mi.f  0,(~expected) & 0x01`                         \
+        mov.pl.f  0, (expected) & 0x01`                         \
+        bne       @fail
+
+
 #endif
 
 #define TEST_BR2_OP_TAKEN( testnum, inst, val1, val2 )  \

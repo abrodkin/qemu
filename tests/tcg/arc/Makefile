@@ -20,6 +20,8 @@ TESTCASES += check_lp.tst
 TESTCASES += check_lp02.tst
 TESTCASES += check_addx.tst
 TESTCASES += check_andx.tst
+TESTCASES += check_aslx.tst
+TESTCASES += check_asrx.tst
 TESTCASES += check_orx.tst
 TESTCASES += check_rorx.tst
 TESTCASES += check_subx.tst
@@ -27,10 +29,13 @@ TESTCASES += check_xorx.tst
 TESTCASES += check_beqx.tst
 TESTCASES += check_bnex.tst
 TESTCASES += check_ldstx.tst
+TESTCASES += check_lsrx.tst
 TESTCASES += check_beq.tst
 TESTCASES += check_carry.tst
 TESTCASES += check_t01.tst
 TESTCASES += check_t02.tst
+TESTCASES += check_basic1.tst
+TESTCASES += check_basic2.tst
 
 all: $(TESTCASES)
 
