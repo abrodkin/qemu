@@ -57,14 +57,14 @@
         )
 
 #define TEST_2OP_CARRY( testnum, inst, expected, val1, val2) \
-    test_ ## testnum:                  \
-    mov  r12, testnum`                 \
-        mov  r1, MASK_XLEN(val1)`      \
-        mov  r2, MASK_XLEN(val2)`      \
-        inst.f   0, r1, r2`            \
-        mov.cs.f  0,(~expected) & 0x01`       \
-        mov.cc.f  0, (expected) & 0x01`       \
-    bne       @fail
+    test_ ## testnum:                                        \
+    mov  r12, testnum`                                       \
+        mov  r1, MASK_XLEN(val1)`                            \
+        mov  r2, MASK_XLEN(val2)`                            \
+        inst.f   0, r1, r2`                                     \
+        mov.cs   r3,(~expected) & 0x01`                         \
+        mov.cc   r3, (expected) & 0x01`                         \
+        brne     r3, 0, @fail
 
 #define TEST_2OP_ZERO( testnum, inst, expected, val1, val2)  \
     test_ ## testnum:                                        \
@@ -72,26 +72,29 @@
         mov  r1, MASK_XLEN(val1)`                            \
         mov  r2, MASK_XLEN(val2)`                            \
         inst.f   0, r1, r2`                                  \
-        mov.eq.f  0, (~expected) & 0x01`                     \
-        mov.ne.f  0, (expected) & 0x01`                      \
-        bne       @fail
+        mov.eq   r3, (~expected) & 0x01`                     \
+        mov.ne   r3, (expected) & 0x01`                      \
+        brne     r3, 0, @fail
 
-#define TEST_OVERFLOW( testnum, expected) \
-    test_ ## testnum:                     \
-    mov  r12, testnum`                    \
-    mov.vs.f  0,~expected`                \
-    mov.vc.f  0, expected`                \
-    bne       @fail
-
-#define TEST_2OP_NEGATIVE( testnum, inst, expected, val1, val2)  \
+#define TEST_2OP_OVERFLOW( testnum, inst, expected, val1, val2) \
     test_ ## testnum:                                           \
     mov  r12, testnum`                                          \
         mov  r1, MASK_XLEN(val1)`                               \
         mov  r2, MASK_XLEN(val2)`                               \
         inst.f   0, r1, r2`                                     \
-        mov.mi.f  0,(~expected) & 0x01`                         \
-        mov.pl.f  0, (expected) & 0x01`                         \
-        bne       @fail
+        mov.vs   r3,(~expected) & 0x01`                         \
+        mov.vc   r3, (expected) & 0x01`                         \
+        brne     r3, 0, @fail
+
+#define TEST_2OP_NEGATIVE( testnum, inst, expected, val1, val2)    \
+    test_ ## testnum:                                              \
+    mov  r12, testnum`                                             \
+        mov  r1, MASK_XLEN(val1)`                                  \
+        mov  r2, MASK_XLEN(val2)`                                  \
+        inst.f   0, r1, r2`                                        \
+        mov.mi   r3,(~expected) & 0x01`                            \
+        mov.pl   r3, (expected) & 0x01`                            \
+        brne     r3, 0, @fail
 
 
 #endif
@@ -140,8 +143,17 @@ fail:`\
         st      r2, [0x90000000]`\
         mov     r2, ':'`\
         st      r2, [0x90000000]`\
-        add     r12,r12,0x30`\
-        st      r12, [0x90000000]`\
+	mov	r13, r12`\
+	mov	r15, 0x30`\
+	mov	r14, r12`\
+loop_z:	`\
+        sub.f   r13, r13, 0x0A`\
+	add.pl	r15, r15, 1`\
+	mov.pl	r14, r13 `\
+	bpl	@loop_z`\
+        st      r15, [0x90000000]`\
+        add     r14, r14, 0x30`\
+        st      r14, [0x90000000]`\
         mov     r2, '\n'`\
         st      r2, [0x90000000]`\
         b 1b`
