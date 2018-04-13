@@ -220,8 +220,8 @@ TCGv arc2_gen_getNFlag(void);
 
 void arc2_gen_setCarry(TCGv elem);
 #define setCFlag(ELEM) arc2_gen_setCarry(ELEM)
-void arc2_gen_getVFlag(TCGv elem);
-#define setVFlag(ELEM) arc2_gen_getVFlag(ELEM)
+void arc2_gen_setVFlag(TCGv elem);
+#define setVFlag(ELEM) arc2_gen_setVFlag(ELEM)
 void arc2_gen_set_zflag(TCGv elem);
 #define setZFlag(ELEM) arc2_gen_set_zflag (ELEM)
 
@@ -262,6 +262,16 @@ TCGv arc2_gen_logical_shift_right (TCGv b, TCGv c);
 TCGv arc2_gen_logical_shift_left (TCGv b, TCGv c);
 #define logicalShiftLeft(B, C) \
   arc2_gen_logical_shift_left (B, C)
+TCGv arc2_gen_arithmetic_shift_right (TCGv b, TCGv c);
+#define arithmeticShiftRight(B, C) \
+  arc2_gen_arithmetic_shift_right (B, C)
+TCGv arc2_gen_rotate_left (TCGv b, TCGv c);
+#define rotateLeft(B, C) \
+  arc2_gen_rotate_left (B, C)
+TCGv arc2_gen_rotate_right (TCGv b, TCGv c);
+#define rotateRight(B, C) \
+  arc2_gen_rotate_right (B, C)
+
 TCGv arc2_gen_get_bit (TCGv a, TCGv pos);
 #define getBit(A, POS) \
   arc2_gen_get_bit(A, POS)

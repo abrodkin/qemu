@@ -377,7 +377,7 @@ TCGv arc2_gen_getNFlag(void)
 }
 
 void
-arc2_gen_getVFlag(TCGv elem)
+arc2_gen_setVFlag(TCGv elem)
 {
   // TODO: Check type of elem and set sign bit accordingly.
   tcg_gen_mov_tl(cpu_Vf, elem);
@@ -470,26 +470,41 @@ arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
     return ret;
 }
 
+//TCGv
+//arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
+//{
+//    TCGv t1 = tcg_temp_new_i32();
+//    TCGv t2 = tcg_temp_new_i32();
+//    TCGv ret = tcg_temp_new_i32();
+//
+//    /*
+//
+//    src1 & src2 & ~dest | ~src1 & ~src2 & dest = (src1 ^ dest) & ~(src1 ^ src2)
+//
+//    */
+//    tcg_gen_xor_tl(t1, src1, dest); /*  t1 = src1 ^ dest                    */
+//    tcg_gen_xor_tl(t2, src1, src2); /*  t2 = src1 ^ src2                    */
+//    tcg_gen_andc_tl(t1, t1, t2);    /*  t1 = (src1 ^ src2) & ~(src1 ^ src2) */
+//
+//    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31)                         */
+//
+//    tcg_temp_free_i32(t2);
+//    tcg_temp_free_i32(t1);
+//
+//    return ret;
+//}
+/* dest = T0 + T1. Compute C, N, V and Z flags */
+
 TCGv
-arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
+arc2_gen_add_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv t1 = tcg_temp_new_i32();
-    TCGv t2 = tcg_temp_new_i32();
     TCGv ret = tcg_temp_new_i32();
+    TCGv_i32 tmp = tcg_temp_new_i32();
 
-    /*
-
-    src1 & src2 & ~dest | ~src1 & ~src2 & dest = (src1 ^ dest) & ~(src1 ^ src2)
-
-    */
-    tcg_gen_xor_tl(t1, src1, dest); /*  t1 = src1 ^ dest                    */
-    tcg_gen_xor_tl(t2, src1, src2); /*  t2 = src1 ^ src2                    */
-    tcg_gen_andc_tl(t1, t1, t2);    /*  t1 = (src1 ^ src2) & ~(src1 ^ src2) */
-
-    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31)                         */
-
-    tcg_temp_free_i32(t2);
-    tcg_temp_free_i32(t1);
+    tcg_gen_xor_i32(ret, cpu_Nf, t0);
+    tcg_gen_xor_i32(tmp, t0, t1);
+    tcg_gen_andc_i32(ret, ret, tmp);
+    tcg_temp_free_i32(tmp);
 
     return ret;
 }
@@ -519,24 +534,38 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
   return ret;
 }
 
+//TCGv
+//arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
+//{
+//    TCGv t1 = tcg_temp_new_i32();
+//    TCGv t2 = tcg_temp_new_i32();
+//    TCGv ret = tcg_temp_new_i32();
+//
+//    /*
+//	t1 = src1 & ~src2 & ~dest
+//	   | ~src1 & src2 & dest
+//	   = (src1 ^ dest) & (src1 ^ dest)*/
+//    tcg_gen_xor_tl(t1, src1, dest);
+//    tcg_gen_xor_tl(t2, src1, src2);
+//    tcg_gen_and_tl(t1, t1, t2);
+//    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31) */
+//
+//    tcg_temp_free_i32(t2);
+//    tcg_temp_free_i32(t1);
+//
+//    return ret;
+//}
+/* dest = T0 - T1. Compute C, N, V and Z flags */
 TCGv
-arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
+arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv t1 = tcg_temp_new_i32();
-    TCGv t2 = tcg_temp_new_i32();
     TCGv ret = tcg_temp_new_i32();
+    TCGv_i32 tmp = tcg_temp_new_i32();
 
-    /*
-	t1 = src1 & ~src2 & ~dest
-	   | ~src1 & src2 & dest
-	   = (src1 ^ dest) & (src1 ^ dest)*/
-    tcg_gen_xor_tl(t1, src1, dest);
-    tcg_gen_xor_tl(t2, src1, src2);
-    tcg_gen_and_tl(t1, t1, t2);
-    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31) */
-
-    tcg_temp_free_i32(t2);
-    tcg_temp_free_i32(t1);
+    tcg_gen_xor_i32(ret, cpu_Nf, t0);
+    tcg_gen_xor_i32(tmp, t0, t1);
+    tcg_gen_and_i32(ret, ret, tmp);
+    tcg_temp_free_i32(tmp);
 
     return ret;
 }
@@ -561,7 +590,7 @@ TCGv
 arc2_gen_logical_shift_right (TCGv b, TCGv c)
 {
   TCGv ret = tcg_temp_new_i32();
-  tcg_gen_sar_i32 (ret, b, c);
+  tcg_gen_shr_i32 (ret, b, c);
   return ret;
 }
 
@@ -570,6 +599,30 @@ arc2_gen_logical_shift_left (TCGv b, TCGv c)
 {
   TCGv ret = tcg_temp_new_i32();
   tcg_gen_shl_i32 (ret, b, c);
+  return ret;
+}
+
+TCGv
+arc2_gen_arithmetic_shift_right (TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_sar_i32 (ret, b, c);
+  return ret;
+}
+
+TCGv
+arc2_gen_rotate_left (TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_rotl_i32 (ret, b, c);
+  return ret;
+}
+
+TCGv
+arc2_gen_rotate_right (TCGv b, TCGv c)
+{
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_rotr_i32 (ret, b, c);
   return ret;
 }
 
@@ -625,6 +678,7 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
   tcg_gen_shr_i32 (ret, a, end);
 
   tcg_gen_sub_i32 (tmp1, start, end);
+  tcg_gen_addi_i32 (tmp1, tmp1, 1);
   tcg_gen_shlfi_i32 (tmp1, 1, tmp1);
   tcg_gen_subi_i32 (tmp1, tmp1, 1);
 
