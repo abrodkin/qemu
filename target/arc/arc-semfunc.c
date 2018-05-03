@@ -5310,3 +5310,97 @@ arc2_gen_LP (DisasCtxt *ctx, TCGv rd)
 
   return ret;
 }
+
+
+
+
+
+/* NORM
+ *    Variables: @src, @dest
+ *    Functions: ARC_HELPER, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  i = ARC_HELPER (norm, @src);
+  @dest = (31 - i);
+  if((getFFlag () == true))
+    {
+      setZFlag (@src);
+      setNFlag (@src);
+    };
+}
+ */
+
+int
+arc2_gen_NORM (DisasCtxt *ctx, TCGv src, TCGv dest)
+{
+  int ret = BS_NONE;
+  TCGv i = tcg_temp_local_new_i32();
+  TCGv temp_3 = NULL /* REFERENCE */;
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  ARC_HELPER(norm, i, src);
+  tcg_gen_subfi_i32(dest, 31, i);
+  TCGLabel *done_1 = gen_new_label();
+  temp_3 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  setZFlag(src);
+  setNFlag(src);
+  gen_set_label(done_1);
+  tcg_temp_free(i);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+
+  return ret;
+}
+
+
+
+
+
+/* NORMH
+ *    Variables: @src, @dest
+ *    Functions: ARC_HELPER, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  lsrc = (@src & 65535);
+  i = ARC_HELPER (normh, lsrc);
+  @dest = (15 - i);
+  if((getFFlag () == true))
+    {
+      setZFlag (lsrc);
+      setNFlag (lsrc);
+    };
+}
+ */
+
+int
+arc2_gen_NORMH (DisasCtxt *ctx, TCGv src, TCGv dest)
+{
+  int ret = BS_NONE;
+  TCGv lsrc = tcg_temp_local_new_i32();
+  TCGv i = tcg_temp_local_new_i32();
+  TCGv temp_3 = NULL /* REFERENCE */;
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  tcg_gen_andi_i32(lsrc, src, 65535);
+  ARC_HELPER(normh, i, lsrc);
+  tcg_gen_subfi_i32(dest, 15, i);
+  TCGLabel *done_1 = gen_new_label();
+  temp_3 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  setZFlag(lsrc);
+  setNFlag(lsrc);
+  gen_set_label(done_1);
+  tcg_temp_free(lsrc);
+  tcg_temp_free(i);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+
+  return ret;
+}

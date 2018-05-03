@@ -55,6 +55,8 @@ typedef enum ARC_COND {
     ARC_COND_PNZ     = 0x0f,
 } ARC_COND;
 
+#define ARC_HELPER(NAME, RET, ...) \
+  gen_helper_##NAME (RET, cpu_env, __VA_ARGS__)
 
 //int arc_gen_ADC(DisasCtxt *c, TCGv dest, TCGv src1, TCGv src2);
 //int arc_gen_ADD(DisasCtxt *c, TCGv dest, TCGv src1, TCGv src2);

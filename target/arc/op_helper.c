@@ -64,30 +64,50 @@
 #define AUX_ID_IRQ_PULSE_CANSEL 0x415
 #define AUX_ID_IRQ_PENDING      0x416
 
+//target_ulong helper_norm(CPUARCState *env, uint32_t src1)
+//{
+//    if (src1 == 0x00000000 || src1 == 0xffffffff) {
+//        return 31;
+//    } else {
+//        if ((src1 & 0x80000000) == 0x80000000) {
+//            src1 = ~src1;
+//        }
+//        return clz32(src1) - 1;
+//    }
+//}
 target_ulong helper_norm(CPUARCState *env, uint32_t src1)
 {
-    if (src1 == 0x00000000 || src1 == 0xffffffff) {
-        return 31;
-    } else {
-        if ((src1 & 0x80000000) == 0x80000000) {
-            src1 = ~src1;
-        }
-        return clz32(src1) - 1;
-    }
+  int i;
+  for(i = 0; i <= 31; i++)
+  {
+    if(src1 >> i == 0) break;
+    if(src1 >> i == -1) break;
+  }
+  return i;
 }
 
-target_ulong helper_normw(CPUARCState *env, uint32_t src1)
+//target_ulong helper_normw(CPUARCState *env, uint32_t src1)
+//{
+//    src1 &= 0xffff;
+//
+//    if (src1 == 0x0000 || src1 == 0xffff) {
+//        return 15;
+//    } else {
+//        if ((src1 & 0x8000) == 0x8000) {
+//            src1 = ~src1 & 0xffff;
+//        }
+//        return clz32(src1) - 17;
+//    }
+//}
+target_ulong helper_normh(CPUARCState *env, uint32_t src1)
 {
-    src1 &= 0xffff;
-
-    if (src1 == 0x0000 || src1 == 0xffff) {
-        return 15;
-    } else {
-        if ((src1 & 0x8000) == 0x8000) {
-            src1 = ~src1 & 0xffff;
-        }
-        return clz32(src1) - 17;
-    }
+  int i;
+  for(i = 0; i <= 15; i++)
+  {
+    if(src1 >> i == 0) break;
+    if(src1 >> i == -1) break;
+  }
+  return i;
 }
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
