@@ -40,14 +40,17 @@ int
 arc2_gen_NEG (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_subfi_i32(a, 0, b);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -83,41 +86,47 @@ int
 arc2_gen_ADD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
   tcg_gen_add_i32(a, b, c);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_5, CarryADD(a, lb, lc));
-  setCFlag(temp_5);
-  tcg_gen_mov_i32(temp_6, OverflowADD(a, lb, lc));
-  setVFlag(temp_6);
+  temp_7 = CarryADD(a, lb, lc);
+  setCFlag(temp_7);
+  temp_8 = OverflowADD(a, lb, lc);
+  setVFlag(temp_8);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -151,44 +160,50 @@ int
 arc2_gen_ADD1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 1);
-  tcg_gen_add_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 1);
+  tcg_gen_add_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarryADD(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowADD(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarryADD(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowADD(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -222,44 +237,50 @@ int
 arc2_gen_ADD2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 2);
-  tcg_gen_add_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 2);
+  tcg_gen_add_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarryADD(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowADD(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarryADD(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowADD(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -293,44 +314,50 @@ int
 arc2_gen_ADD3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 3);
-  tcg_gen_add_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 3);
+  tcg_gen_add_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarryADD(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowADD(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarryADD(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowADD(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -364,47 +391,53 @@ int
 arc2_gen_ADC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_mov_i32(temp_6, getCFlag());
-  tcg_gen_add_i32(temp_5, b, c);
-  tcg_gen_add_i32(a, temp_5, temp_6);
+  temp_7 = getCFlag();
+  tcg_gen_add_i32(temp_6, b, c);
+  tcg_gen_add_i32(a, temp_6, temp_7);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_7, CarryADD(a, lb, lc));
-  setCFlag(temp_7);
-  tcg_gen_mov_i32(temp_8, OverflowADD(a, lb, lc));
-  setVFlag(temp_8);
+  temp_9 = CarryADD(a, lb, lc);
+  setCFlag(temp_9);
+  temp_10 = OverflowADD(a, lb, lc);
+  setVFlag(temp_10);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
 
   return ret;
 }
@@ -438,47 +471,53 @@ int
 arc2_gen_SBC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_mov_i32(temp_6, getCFlag());
-  tcg_gen_sub_i32(temp_5, b, c);
-  tcg_gen_sub_i32(a, temp_5, temp_6);
+  temp_7 = getCFlag();
+  tcg_gen_sub_i32(temp_6, b, c);
+  tcg_gen_sub_i32(a, temp_6, temp_7);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_7, CarryADD(a, lb, lc));
-  setCFlag(temp_7);
-  tcg_gen_mov_i32(temp_8, OverflowADD(a, lb, lc));
-  setVFlag(temp_8);
+  temp_9 = CarryADD(a, lb, lc);
+  setCFlag(temp_9);
+  temp_10 = OverflowADD(a, lb, lc);
+  setVFlag(temp_10);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
 
   return ret;
 }
@@ -512,41 +551,47 @@ int
 arc2_gen_SUB (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
   tcg_gen_sub_i32(a, b, c);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_5, CarrySUB(a, lb, lc));
-  setCFlag(temp_5);
-  tcg_gen_mov_i32(temp_6, OverflowSUB(a, lb, lc));
-  setVFlag(temp_6);
+  temp_7 = CarrySUB(a, lb, lc);
+  setCFlag(temp_7);
+  temp_8 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_8);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -580,44 +625,50 @@ int
 arc2_gen_SUB1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 1);
-  tcg_gen_sub_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 1);
+  tcg_gen_sub_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarrySUB(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowSUB(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarrySUB(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -651,44 +702,50 @@ int
 arc2_gen_SUB2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 2);
-  tcg_gen_sub_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 2);
+  tcg_gen_sub_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarrySUB(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowSUB(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarrySUB(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -722,44 +779,50 @@ int
 arc2_gen_SUB3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_mov_i32(lc, c);
-  tcg_gen_shli_i32(temp_5, c, 3);
-  tcg_gen_sub_i32(a, b, temp_5);
+  tcg_gen_shli_i32(temp_6, c, 3);
+  tcg_gen_sub_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  tcg_gen_mov_i32(temp_6, CarrySUB(a, lb, lc));
-  setCFlag(temp_6);
-  tcg_gen_mov_i32(temp_7, OverflowSUB(a, lb, lc));
-  setVFlag(temp_7);
+  temp_8 = CarrySUB(a, lb, lc);
+  setCFlag(temp_8);
+  temp_9 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -801,6 +864,7 @@ int
 arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -808,12 +872,14 @@ arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv alu = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
@@ -830,17 +896,19 @@ arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_mov_i32(a, lb);
   gen_set_label(done_2);
   TCGLabel *done_3 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, temp_8, arc_true);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, done_3);;
   setZFlag(alu);
   setNFlag(alu);
-  tcg_gen_mov_i32(temp_7, CarrySUB(a, lb, lc));
-  setCFlag(temp_7);
-  tcg_gen_mov_i32(temp_8, OverflowSUB(a, lb, lc));
-  setVFlag(temp_8);
+  temp_9 = CarrySUB(a, lb, lc);
+  setCFlag(temp_9);
+  temp_10 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_10);
   gen_set_label(done_3);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
@@ -848,10 +916,11 @@ arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_temp_free(alu);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
 
   return ret;
 }
@@ -893,6 +962,7 @@ int
 arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -900,12 +970,14 @@ arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv alu = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
@@ -922,17 +994,19 @@ arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_mov_i32(a, lb);
   gen_set_label(done_2);
   TCGLabel *done_3 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, temp_8, arc_true);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, done_3);;
   setZFlag(alu);
   setNFlag(alu);
-  tcg_gen_mov_i32(temp_7, CarrySUB(a, lb, lc));
-  setCFlag(temp_7);
-  tcg_gen_mov_i32(temp_8, OverflowSUB(a, lb, lc));
-  setVFlag(temp_8);
+  temp_9 = CarrySUB(a, lb, lc);
+  setCFlag(temp_9);
+  temp_10 = OverflowSUB(a, lb, lc);
+  setVFlag(temp_10);
   gen_set_label(done_3);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
@@ -940,10 +1014,11 @@ arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_temp_free(alu);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
 
   return ret;
 }
@@ -972,28 +1047,31 @@ int
 arc2_gen_CMP (DisasCtxt *ctx, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv alu = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_sub_i32(alu, b, c);
   setZFlag(alu);
   setNFlag(alu);
-  tcg_gen_mov_i32(temp_3, CarrySUB(alu, b, c));
-  setCFlag(temp_3);
-  tcg_gen_mov_i32(temp_4, OverflowSUB(alu, b, c));
-  setVFlag(temp_4);
+  temp_4 = CarrySUB(alu, b, c);
+  setCFlag(temp_4);
+  temp_5 = OverflowSUB(alu, b, c);
+  setVFlag(temp_5);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(alu);
-  tcg_temp_free(temp_3);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
 
   return ret;
 }
@@ -1023,25 +1101,31 @@ int
 arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_and_i32(a, b, c);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1073,25 +1157,31 @@ int
 arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_or_i32(a, b, c);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1123,25 +1213,31 @@ int
 arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_xor_i32(a, b, c);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1173,25 +1269,31 @@ int
 arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(a, b);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1233,26 +1335,30 @@ int
 arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_11 = tcg_temp_local_new_i32();
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_andi_i32(lc, c, 31);
   tcg_gen_shl_i32(a, lb, lc);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
@@ -1262,27 +1368,29 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_5, lc, 0);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, else_3);;
-  tcg_gen_movi_i32(temp_7, 0);
-  setCFlag(temp_7);
+  tcg_gen_movi_i32(temp_9, 0);
+  setCFlag(temp_9);
   tcg_gen_br(done_3);
   gen_set_label(else_3);
-  tcg_gen_subfi_i32(temp_9, 32, lc);
-  tcg_gen_mov_i32(temp_8, getBit(lb, temp_9));
-  setCFlag(temp_8);
+  tcg_gen_subfi_i32(temp_11, 32, lc);
+  temp_10 = getBit(lb, temp_11);
+  setCFlag(temp_10);
   gen_set_label(done_3);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
   tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_11);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
 
   return ret;
 }
@@ -1322,26 +1430,32 @@ int
 arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_12 = tcg_temp_local_new_i32();
+  TCGv temp_11 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_andi_i32(lc, c, 31);
-  tcg_gen_mov_i32(a, arithmeticShiftRight(lb, lc));
+  temp_8 = arithmeticShiftRight(lb, lc);
+  tcg_gen_mov_i32(a, temp_8);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_9 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_9, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
@@ -1351,27 +1465,30 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_5, lc, 0);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, else_3);;
-  tcg_gen_movi_i32(temp_7, 0);
-  setCFlag(temp_7);
+  tcg_gen_movi_i32(temp_10, 0);
+  setCFlag(temp_10);
   tcg_gen_br(done_3);
   gen_set_label(else_3);
-  tcg_gen_subi_i32(temp_9, lc, 1);
-  tcg_gen_mov_i32(temp_8, getBit(lb, temp_9));
-  setCFlag(temp_8);
+  tcg_gen_subi_i32(temp_12, lc, 1);
+  temp_11 = getBit(lb, temp_12);
+  setCFlag(temp_11);
   gen_set_label(done_3);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_12);
+  if(temp_11 != NULL) tcg_temp_free(temp_11);
 
   return ret;
 }
@@ -1402,31 +1519,40 @@ int
 arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
-  tcg_gen_movi_i32(temp_5, 8);
-  tcg_gen_mov_i32(a, arithmeticShiftRight(lb, temp_5));
+  tcg_gen_movi_i32(temp_7, 8);
+  temp_6 = arithmeticShiftRight(lb, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1459,31 +1585,40 @@ int
 arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
-  tcg_gen_movi_i32(temp_5, 16);
-  tcg_gen_mov_i32(a, arithmeticShiftRight(lb, temp_5));
+  tcg_gen_movi_i32(temp_7, 16);
+  temp_6 = arithmeticShiftRight(lb, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1515,28 +1650,37 @@ int
 arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_5, 16);
-  tcg_gen_mov_i32(a, logicalShiftLeft(b, temp_5));
+  tcg_gen_movi_i32(temp_7, 16);
+  temp_6 = logicalShiftLeft(b, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1568,28 +1712,37 @@ int
 arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_5, 8);
-  tcg_gen_mov_i32(a, logicalShiftLeft(b, temp_5));
+  tcg_gen_movi_i32(temp_7, 8);
+  temp_6 = logicalShiftLeft(b, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1631,26 +1784,32 @@ int
 arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_12 = tcg_temp_local_new_i32();
+  TCGv temp_11 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lb, b);
   tcg_gen_andi_i32(lc, c, 31);
-  tcg_gen_mov_i32(a, logicalShiftRight(lb, lc));
+  temp_8 = logicalShiftRight(lb, lc);
+  tcg_gen_mov_i32(a, temp_8);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_9 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_9, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
@@ -1660,27 +1819,30 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_5, lc, 0);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, else_3);;
-  tcg_gen_movi_i32(temp_7, 0);
-  setCFlag(temp_7);
+  tcg_gen_movi_i32(temp_10, 0);
+  setCFlag(temp_10);
   tcg_gen_br(done_3);
   gen_set_label(else_3);
-  tcg_gen_subi_i32(temp_9, lc, 1);
-  tcg_gen_mov_i32(temp_8, getBit(lb, temp_9));
-  setCFlag(temp_8);
+  tcg_gen_subi_i32(temp_12, lc, 1);
+  temp_11 = getBit(lb, temp_12);
+  setCFlag(temp_11);
   gen_set_label(done_3);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lb);
   tcg_temp_free(lc);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_12);
+  if(temp_11 != NULL) tcg_temp_free(temp_11);
 
   return ret;
 }
@@ -1710,28 +1872,37 @@ int
 arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_5, 16);
-  tcg_gen_mov_i32(a, logicalShiftRight(b, temp_5));
+  tcg_gen_movi_i32(temp_7, 16);
+  temp_6 = logicalShiftRight(b, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1763,28 +1934,37 @@ int
 arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_5, 8);
-  tcg_gen_mov_i32(a, logicalShiftRight(b, temp_5));
+  tcg_gen_movi_i32(temp_7, 8);
+  temp_6 = logicalShiftRight(b, temp_7);
+  tcg_gen_mov_i32(a, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_7);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1816,28 +1996,34 @@ int
 arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_not_i32(temp_5, c);
-  tcg_gen_and_i32(a, b, temp_5);
+  tcg_gen_not_i32(temp_6, c);
+  tcg_gen_and_i32(a, b, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1870,34 +2056,40 @@ int
 arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv tmp = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv tmp = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_andi_i32(temp_5, c, 31);
-  tcg_gen_shlfi_i32(tmp, 1, temp_5);
-  tcg_gen_not_i32(temp_6, tmp);
-  tcg_gen_and_i32(a, b, temp_6);
+  tcg_gen_andi_i32(temp_6, c, 31);
+  tcg_gen_shlfi_i32(tmp, 1, temp_6);
+  tcg_gen_not_i32(temp_7, tmp);
+  tcg_gen_and_i32(a, b, temp_7);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(tmp);
   tcg_temp_free(temp_6);
+  tcg_temp_free(tmp);
+  tcg_temp_free(temp_7);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -1938,22 +2130,25 @@ int
 arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_andi_i32(temp_7, c, 31);
-  tcg_gen_addi_i32(tmp1, temp_7, 1);
+  tcg_gen_andi_i32(temp_8, c, 31);
+  tcg_gen_addi_i32(tmp1, temp_8, 1);
   TCGLabel *else_2 = gen_new_label();
   TCGLabel *done_2 = gen_new_label();
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_3, tmp1, 32);
@@ -1962,26 +2157,29 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_movi_i32(tmp2, 4294967295);
   tcg_gen_br(done_2);
   gen_set_label(else_2);
-  tcg_gen_shlfi_i32(temp_8, 1, tmp1);
-  tcg_gen_subi_i32(tmp2, temp_8, 1);
+  tcg_gen_shlfi_i32(temp_9, 1, tmp1);
+  tcg_gen_subi_i32(tmp2, temp_9, 1);
   gen_set_label(done_2);
   tcg_gen_and_i32(a, b, tmp2);
   TCGLabel *done_3 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, getFFlag(), arc_true);
+  temp_10 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, temp_10, arc_true);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, done_3);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_3);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_8);
   tcg_temp_free(tmp1);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(tmp2);
-  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_9);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
 
@@ -2022,23 +2220,26 @@ int
 arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_11 = NULL /* REFERENCE */;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_7 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_7, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_andi_i32(temp_7, c, 31);
-  tcg_gen_addi_i32(tmp1, temp_7, 1);
+  tcg_gen_andi_i32(temp_8, c, 31);
+  tcg_gen_addi_i32(tmp1, temp_8, 1);
   TCGLabel *else_2 = gen_new_label();
   TCGLabel *done_2 = gen_new_label();
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_3, tmp1, 32);
@@ -2047,28 +2248,31 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_movi_i32(tmp2, 4294967295);
   tcg_gen_br(done_2);
   gen_set_label(else_2);
-  tcg_gen_shlfi_i32(temp_8, 1, tmp1);
-  tcg_gen_subi_i32(tmp2, temp_8, 1);
+  tcg_gen_shlfi_i32(temp_9, 1, tmp1);
+  tcg_gen_subi_i32(tmp2, temp_9, 1);
   gen_set_label(done_2);
-  tcg_gen_not_i32(temp_9, tmp2);
-  tcg_gen_and_i32(a, b, temp_9);
+  tcg_gen_not_i32(temp_10, tmp2);
+  tcg_gen_and_i32(a, b, temp_10);
   TCGLabel *done_3 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, getFFlag(), arc_true);
+  temp_11 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_5, temp_11, arc_true);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, done_3);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_3);
   gen_set_label(done_1);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_8);
   tcg_temp_free(tmp1);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(tmp2);
-  tcg_temp_free(temp_8);
   tcg_temp_free(temp_9);
+  tcg_temp_free(temp_10);
+  if(temp_11 != NULL) tcg_temp_free(temp_11);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
 
@@ -2101,31 +2305,37 @@ int
 arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_andi_i32(temp_5, c, 31);
-  tcg_gen_shlfi_i32(tmp, 1, temp_5);
+  tcg_gen_andi_i32(temp_6, c, 31);
+  tcg_gen_shlfi_i32(tmp, 1, temp_6);
   tcg_gen_or_i32(a, b, tmp);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
   tcg_temp_free(tmp);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2158,28 +2368,34 @@ int
 arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_shlfi_i32(tmp, 1, c);
   tcg_gen_xor_i32(a, b, tmp);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(tmp);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2214,43 +2430,52 @@ int
 arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv ln = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lsrc, src);
   tcg_gen_andi_i32(ln, n, 31);
-  tcg_gen_mov_i32(dest, rotateLeft(lsrc, ln));
+  temp_6 = rotateLeft(lsrc, ln);
+  tcg_gen_mov_i32(dest, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_subi_i32(temp_7, ln, 1);
-  tcg_gen_subi_i32(temp_6, ln, 1);
-  tcg_gen_mov_i32(temp_5, extractBits(lsrc, temp_6, temp_7));
-  setCFlag(temp_5);
+  tcg_gen_subi_i32(temp_10, ln, 1);
+  tcg_gen_subi_i32(temp_9, ln, 1);
+  temp_8 = extractBits(lsrc, temp_9, temp_10);
+  setCFlag(temp_8);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lsrc);
   tcg_temp_free(ln);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_9);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -2283,43 +2508,52 @@ int
 arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv ln = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lsrc, src);
   tcg_gen_andi_i32(ln, n, 31);
-  tcg_gen_mov_i32(dest, rotateRight(lsrc, ln));
+  temp_6 = rotateRight(lsrc, ln);
+  tcg_gen_mov_i32(dest, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_subi_i32(temp_7, ln, 1);
-  tcg_gen_subi_i32(temp_6, ln, 1);
-  tcg_gen_mov_i32(temp_5, extractBits(lsrc, temp_6, temp_7));
-  setCFlag(temp_5);
+  tcg_gen_subi_i32(temp_10, ln, 1);
+  tcg_gen_subi_i32(temp_9, ln, 1);
+  temp_8 = extractBits(lsrc, temp_9, temp_10);
+  setCFlag(temp_8);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lsrc);
   tcg_temp_free(ln);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_9);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -2352,44 +2586,50 @@ int
 arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lsrc = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lsrc, src);
   tcg_gen_shli_i32(dest, lsrc, 1);
-  tcg_gen_mov_i32(temp_5, getCFlag());
-  tcg_gen_or_i32(dest, dest, temp_5);
+  temp_6 = getCFlag();
+  tcg_gen_or_i32(dest, dest, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_movi_i32(temp_8, 31);
-  tcg_gen_movi_i32(temp_7, 31);
-  tcg_gen_mov_i32(temp_6, extractBits(lsrc, temp_7, temp_8));
-  setCFlag(temp_6);
+  tcg_gen_movi_i32(temp_10, 31);
+  tcg_gen_movi_i32(temp_9, 31);
+  temp_8 = extractBits(lsrc, temp_9, temp_10);
+  setCFlag(temp_8);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lsrc);
-  tcg_temp_free(temp_5);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_8);
-  tcg_temp_free(temp_7);
-  tcg_temp_free(temp_6);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_9);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -2422,47 +2662,53 @@ int
 arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lsrc = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_11 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lsrc, src);
   tcg_gen_shri_i32(dest, lsrc, 1);
-  tcg_gen_mov_i32(temp_6, getCFlag());
-  tcg_gen_shli_i32(temp_5, temp_6, 31);
-  tcg_gen_or_i32(dest, dest, temp_5);
+  temp_7 = getCFlag();
+  tcg_gen_shli_i32(temp_6, temp_7, 31);
+  tcg_gen_or_i32(dest, dest, temp_6);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_8 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_8, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_movi_i32(temp_9, 0);
-  tcg_gen_movi_i32(temp_8, 0);
-  tcg_gen_mov_i32(temp_7, extractBits(lsrc, temp_8, temp_9));
-  setCFlag(temp_7);
+  tcg_gen_movi_i32(temp_11, 0);
+  tcg_gen_movi_i32(temp_10, 0);
+  temp_9 = extractBits(lsrc, temp_10, temp_11);
+  setCFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lsrc);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
-  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_11);
+  tcg_temp_free(temp_10);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
 
   return ret;
 }
@@ -2492,28 +2738,34 @@ int
 arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_shli_i32(temp_5, src, 24);
-  tcg_gen_shri_i32(dest, temp_5, 24);
+  tcg_gen_shli_i32(temp_6, src, 24);
+  tcg_gen_shri_i32(dest, temp_6, 24);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2545,28 +2797,34 @@ int
 arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_shli_i32(temp_5, src, 16);
-  tcg_gen_shri_i32(dest, temp_5, 16);
+  tcg_gen_shli_i32(temp_6, src, 16);
+  tcg_gen_shri_i32(dest, temp_6, 16);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2598,25 +2856,31 @@ int
 arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_andi_i32(dest, src, 255);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2648,25 +2912,31 @@ int
 arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_andi_i32(dest, src, 65535);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2696,24 +2966,27 @@ int
 arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
   TCGv alu = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_andi_i32(temp_3, c, 31);
-  tcg_gen_shlfi_i32(tmp, 1, temp_3);
+  tcg_gen_andi_i32(temp_4, c, 31);
+  tcg_gen_shlfi_i32(tmp, 1, temp_4);
   tcg_gen_and_i32(alu, b, tmp);
   setZFlag(alu);
   setNFlag(alu);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_3);
+  tcg_temp_free(temp_4);
   tcg_temp_free(tmp);
   tcg_temp_free(alu);
 
@@ -2742,17 +3015,20 @@ int
 arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv alu = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_and_i32(alu, b, c);
   setZFlag(alu);
   setNFlag(alu);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(alu);
@@ -2788,54 +3064,60 @@ int
 arc2_gen_XBFU (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 {
   int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv N = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv N = NULL /* REFERENCE */;
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv M = tcg_temp_local_new_i32();
   TCGv tmp1 = tcg_temp_local_new_i32();
-  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_11 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
+  TCGv temp_12 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_5 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_5, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_6, 0);
-  tcg_gen_movi_i32(temp_5, 4);
-  tcg_gen_mov_i32(N, extractBits(src2, temp_5, temp_6));
-  tcg_gen_movi_i32(temp_9, 5);
-  tcg_gen_movi_i32(temp_8, 9);
-  tcg_gen_mov_i32(temp_7, extractBits(src2, temp_8, temp_9));
-  tcg_gen_addi_i32(M, temp_7, 1);
+  tcg_gen_movi_i32(temp_7, 0);
+  tcg_gen_movi_i32(temp_6, 4);
+  N = extractBits(src2, temp_6, temp_7);
+  tcg_gen_movi_i32(temp_10, 5);
+  tcg_gen_movi_i32(temp_9, 9);
+  temp_8 = extractBits(src2, temp_9, temp_10);
+  tcg_gen_addi_i32(M, temp_8, 1);
   tcg_gen_shr_i32(tmp1, src1, N);
-  tcg_gen_shlfi_i32(temp_10, 1, M);
-  tcg_gen_subi_i32(tmp2, temp_10, 1);
+  tcg_gen_shlfi_i32(temp_11, 1, M);
+  tcg_gen_subi_i32(tmp2, temp_11, 1);
   tcg_gen_and_i32(dest, tmp1, tmp2);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_12 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_12, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(N);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
   tcg_temp_free(temp_7);
+  tcg_temp_free(temp_6);
+  if(N != NULL) tcg_temp_free(N);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_9);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(M);
   tcg_temp_free(tmp1);
-  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_11);
   tcg_temp_free(tmp2);
+  if(temp_12 != NULL) tcg_temp_free(temp_12);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
 
@@ -2864,20 +3146,23 @@ int
 arc2_gen_AEX (DisasCtxt *ctx, TCGv src2, TCGv b)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv tmp = tcg_temp_local_new_i32();
+  TCGv tmp = NULL /* REFERENCE */;
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_mov_i32(tmp, readAuxReg(src2));
+  tmp = readAuxReg(src2);
   writeAuxReg(src2, b);
   tcg_gen_mov_i32(b, tmp);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(tmp);
+  if(tmp != NULL) tcg_temp_free(tmp);
 
   return ret;
 }
@@ -2899,6 +3184,10 @@ int
 arc2_gen_LR (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_1 = NULL /* REFERENCE */;
+  temp_1 = readAuxReg(src);
+  tcg_gen_mov_i32(dest, temp_1);
+  if(temp_1 != NULL) tcg_temp_free(temp_1);
 
   return ret;
 }
@@ -2944,19 +3233,22 @@ int
 arc2_gen_MPY (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_mul_i32(temp_3, b, c);
-  tcg_gen_andi_i32(a, temp_3, 4294967295);
+  tcg_gen_mul_i32(temp_4, b, c);
+  tcg_gen_andi_i32(a, temp_4, 4294967295);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_3);
+  tcg_temp_free(temp_4);
 
   return ret;
 }
@@ -2996,17 +3288,20 @@ arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
   int ret = BS_NONE;
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv alu = tcg_temp_local_new_i32();
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(lsrc, src);
   tcg_gen_subfi_i32(alu, 0, lsrc);
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_1, Carry(lsrc), 1);
+  temp_5 = Carry(lsrc);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_1, temp_5, 1);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
   tcg_gen_mov_i32(dest, alu);
@@ -3015,24 +3310,27 @@ arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_gen_mov_i32(dest, lsrc);
   gen_set_label(done_1);
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, getFFlag(), arc_true);
+  temp_6 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_6, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_mov_i32(temp_5, Zero());
-  setCFlag(temp_5);
-  tcg_gen_mov_i32(temp_6, getNFlag());
-  setVFlag(temp_6);
+  tcg_gen_mov_i32(temp_7, Zero());
+  setCFlag(temp_7);
+  tcg_gen_mov_i32(temp_8, getNFlag());
+  setVFlag(temp_8);
   gen_set_label(done_2);
   tcg_temp_free(lsrc);
   tcg_temp_free(alu);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_6);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_8);
 
   return ret;
 }
@@ -3064,6 +3362,7 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_shli_i32(tmp1, src, 16);
@@ -3071,7 +3370,8 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_gen_andi_i32(tmp2, temp_3, 65535);
   tcg_gen_or_i32(dest, tmp1, tmp2);
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getFFlag(), arc_true);
+  temp_4 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_4, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   setZFlag(dest);
@@ -3080,6 +3380,7 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_temp_free(tmp1);
   tcg_temp_free(temp_3);
   tcg_temp_free(tmp2);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -3122,6 +3423,7 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv tmp4 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_9 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_shli_i32(temp_3, src, 24);
@@ -3136,7 +3438,8 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_gen_or_i32(temp_7, temp_8, tmp3);
   tcg_gen_or_i32(dest, temp_7, tmp4);
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getFFlag(), arc_true);
+  temp_9 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_9, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   setZFlag(dest);
@@ -3152,6 +3455,7 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_temp_free(tmp4);
   tcg_temp_free(temp_8);
   tcg_temp_free(temp_7);
+  if(temp_9 != NULL) tcg_temp_free(temp_9);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -3180,16 +3484,19 @@ int
 arc2_gen_NOT (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_not_i32(dest, src);
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getFFlag(), arc_true);
+  temp_3 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   setZFlag(dest);
   setNFlag(dest);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -3214,14 +3521,14 @@ arc2_gen_BI (DisasCtxt *ctx, TCGv c)
 {
   int ret = BS_NONE;
   TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_2 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_shli_i32(temp_3, c, 2);
-  tcg_gen_mov_i32(temp_2, getPCL());
+  temp_2 = getPCL();
   tcg_gen_add_i32(temp_1, temp_2, temp_3);
   setPC(temp_1);
   tcg_temp_free(temp_3);
-  tcg_temp_free(temp_2);
+  if(temp_2 != NULL) tcg_temp_free(temp_2);
   tcg_temp_free(temp_1);
 
   return ret;
@@ -3245,14 +3552,14 @@ arc2_gen_BIH (DisasCtxt *ctx, TCGv c)
 {
   int ret = BS_NONE;
   TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_2 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_shli_i32(temp_3, c, 1);
-  tcg_gen_mov_i32(temp_2, getPCL());
+  temp_2 = getPCL();
   tcg_gen_add_i32(temp_1, temp_2, temp_3);
   setPC(temp_1);
   tcg_temp_free(temp_3);
-  tcg_temp_free(temp_2);
+  if(temp_2 != NULL) tcg_temp_free(temp_2);
   tcg_temp_free(temp_1);
 
   return ret;
@@ -3282,10 +3589,11 @@ int
 arc2_gen_B (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == true))
     {
     executeDelaySlot();
@@ -3296,17 +3604,19 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
   ;
     }
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_mov_i32(temp_4, getPCL());
-  tcg_gen_add_i32(temp_3, temp_4, rd);
-  setPC(temp_3);
+  temp_5 = getPCL();
+  tcg_gen_add_i32(temp_4, temp_5, rd);
+  setPC(temp_4);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_3);
 
   return ret;
 }
@@ -3332,23 +3642,26 @@ int
 arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   killDelaySlot();
-  tcg_gen_mov_i32(temp_4, getPCL());
-  tcg_gen_add_i32(temp_3, temp_4, rd);
-  setPC(temp_3);
+  temp_5 = getPCL();
+  tcg_gen_add_i32(temp_4, temp_5, rd);
+  setPC(temp_4);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
-  tcg_temp_free(temp_3);
 
   return ret;
 }
@@ -3381,16 +3694,18 @@ int
 arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_6 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_6, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_shlfi_i32(tmp, 1, c);
@@ -3408,19 +3723,20 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
     {
   ;
     }
-  tcg_gen_mov_i32(temp_7, getPCL());
-  tcg_gen_add_i32(temp_6, temp_7, rd);
-  setPC(temp_6);
+  temp_8 = getPCL();
+  tcg_gen_add_i32(temp_7, temp_8, rd);
+  setPC(temp_7);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(tmp);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_7);
-  tcg_temp_free(temp_6);
 
   return ret;
 }
@@ -3453,16 +3769,18 @@ int
 arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_8 = NULL /* REFERENCE */;
   TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_6 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_6, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_shlfi_i32(tmp, 1, c);
@@ -3480,19 +3798,20 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
     {
   ;
     }
-  tcg_gen_mov_i32(temp_7, getPCL());
-  tcg_gen_add_i32(temp_6, temp_7, rd);
-  setPC(temp_6);
+  temp_8 = getPCL();
+  tcg_gen_add_i32(temp_7, temp_8, rd);
+  setPC(temp_7);
   gen_set_label(done_2);
   gen_set_label(done_1);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(tmp);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
   tcg_temp_free(temp_7);
-  tcg_temp_free(temp_6);
 
   return ret;
 }
@@ -3529,12 +3848,13 @@ int
 arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
+  TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
     executeDelaySlot();
@@ -3545,31 +3865,33 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
   ;
     }
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
-  setBLINK(temp_3);
+    temp_4 = nextInsnAddressAfterDelaySlot();
+  setBLINK(temp_4);
 ;
     }
   else
     {
-    tcg_gen_mov_i32(temp_4, nextInsnAddress());
-  setBLINK(temp_4);
+    temp_5 = nextInsnAddress();
+  setBLINK(temp_5);
 ;
     }
-  tcg_gen_mov_i32(temp_6, getPCL());
-  tcg_gen_add_i32(temp_5, temp_6, rd);
-  setPC(temp_5);
+  temp_7 = getPCL();
+  tcg_gen_add_i32(temp_6, temp_7, rd);
+  setPC(temp_6);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_3);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_5);
 
   return ret;
 }
@@ -3598,6 +3920,7 @@ int
 arc2_gen_J (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
@@ -3610,11 +3933,13 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
   ;
     }
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   setPC(src);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -3653,10 +3978,11 @@ int
 arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
+  TCGv temp_5 = NULL /* REFERENCE */;
   if ((shouldExecuteDelaySlot () == 1))
     {
     executeDelaySlot();
@@ -3667,27 +3993,29 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   ;
     }
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    tcg_gen_mov_i32(temp_3, nextInsnAddressAfterDelaySlot());
-  setBLINK(temp_3);
+    temp_4 = nextInsnAddressAfterDelaySlot();
+  setBLINK(temp_4);
 ;
     }
   else
     {
-    tcg_gen_mov_i32(temp_4, nextInsnAddress());
-  setBLINK(temp_4);
+    temp_5 = nextInsnAddress();
+  setBLINK(temp_5);
 ;
     }
   setPC(src);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_3);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
 
   return ret;
 }
@@ -3721,7 +4049,7 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -3737,7 +4065,7 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, b, c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_4, getPCL());
+  temp_4 = getPCL();
   tcg_gen_add_i32(temp_3, temp_4, offset);
   setPC(temp_3);
   tcg_gen_br(done_1);
@@ -3745,7 +4073,7 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
 
   return ret;
@@ -3822,7 +4150,7 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -3838,7 +4166,7 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_NE, temp_1, b, c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_4, getPCL());
+  temp_4 = getPCL();
   tcg_gen_add_i32(temp_3, temp_4, offset);
   setPC(temp_3);
   tcg_gen_br(done_1);
@@ -3846,7 +4174,7 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
 
   return ret;
@@ -3923,7 +4251,7 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -3939,7 +4267,7 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_LT, temp_1, b, c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_4, getPCL());
+  temp_4 = getPCL();
   tcg_gen_add_i32(temp_3, temp_4, offset);
   setPC(temp_3);
   tcg_gen_br(done_1);
@@ -3947,7 +4275,7 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
 
   return ret;
@@ -4024,7 +4352,7 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_4 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -4040,7 +4368,7 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_GE, temp_1, b, c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_4, getPCL());
+  temp_4 = getPCL();
   tcg_gen_add_i32(temp_3, temp_4, offset);
   setPC(temp_3);
   tcg_gen_br(done_1);
@@ -4048,7 +4376,7 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_4);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
 
   return ret;
@@ -4208,7 +4536,7 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -4223,14 +4551,14 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_xori_i32(temp_1, unsignedLT(b, c), 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_3, getPCL());
+  temp_3 = getPCL();
   tcg_gen_add_i32(temp_2, temp_3, offset);
   setPC(temp_2);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
-  tcg_temp_free(temp_3);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
 
   return ret;
@@ -4303,7 +4631,7 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
   int ret = BS_NONE;
   TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
   if ((shouldExecuteDelaySlot () == 1))
     {
@@ -4318,14 +4646,14 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_xori_i32(temp_1, unsignedGE(b, c), 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_3, getPCL());
+  temp_3 = getPCL();
   tcg_gen_add_i32(temp_2, temp_3, offset);
   setPC(temp_2);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(temp_1);
-  tcg_temp_free(temp_3);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
 
   return ret;
@@ -4867,16 +5195,16 @@ int
 arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
 {
   int ret = BS_NONE;
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_1 = NULL /* REFERENCE */;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
-  tcg_gen_mov_i32(temp_1, getRegister(R_SP));
+  temp_1 = getRegister(R_SP);
   tcg_gen_mov_i32(dest, getMemory(temp_1, LONG));
-  tcg_gen_mov_i32(temp_3, getRegister(R_SP));
+  temp_3 = getRegister(R_SP);
   tcg_gen_addi_i32(temp_2, temp_3, 4);
   setRegister(R_SP, temp_2);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_3);
+  if(temp_1 != NULL) tcg_temp_free(temp_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
 
   return ret;
@@ -4900,17 +5228,17 @@ int
 arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
-  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_2 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
-  tcg_gen_mov_i32(temp_2, getRegister(R_SP));
+  TCGv temp_3 = NULL /* REFERENCE */;
+  temp_2 = getRegister(R_SP);
   tcg_gen_subi_i32(temp_1, temp_2, 4);
   setRegister(R_SP, temp_1);
-  tcg_gen_mov_i32(temp_3, getRegister(R_SP));
+  temp_3 = getRegister(R_SP);
   setMemory(temp_3, LONG, src);
-  tcg_temp_free(temp_2);
+  if(temp_2 != NULL) tcg_temp_free(temp_2);
   tcg_temp_free(temp_1);
-  tcg_temp_free(temp_3);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
 
   return ret;
 }
@@ -4940,42 +5268,45 @@ int
 arc2_gen_LP (DisasCtxt *ctx, TCGv rd)
 {
   int ret = BS_NONE;
+  TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv temp_4 = NULL /* REFERENCE */;
+  TCGv temp_8 = NULL /* REFERENCE */;
+  TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_7 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_10 = NULL /* REFERENCE */;
   TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, getCCFlag(), arc_true);
+  temp_3 = getCCFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, temp_3, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  tcg_gen_mov_i32(temp_4, nextInsnAddress());
-  tcg_gen_mov_i32(temp_3, getRegIndex(LP_START));
-  writeAuxReg(temp_3, temp_4);
-  tcg_gen_mov_i32(temp_7, getPCL());
-  tcg_gen_mov_i32(temp_5, getRegIndex(LP_END));
-  tcg_gen_add_i32(temp_6, temp_7, rd);
-  writeAuxReg(temp_5, temp_6);
+  temp_5 = nextInsnAddress();
+  temp_4 = getRegIndex(LP_START);
+  writeAuxReg(temp_4, temp_5);
+  temp_8 = getPCL();
+  temp_6 = getRegIndex(LP_END);
+  tcg_gen_add_i32(temp_7, temp_8, rd);
+  writeAuxReg(temp_6, temp_7);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
-  tcg_gen_mov_i32(temp_9, getPCL());
-  tcg_gen_add_i32(temp_8, temp_9, rd);
-  setPC(temp_8);
+  temp_10 = getPCL();
+  tcg_gen_add_i32(temp_9, temp_10, rd);
+  setPC(temp_9);
   gen_set_label(done_1);
+  if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_4);
-  tcg_temp_free(temp_3);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
+  if(temp_4 != NULL) tcg_temp_free(temp_4);
+  if(temp_8 != NULL) tcg_temp_free(temp_8);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_7);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_6);
+  if(temp_10 != NULL) tcg_temp_free(temp_10);
   tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
 
   return ret;
 }

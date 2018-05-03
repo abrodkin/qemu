@@ -30,7 +30,7 @@
 TCGv
 arc_gen_verifyCCFlag(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_local_new_i32();
+  TCGv ret = tcg_temp_new_i32();
   TCGv c1 = tcg_temp_local_new_i32();
 
   TCGv nZ = tcg_temp_local_new_i32();
@@ -42,43 +42,39 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
     {
       // AL, RA
       case 0x00:
-	return ctx->one;
+	tcg_gen_mov_i32(ret, ctx->one);
 	break;
       // EQ, Z
       case 0x01:
-	return cpu_Zf;
+	tcg_gen_mov_i32(ret, cpu_Zf);
 	break;
       // NE, NZ
       case 0x02:
 	tcg_gen_xori_tl(ret, cpu_Zf, 1);
-	return ret;
 	break;
       // PL, P
       case 0x03:
 	tcg_gen_xori_tl(ret, cpu_Nf, 1);
-	return ret;
 	break;
       // MI, N:
       case 0x04:
-	return cpu_Nf;
+	tcg_gen_mov_i32(ret, cpu_Nf);
 	break;
       // CS, C, LO
       case 0x05:
-	return cpu_Cf;
+	tcg_gen_mov_i32(ret, cpu_Cf);
 	break;
       // CC, NC, HS
       case 0x06:
 	tcg_gen_xori_tl(ret, cpu_Cf, 1);
-	return ret;
 	break;
       // VS, V
       case 0x07:
-	return cpu_Vf;
+	tcg_gen_mov_i32(ret, cpu_Vf);
 	break;
       // VC, NV
       case 0x08:
 	tcg_gen_xori_tl(ret, cpu_Vf, 1);
-	return ret;
 	break;
       // GT
       case 0x09:
@@ -148,7 +144,6 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 	// C & Z
 	tcg_gen_or_tl(ret, cpu_Cf, cpu_Zf);
 	break;
-	break;
       // PNZ
       case 0x0F:
 	// !N & !Z
@@ -188,7 +183,11 @@ arc2_gen_setCarry(TCGv elem)
 TCGv
 arc_gen_getCarry(DisasCtxt *ctx)
 {
-  return cpu_Cf;
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_mov_tl(ret, cpu_Cf);
+  return ret;
+
+  // return cpu_Cf;
 }
 
 TCGv
@@ -403,10 +402,12 @@ arc2_get_tcgv_value(TCGv elem)
 TCGv
 arc2_get_pc(DisasCtxt *ctx)
 {
-  return cpu_pc;
   //TCGv ret = tcg_temp_new_i32();
   //tcg_gen_mov_tl(ret, ctx->env->pc);
   //return ret;
+  TCGv ret = tcg_temp_new_i32();
+  tcg_gen_mov_tl(ret, cpu_pc);
+  return ret;
 }
 
 
@@ -565,6 +566,7 @@ arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
     tcg_gen_xor_i32(ret, cpu_Nf, t0);
     tcg_gen_xor_i32(tmp, t0, t1);
     tcg_gen_and_i32(ret, ret, tmp);
+
     tcg_temp_free_i32(tmp);
 
     return ret;
@@ -673,7 +675,7 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
 {
   TCGv ret = tcg_temp_new_i32();
 
-  TCGv tmp1 = tcg_temp_new_i32();
+  TCGv tmp1 = tcg_temp_local_new_i32();
 
   tcg_gen_shr_i32 (ret, a, end);
 
@@ -692,14 +694,16 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
 TCGv
 arc2_gen_get_register(enum arc_registers reg)
 {
+  TCGv ret = tcg_temp_new_i32();
   switch(reg)
   {
     case R_SP:
-      return cpu_sp;
+      tcg_gen_mov_i32 (ret, cpu_sp);
       break;
     default:
       assert(!"Should not be reached");
   }
+  return ret;
 }
 
 void
@@ -720,6 +724,10 @@ arc2_gen_next_reg(TCGv reg)
   for(i = 0; i < 64; i+= 2)
     if(reg == cpu_r[i])
       return cpu_r[i+1];
+
+  // TODO: This is in case it is not a reg. Should be either -1 or 0
+  // Current implementation is not Ok.
+  return reg;
   assert(!"Should not reach here!");
 }
 #define nextReg(R) \
