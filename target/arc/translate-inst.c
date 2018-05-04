@@ -26,11 +26,12 @@
 #include "qemu/bitops.h"
 #include "tcg/tcg.h"
 #include "translate-inst.h"
+#include "arc-decoder.h"
 
 TCGv
 arc_gen_verifyCCFlag(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   TCGv c1 = tcg_temp_local_new_i32();
 
   TCGv nZ = tcg_temp_local_new_i32();
@@ -166,7 +167,7 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
 TCGv
 arc_gen_getMSB(DisasCtxt *ctx, TCGv src)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
 
   tcg_gen_shri_tl(ret, src, 31);
 
@@ -183,7 +184,7 @@ arc2_gen_setCarry(TCGv elem)
 TCGv
 arc_gen_getCarry(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_mov_tl(ret, cpu_Cf);
   return ret;
 
@@ -193,7 +194,7 @@ arc_gen_getCarry(DisasCtxt *ctx)
 TCGv
 arc_gen_verifyFFlag(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_movi_tl(ret, (int) ctx->insn.f != 0);
   return ret;
 }
@@ -251,7 +252,7 @@ arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_ex
 TCGv
 arc2_gen_get_memory (DisasCtxt *ctx, TCGv addr, int size, bool sign_extend)
 {
-  TCGv dest = tcg_temp_new_i32();
+  TCGv dest = tcg_temp_local_new_i32();
 
   switch (size)
     {
@@ -360,7 +361,7 @@ bool
 arc2_gen_should_execute_delayslot(DisasCtxt *ctx)
 {
   return ctx->insn.d != 0;
-  //TCGv ret = tcg_temp_new_i32();
+  //TCGv ret = tcg_temp_local_new_i32();
   //tcg_gen_movi_tl(ret, ctx->insn.d != 0);
   //return ret;
 }
@@ -402,10 +403,10 @@ arc2_get_tcgv_value(TCGv elem)
 TCGv
 arc2_get_pc(DisasCtxt *ctx)
 {
-  //TCGv ret = tcg_temp_new_i32();
+  //TCGv ret = tcg_temp_local_new_i32();
   //tcg_gen_mov_tl(ret, ctx->env->pc);
   //return ret;
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_mov_tl(ret, cpu_pc);
   return ret;
 }
@@ -415,7 +416,7 @@ arc2_get_pc(DisasCtxt *ctx)
 TCGv
 arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_movi_tl(ret, ctx->dpc);
   return ret;
 }
@@ -423,7 +424,7 @@ arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
 TCGv
 arc2_get_next_insn_address(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_movi_tl(ret, ctx->npc);
   return ret;
 }
@@ -431,7 +432,7 @@ arc2_get_next_insn_address(DisasCtxt *ctx)
 TCGv
 arc2_gen_get_pcl(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_movi_tl(ret, ctx->pcl);
   return ret;
 }
@@ -451,10 +452,10 @@ arc2_set_blink(DisasCtxt *ctx, TCGv blink_addr)
 TCGv
 arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
 {
-    TCGv t1 = tcg_temp_new_i32();
-    TCGv t2 = tcg_temp_new_i32();
-    TCGv t3 = tcg_temp_new_i32();
-    TCGv ret = tcg_temp_new_i32();
+    TCGv t1 = tcg_temp_local_new_i32();
+    TCGv t2 = tcg_temp_local_new_i32();
+    TCGv t3 = tcg_temp_local_new_i32();
+    TCGv ret = tcg_temp_local_new_i32();
 
     tcg_gen_and_tl(t1, src1, src2); /*  t1 = src1 & src2                    */
     tcg_gen_andc_tl(t2, src1, dest);/*  t2 = src1 & ~dest                   */
@@ -474,9 +475,9 @@ arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
 //TCGv
 //arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
 //{
-//    TCGv t1 = tcg_temp_new_i32();
-//    TCGv t2 = tcg_temp_new_i32();
-//    TCGv ret = tcg_temp_new_i32();
+//    TCGv t1 = tcg_temp_local_new_i32();
+//    TCGv t2 = tcg_temp_local_new_i32();
+//    TCGv ret = tcg_temp_local_new_i32();
 //
 //    /*
 //
@@ -499,8 +500,8 @@ arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
 TCGv
 arc2_gen_add_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv ret = tcg_temp_new_i32();
-    TCGv_i32 tmp = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_local_new_i32();
+    TCGv_i32 tmp = tcg_temp_local_new_i32();
 
     tcg_gen_xor_i32(ret, cpu_Nf, t0);
     tcg_gen_xor_i32(tmp, t0, t1);
@@ -517,7 +518,7 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
   TCGv t1 = tcg_temp_local_new_i32();
   TCGv t2 = tcg_temp_local_new_i32();
   TCGv t3 = tcg_temp_local_new_i32();
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
 
   tcg_gen_not_tl(t1, src1);       /*  t1 = ~src1                          */
   tcg_gen_and_tl(t2, t1, src2);   /*  t2 = ~src1 & src2                   */
@@ -538,9 +539,9 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
 //TCGv
 //arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
 //{
-//    TCGv t1 = tcg_temp_new_i32();
-//    TCGv t2 = tcg_temp_new_i32();
-//    TCGv ret = tcg_temp_new_i32();
+//    TCGv t1 = tcg_temp_local_new_i32();
+//    TCGv t2 = tcg_temp_local_new_i32();
+//    TCGv ret = tcg_temp_local_new_i32();
 //
 //    /*
 //	t1 = src1 & ~src2 & ~dest
@@ -560,8 +561,8 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
 TCGv
 arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv ret = tcg_temp_new_i32();
-    TCGv_i32 tmp = tcg_temp_new_i32();
+    TCGv ret = tcg_temp_local_new_i32();
+    TCGv_i32 tmp = tcg_temp_local_new_i32();
 
     tcg_gen_xor_i32(ret, cpu_Nf, t0);
     tcg_gen_xor_i32(tmp, t0, t1);
@@ -575,7 +576,7 @@ arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 TCGv
 arc2_gen_unsigned_LT(TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_setcond_i32(TCG_COND_LTU, ret, b, c);
   return ret;
 }
@@ -583,7 +584,7 @@ arc2_gen_unsigned_LT(TCGv b, TCGv c)
 TCGv
 arc2_gen_unsigned_GE(TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_setcond_i32(TCG_COND_GEU, ret, b, c);
   return ret;
 }
@@ -591,7 +592,7 @@ arc2_gen_unsigned_GE(TCGv b, TCGv c)
 TCGv
 arc2_gen_logical_shift_right (TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_shr_i32 (ret, b, c);
   return ret;
 }
@@ -599,7 +600,7 @@ arc2_gen_logical_shift_right (TCGv b, TCGv c)
 TCGv
 arc2_gen_logical_shift_left (TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_shl_i32 (ret, b, c);
   return ret;
 }
@@ -607,7 +608,7 @@ arc2_gen_logical_shift_left (TCGv b, TCGv c)
 TCGv
 arc2_gen_arithmetic_shift_right (TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_sar_i32 (ret, b, c);
   return ret;
 }
@@ -615,7 +616,7 @@ arc2_gen_arithmetic_shift_right (TCGv b, TCGv c)
 TCGv
 arc2_gen_rotate_left (TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_rotl_i32 (ret, b, c);
   return ret;
 }
@@ -623,7 +624,7 @@ arc2_gen_rotate_left (TCGv b, TCGv c)
 TCGv
 arc2_gen_rotate_right (TCGv b, TCGv c)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_rotr_i32 (ret, b, c);
   return ret;
 }
@@ -631,7 +632,7 @@ arc2_gen_rotate_right (TCGv b, TCGv c)
 TCGv
 arc2_gen_get_bit (TCGv a, TCGv pos)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_rotr_i32 (ret, a, pos);
   tcg_gen_andi_tl(ret, ret, 1);
   return ret;
@@ -640,7 +641,7 @@ arc2_gen_get_bit (TCGv a, TCGv pos)
 TCGv
 arc2_gen_get_aux_reg_index(enum arc_registers reg_id)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_movi_tl(ret, reg_id);
   return ret;
 }
@@ -648,7 +649,7 @@ arc2_gen_get_aux_reg_index(enum arc_registers reg_id)
 TCGv
 arc2_gen_read_aux_reg (TCGv reg_id)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   gen_helper_lr(ret, cpu_env, reg_id);
   return ret;
 }
@@ -663,7 +664,7 @@ arc2_gen_write_aux_reg (TCGv reg_id, TCGv b)
 void
 tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
 {
-  TCGv tmp = tcg_temp_new_i32();
+  TCGv tmp = tcg_temp_local_new_i32();
   tcg_gen_movi_i32 (tmp, b);
   tcg_gen_shl_i32 (a, tmp, c);
   tcg_temp_free (tmp);
@@ -673,7 +674,7 @@ tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
 TCGv
 arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
 
   TCGv tmp1 = tcg_temp_local_new_i32();
 
@@ -694,7 +695,7 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
 TCGv
 arc2_gen_get_register(enum arc_registers reg)
 {
-  TCGv ret = tcg_temp_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
   switch(reg)
   {
     case R_SP:
@@ -724,11 +725,13 @@ arc2_gen_next_reg(TCGv reg)
   for(i = 0; i < 64; i+= 2)
     if(reg == cpu_r[i])
       return cpu_r[i+1];
-
-  // TODO: This is in case it is not a reg. Should be either -1 or 0
-  // Current implementation is not Ok.
-  return reg;
   assert(!"Should not reach here!");
 }
-#define nextReg(R) \
-  arc2_gen_next_reg(R)
+
+bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop)
+{
+  assert (nop < ctx->insn.n_ops);
+  operand_t operand = ctx->insn.operands[nop];
+
+  return (operand.type & ARC_OPERAND_IR) != 0;
+}

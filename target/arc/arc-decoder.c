@@ -1526,7 +1526,7 @@ read_and_decode_context (DisasCtxt *ctx,
 
 static int arc_gen_INVALID (DisasCtxt *ctx)
 {
-    printf("invalid inst @:%08x\n", ctx->cpc);
+    fprintf(stderr, "invalid inst @:%08x\n", ctx->cpc);
     return BS_NONE;
 }
 

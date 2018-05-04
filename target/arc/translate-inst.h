@@ -302,6 +302,10 @@ TCGv arc2_gen_next_reg(TCGv reg);
 #define nextReg(R) \
   arc2_gen_next_reg(R)
 
+bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop);
+#define instructionHasRegisterOperandIn(NOP) \
+   arc_is_instruction_operand_a_register(ctx, NOP)
+
 #define Zero() (ctx->zero)
 
 #endif /* __TRANSLATE_INST_H__ */
