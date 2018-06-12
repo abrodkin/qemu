@@ -78,10 +78,11 @@
 target_ulong helper_norm(CPUARCState *env, uint32_t src1)
 {
   int i;
+  int32_t tmp = src1;
   for(i = 0; i <= 31; i++)
   {
-    if(src1 >> i == 0) break;
-    if(src1 >> i == -1) break;
+    if((tmp >> i) == 0) break;
+    if((tmp >> i) == -1) break;
   }
   return i;
 }
