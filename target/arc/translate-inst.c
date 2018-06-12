@@ -500,15 +500,18 @@ arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
 TCGv
 arc2_gen_add_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv ret = tcg_temp_local_new_i32();
-    TCGv_i32 tmp = tcg_temp_local_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
+  gen_helper_overflow_add_flag(ret, dest, t0, t1);
+  return ret;
+  //  TCGv ret = tcg_temp_local_new_i32();
+  //  TCGv_i32 tmp = tcg_temp_local_new_i32();
 
-    tcg_gen_xor_i32(ret, cpu_Nf, t0);
-    tcg_gen_xor_i32(tmp, t0, t1);
-    tcg_gen_andc_i32(ret, ret, tmp);
-    tcg_temp_free_i32(tmp);
+  //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
+  //  tcg_gen_xor_i32(tmp, t0, t1);
+  //  tcg_gen_andc_i32(ret, ret, tmp);
+  //  tcg_temp_free_i32(tmp);
 
-    return ret;
+  //  return ret;
 }
 
 /* dest = src1 - src2. Compute C, N, V and Z flags */
@@ -561,16 +564,19 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
 TCGv
 arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-    TCGv ret = tcg_temp_local_new_i32();
-    TCGv_i32 tmp = tcg_temp_local_new_i32();
+  TCGv ret = tcg_temp_local_new_i32();
+  gen_helper_overflow_sub_flag(ret, dest, t0, t1);
+  return ret;
+  //  TCGv ret = tcg_temp_local_new_i32();
+  //  TCGv_i32 tmp = tcg_temp_local_new_i32();
 
-    tcg_gen_xor_i32(ret, cpu_Nf, t0);
-    tcg_gen_xor_i32(tmp, t0, t1);
-    tcg_gen_and_i32(ret, ret, tmp);
+  //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
+  //  tcg_gen_xor_i32(tmp, t0, t1);
+  //  tcg_gen_and_i32(ret, ret, tmp);
 
-    tcg_temp_free_i32(tmp);
+  //  tcg_temp_free_i32(tmp);
 
-    return ret;
+  //  return ret;
 }
 
 TCGv
@@ -701,12 +707,14 @@ arc2_gen_get_register(enum arc_registers reg)
     case R_SP:
       tcg_gen_mov_i32 (ret, cpu_sp);
       break;
+    case R_STATUS32:
+      gen_helper_get_status32(ret, cpu_env);
+      break;
     default:
       assert(!"Should not be reached");
   }
   return ret;
 }
-
 void
 arc2_gen_set_register(enum arc_registers reg, TCGv value)
 {
@@ -715,6 +723,11 @@ arc2_gen_set_register(enum arc_registers reg, TCGv value)
     case R_SP:
       tcg_gen_mov_i32 (cpu_sp, value);
       break;
+    case R_STATUS32:
+      gen_helper_set_status32(cpu_env, value);
+      break;
+    default:
+      assert(!"Should not be reached");
   }
 }
 
@@ -726,6 +739,20 @@ arc2_gen_next_reg(TCGv reg)
     if(reg == cpu_r[i])
       return cpu_r[i+1];
   assert(!"Should not reach here!");
+}
+
+bool
+arc2_target_has_option(enum target_options option)
+{
+  /* TODO: Fill with meaningful cases. */
+  switch(option) {
+    case LL64_OPTION:
+      return true;
+      break;
+    default:
+      break;
+  }
+  return false;
 }
 
 bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop)

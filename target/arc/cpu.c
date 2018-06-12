@@ -103,6 +103,7 @@ static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)
 static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 {
   CPUState *cs = CPU (dev);
+  //ARCCPU *cpu = ARC_CPU(dev);
   ARCCPUClass *arcc = ARC_CPU_GET_CLASS (dev);
   Error *local_err = NULL;
 
@@ -111,6 +112,8 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
     error_propagate (errp, local_err);
     return;
   }
+
+  //arc_cpu_register_gdb_regs_for_features(cpu);
 
   qemu_init_vcpu(cs);
   cpu_reset(cs);
@@ -160,6 +163,11 @@ static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
   return oc;
 }
 
+static gchar *arc_gdb_arch_name(CPUState *cs)
+{
+    return g_strdup("arc");
+}
+
 static void arc_cpu_class_init(ObjectClass *oc, void *data)
 {
   DeviceClass *dc = DEVICE_CLASS(oc);
@@ -190,7 +198,13 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
   cc->synchronize_from_tb = arc_cpu_synchronize_from_tb;
   cc->gdb_read_register = arc_cpu_gdb_read_register;
   cc->gdb_write_register = arc_cpu_gdb_write_register;
-  cc->gdb_num_core_regs = 68;
+  //cc->gdb_num_core_regs = GDB_REG_LAST;
+  cc->gdb_num_core_regs = GDB_AUX_REG_LAST;
+
+  //cc->gdb_num_core_regs = 26;
+  //cc->gdb_core_xml_file = "arc-core.xml";
+  //cc->gdb_core_xml_file = "arc-core-v2.xml";
+  //cc->gdb_arch_name = arc_gdb_arch_name;
 
 #ifdef CONFIG_TCG
     cc->tcg_initialize = arc_translate_init;

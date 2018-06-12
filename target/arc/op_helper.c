@@ -255,6 +255,21 @@ static target_ulong get_status32(CPUARCState *env)
 
     return res;
 }
+static void set_status32(CPUARCState *env, target_ulong value)
+{
+    env->stat.Lf = ((value >> 12) & 1);
+    env->stat.Zf = ((value >> 11) & 1);
+    env->stat.Nf = ((value >> 10) & 1);
+    env->stat.Cf = ((value >> 9)  & 1);
+    env->stat.Vf = ((value >> 8)  & 1);
+    env->stat.Uf = ((value >> 7)  & 1);
+    env->stat.DEf = ((value >> 6) & 1);
+    env->stat.AEf = ((value >> 5) & 1);
+    env->stat.A2f = ((value >> 4) & 1);
+    env->stat.A1f = ((value >> 3) & 1);
+    env->stat.E2f = ((value >> 2) & 1);
+    env->stat.E1f = ((value >> 1) & 1);
+}
 
 static target_ulong get_status32_l1(CPUARCState *env)
 {
@@ -471,4 +486,54 @@ void helper_raise_exception (CPUARCState *env, uint32_t index)
 {
     CPUState *cs = CPU (arc_env_get_cpu(env));
     cpu_loop_exit(cs);
+}
+
+uint32_t helper_get_status32(CPUARCState *env)
+{
+  return get_status32(env);
+}
+
+void helper_set_status32(CPUARCState *env, uint32_t value)
+{
+  set_status32(env, value);
+}
+
+uint32_t helper_overflow_add_flag(uint32_t dest, uint32_t b, uint32_t c)
+{
+  dest >>= 31;
+  b >>= 31;
+  c >>= 31;
+  if((dest == 0 && b == 1 && c == 1)
+     || (dest == 1 && b == 0 && c == 0))
+    return 1;
+  else
+    return 0;
+}
+
+uint32_t helper_overflow_sub_flag(uint32_t dest, uint32_t b, uint32_t c)
+{
+  dest >>= 31;
+  b >>= 31;
+  c >>= 31;
+  if((dest == 1 && b == 0 && c == 1)
+     || (dest == 0 && b == 1 && c == 0))
+    return 1;
+  else
+    return 0;
+}
+
+uint32_t helper_mpymu(CPUARCState *env, uint32_t b, uint32_t c)
+{
+  uint64_t _b = (uint64_t) b;
+  uint64_t _c = (uint64_t) c;
+
+  return (uint32_t) ((_b * _c) >> 32);
+}
+
+uint32_t helper_mpym(CPUARCState *env, uint32_t b, uint32_t c)
+{
+  int64_t _b = (int64_t) b;
+  int64_t _c = (int64_t) c;
+
+  return (uint32_t) ((_b * _c) >> 32);
 }

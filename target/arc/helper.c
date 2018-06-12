@@ -29,6 +29,15 @@
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
 
+//void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu)
+//{
+//    CPUState *cs = CPU(cpu);
+//    CPUARMState *env = &cpu->env;
+//
+//    gdb_register_coprocessor(cs, aarch64_fpu_gdb_get_reg,
+//                             aarch64_fpu_gdb_set_reg,
+//                             34, "arc-aux-minimal.xml", 0);
+//}
 static gint arc_cpu_list_compare (gconstpointer a, gconstpointer b)
 {
   ObjectClass *class_a = (ObjectClass *)a;

@@ -137,7 +137,10 @@ static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
 #ifndef CONFIG_USER_ONLY
     return (dc->tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
 #else
-    return true;
+    if(dc->singlestep)
+      return false;
+    else
+      return true;
 #endif
 }
 
@@ -154,6 +157,8 @@ void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
 #else
     tcg_gen_mov_tl(cpu_pc,  dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
+    if(ctx->singlestep)
+      gen_helper_debug(cpu_env);
     tcg_gen_exit_tb(0);
 #endif
 }
@@ -166,10 +171,14 @@ static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
+	if(ctx->singlestep)
+	  gen_helper_debug(cpu_env);
         tcg_gen_exit_tb((uintptr_t)tb + n);
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
+	if(ctx->singlestep)
+	  gen_helper_debug(cpu_env);
         tcg_gen_exit_tb(0);
     }
 }
@@ -323,6 +332,9 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
     if (max_insns > TCG_MAX_INSNS) {
         max_insns = TCG_MAX_INSNS;
     }
+    if(ctx.singlestep) {
+      max_insns = 1;
+    }
 
     gen_tb_start(tb);
 
@@ -383,10 +395,25 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 
     if (ctx.singlestep) {
 	//assert(0); // TODO
-        if (ctx.bstate == BS_STOP || ctx.bstate == BS_NONE) {
+        switch (ctx.bstate) {
+        case BS_STOP:
+        case BS_NONE:
             tcg_gen_movi_tl(cpu_pc, ctx.npc);
             tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
-        }
+	    break;
+
+	case BS_BRANCH_HW_LOOP:
+	    ctx.bstate = BS_BRANCH;
+	    break;
+        case BS_BRANCH_DS:
+        case BS_BRANCH:
+          tcg_gen_movi_tl(cpu_pc, ctx.npc);
+          tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
+	  break;
+	default:
+	  break;
+	}
+
         gen_helper_debug(cpu_env);
         tcg_gen_exit_tb(0);
     } else {
@@ -409,8 +436,8 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	    //  gen_set_label (skip_fallthrough);
 	    }
 	    break;
-	case BS_BRANCH_HW_LOOP:
         case BS_EXCP:
+	case BS_BRANCH_HW_LOOP:
             tcg_gen_exit_tb(0);
             break;
         default:

@@ -50,6 +50,26 @@ enum arc_features {
   no_features,
 };
 
+#define GDB_AUX_REG(NAME, LOC)
+#define GDB_REG(NAME, LOC) GDB_REG_##NAME,
+enum gdb_regs {
+  GDB_REG_INVALID = -1,
+#include "gdb_map.def"
+  GDB_REG_LAST
+};
+#undef GDB_REG
+#undef GDB_AUX_REG
+#define GDB_AUX_REG(NAME, LOC) GDB_AUX_REG_##NAME,
+#define GDB_REG(NAME, LOC)
+enum gdb_aux_regs {
+  GDB_AUX_REG_INVALID = GDB_REG_LAST-1,
+#include "gdb_map.def"
+  GDB_AUX_REG_LAST
+};
+#undef GDB_REG
+#undef GDB_AUX_REG
+
+
 #define CPU_GP(env)     ((env)->r[26])
 #define CPU_FP(env)     ((env)->r[27])
 #define CPU_SP(env)     ((env)->r[28])

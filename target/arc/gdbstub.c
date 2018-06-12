@@ -65,6 +65,16 @@ static void arc_cpu_set_stat32(CPUState *cs, uint32_t val)
     env->stat.Lf  = 0 != (val & BIT(12));
 }
 
+#define CPU_STATUS32_VAL \
+  arc_cpu_get_stat32(cs);
+#define GDB_REG(NAME, QEMU_LOC) \
+  case GDB_REG_##NAME: \
+    val = QEMU_LOC; \
+    break;
+#define GDB_AUX_REG(NAME, QEMU_LOC) \
+  case GDB_AUX_REG_##NAME: \
+    val = QEMU_LOC; \
+    break;
 int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
 {
     ARCCPU *cpu = ARC_CPU(cs);
@@ -72,35 +82,30 @@ int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
     uint32_t val = 0;
 
     switch (n) {
-        case 0x00 ... 0x3f: {
-            val = env->r[n];
-            break;
-        }
+#include "gdb_map.def"
 
-        case 0x40: {
-            val = env->pc;
-            break;
-        }
-
-        case 0x41: {
-            val = env->lps;
-            break;
-        }
-
-        case 0x42: {
-            val = env->lpe;
-            break;
-        }
-
-        case 0x43: {
-            val = arc_cpu_get_stat32(cs);
-            break;
-        }
+      default:
+	assert(0); // Should never happen
     }
 
     return gdb_get_reg32(mem_buf, val);
 }
+#undef CPU_STATUS32_VAL
+#undef GDB_REG
+#undef GDB_AUX_REG
 
+#define CPU_STATUS32_VAL \
+  arc_cpu_set_stat32(cs, val); \
+  uint32_t tmp
+
+#define GDB_AUX_REG(NAME, QEMU_LOC) \
+  case GDB_AUX_REG_##NAME: \
+    QEMU_LOC = val; \
+    break;
+#define GDB_REG(NAME, QEMU_LOC) \
+  case GDB_REG_##NAME: \
+    QEMU_LOC = val; \
+    break;
 int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
 {
     ARCCPU *cpu = ARC_CPU(cs);
@@ -108,31 +113,15 @@ int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
     uint16_t val = ldl_p(mem_buf);
 
     switch (n) {
-        case 0x00 ... 0x3f: {
-            env->r[n] = val;
-            break;
-        }
+#include "gdb_map.def"
 
-        case 0x40: {
-            env->pc = val;
-            break;
-        }
 
-        case 0x41: {
-            env->lps = val;
-            break;
-        }
-
-        case 0x42: {
-            env->lpe = val;
-            break;
-        }
-
-        case 0x43: {
-            arc_cpu_set_stat32(cs, val);
-            break;
-        }
+      default:
+	assert(0); // Should never happen
     }
 
     return 4;
 }
+#undef CPU_STATUS32_VAL
+#undef GDB_AUX_REG
+#undef GDB_REG

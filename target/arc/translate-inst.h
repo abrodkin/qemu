@@ -180,6 +180,14 @@ typedef enum ARC_COND {
 
 enum arc_registers {
   R_SP = 0,
+  R_STATUS32,
+};
+
+enum target_options {
+  INVALID_TARGET_OPTIONS = -1,
+  DIV_REM_OPTION,
+  STACK_CHECKING,
+  LL64_OPTION
 };
 
 TCGv arc_gen_verifyCCFlag(DisasCtxt *ctx);
@@ -301,6 +309,13 @@ void arc2_gen_set_register(enum arc_registers reg, TCGv value);
 TCGv arc2_gen_next_reg(TCGv reg);
 #define nextReg(R) \
   arc2_gen_next_reg(R)
+
+#define Halt() \
+  to_implement_wo_abort(ctx)
+
+bool arc2_target_has_option(enum target_options option);
+#define targetHasOption(OPTION) \
+  arc2_target_has_option(OPTION)
 
 bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop);
 #define instructionHasRegisterOperandIn(NOP) \
