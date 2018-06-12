@@ -117,6 +117,22 @@
         sub.f 0,r1,r2`                                    \
         inst @fail
 
+#define TEST_BR_OP_TAKEN( testnum, inst, val1, val2 )  \
+    test_ ## testnum:`                                  \
+        mov  r12, testnum`                              \
+        mov  r1, val1`                                  \
+        mov  r2, val2`                                  \
+        inst r1,r2,1f`                                  \
+        b @fail`                                        \
+        1:
+
+#define TEST_BR_OP_NOTTAKEN( testnum, inst, val1, val2 ) \
+    test_ ## testnum:`                                    \
+        mov  r12,testnum`                                 \
+        mov  r1, val1`                                    \
+        mov  r2, val2`                                    \
+        inst r1,r2,@fail
+
 #define ARCTEST_BEGIN \
     .text`                                      \
         .align 4 `                              \
