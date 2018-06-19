@@ -23,4 +23,5 @@ ARCTEST_BEGIN
   TEST_BR_OP_NOTTAKEN( 6, brhs,  0,  1 );
   TEST_BR_OP_NOTTAKEN( 7, brhs,  1, -1 );
   TEST_BR_OP_NOTTAKEN( 8, brhs,  33, 0x2aaaaaab );
+  TEST_BR_OP_NOTTAKEN( 9, brhs,  123, 124 );
 ARCTEST_END

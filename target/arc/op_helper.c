@@ -78,7 +78,9 @@
 target_ulong helper_norm(CPUARCState *env, uint32_t src1)
 {
   int i;
-  int32_t tmp = src1;
+  int32_t tmp = (int32_t) src1;
+  if(tmp == 0 || tmp == -1)
+    return 0;
   for(i = 0; i <= 31; i++)
   {
     if((tmp >> i) == 0) break;
@@ -108,6 +110,26 @@ target_ulong helper_normh(CPUARCState *env, uint32_t src1)
     if(src1 >> i == 0) break;
     if(src1 >> i == -1) break;
   }
+  return i;
+}
+
+target_ulong helper_ffs(CPUARCState *env, uint32_t src)
+{
+  int i;
+  if(src == 0)
+    return 31;
+  for(i = 0; i <= 31; i++)
+    if(((src >> i) & 1) != 0)
+      break;
+  return i;
+}
+
+target_ulong helper_fls(CPUARCState *env, uint32_t src)
+{
+  int i;
+  for(i = 31; i >= 0; i++)
+    if(((src >> i) & 1) != 0)
+      break;
   return i;
 }
 
@@ -533,8 +555,19 @@ uint32_t helper_mpymu(CPUARCState *env, uint32_t b, uint32_t c)
 
 uint32_t helper_mpym(CPUARCState *env, uint32_t b, uint32_t c)
 {
-  int64_t _b = (int64_t) b;
-  int64_t _c = (int64_t) c;
+  int64_t _b = (int64_t) ((int32_t) b);
+  int64_t _c = (int64_t) ((int32_t) c);
 
-  return (uint32_t) ((_b * _c) >> 32);
+//  fprintf(stderr, "B = 0x%llx, C = 0x%llx, result = 0x%llx\n", _b, _c, _b * _c);
+  return ((_b * _c) >> 32);
+}
+
+uint32_t lf_variable = 0;
+uint32_t helper_get_lf(void)
+{
+  return lf_variable;
+}
+void helper_set_lf(uint32_t v)
+{
+  lf_variable = v;
 }

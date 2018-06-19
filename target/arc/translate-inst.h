@@ -265,7 +265,7 @@ TCGv arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2);
 TCGv arc2_gen_unsigned_LT(TCGv b, TCGv c);
 #define unsignedLT(B, C) arc2_gen_unsigned_LT (B, C)
 TCGv arc2_gen_unsigned_GE(TCGv b, TCGv c);
-#define unsignedGE(B, C) arc2_gen_unsigned_GE (B, c)
+#define unsignedGE(B, C) arc2_gen_unsigned_GE (B, C)
 TCGv arc2_gen_logical_shift_right (TCGv b, TCGv c);
 #define logicalShiftRight(B, C) \
   arc2_gen_logical_shift_right (B, C)
@@ -310,6 +310,16 @@ TCGv arc2_gen_next_reg(TCGv reg);
 #define nextReg(R) \
   arc2_gen_next_reg(R)
 
+TCGv arc2_gen_div_signed(TCGv src1, TCGv src2);
+#define divSigned(SRC1, SRC2) arc2_gen_div_signed(SRC1, SRC2)
+TCGv arc2_gen_div_unsigned(TCGv src1, TCGv src2);
+#define divUnsigned(SRC1, SRC2) arc2_gen_div_unsigned(SRC1, SRC2)
+
+TCGv arc2_gen_div_remaining_signed(TCGv src1, TCGv src2);
+#define divRemainingSigned(SRC1, SRC2) arc2_gen_div_remaining_signed(SRC1, SRC2)
+TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2);
+#define divRemainingUnsigned(SRC1, SRC2) arc2_gen_div_remaining_unsigned(SRC1, SRC2)
+
 #define Halt() \
   to_implement_wo_abort(ctx)
 
@@ -320,6 +330,11 @@ bool arc2_target_has_option(enum target_options option);
 bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop);
 #define instructionHasRegisterOperandIn(NOP) \
    arc_is_instruction_operand_a_register(ctx, NOP)
+
+void arc2_gen_set_lf(TCGv value);
+#define setLF(VALUE) arc2_gen_set_lf(VALUE)
+TCGv arc2_gen_get_lf(void);
+#define getLF(VALUE) arc2_gen_get_lf()
 
 #define Zero() (ctx->zero)
 

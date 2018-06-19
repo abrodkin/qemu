@@ -762,3 +762,42 @@ bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop)
 
   return (operand.type & ARC_OPERAND_IR) != 0;
 }
+
+TCGv arc2_gen_div_signed(TCGv src1, TCGv src2)
+{
+  TCGv ret = tcg_temp_local_new_i32();
+  tcg_gen_div_i32(ret, src1, src2);
+  return ret;
+}
+
+TCGv arc2_gen_div_unsigned(TCGv src1, TCGv src2)
+{
+  TCGv ret = tcg_temp_local_new_i32();
+  tcg_gen_divu_i32(ret, src1, src2);
+  return ret;
+}
+TCGv arc2_gen_div_remaining_signed(TCGv src1, TCGv src2)
+{
+  TCGv ret = tcg_temp_local_new_i32();
+  tcg_gen_rem_i32(ret, src1, src2);
+  return ret;
+}
+
+TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2)
+{
+  TCGv ret = tcg_temp_local_new_i32();
+  tcg_gen_remu_i32(ret, src1, src2);
+  return ret;
+}
+
+TCGv arc2_gen_get_lf(void)
+{
+  TCGv ret = tcg_temp_local_new_i32();
+  gen_helper_get_lf(ret);
+  return ret;
+}
+
+void arc2_gen_set_lf(TCGv value)
+{
+  gen_helper_set_lf(value);
+}
