@@ -4881,21 +4881,21 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 
 
 /* BBIT0
- *    Variables: @c, @b, @rd
+ *    Variables: @b, @c, @rd
  *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
 --- code ---
 {
   cc_flag = getCCFlag ();
   if((cc_flag == true))
     {
-      p_b = b;
+      p_b = @b;
       p_c = (@c & 31);
       tmp = (1 << p_c);
       if((shouldExecuteDelaySlot () == true))
         {
           executeDelaySlot ();
         };
-      if(((@b && tmp) == 0))
+      if(((p_b && tmp) == 0))
         {
           setPC ((getPCL () + @rd));
         };
@@ -4904,7 +4904,7 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
  */
 
 int
-arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
+arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 {
   int ret = BS_NONE;
   TCGv temp_6 = NULL /* REFERENCE */;
@@ -4939,7 +4939,7 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
   ;
     }
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_and_i32(temp_3, b, tmp);
+  tcg_gen_and_i32(temp_3, p_b, tmp);
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_4, temp_3, 0);
   tcg_gen_xori_i32(temp_5, temp_4, 1); tcg_gen_andi_i32(temp_5, temp_5, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_5, arc_true, done_2);;
@@ -4971,21 +4971,21 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
 
 
 /* BBIT1
- *    Variables: @c, @b, @rd
+ *    Variables: @b, @c, @rd
  *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
 --- code ---
 {
   cc_flag = getCCFlag ();
   if((cc_flag == true))
     {
-      p_b = b;
+      p_b = @b;
       p_c = (@c & 31);
       tmp = (1 << p_c);
       if((shouldExecuteDelaySlot () == true))
         {
           executeDelaySlot ();
         };
-      if(((@b && tmp) != 0))
+      if(((p_b && tmp) != 0))
         {
           setPC ((getPCL () + @rd));
         };
@@ -4994,7 +4994,7 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
  */
 
 int
-arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
+arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 {
   int ret = BS_NONE;
   TCGv temp_6 = NULL /* REFERENCE */;
@@ -5029,7 +5029,7 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv c, TCGv b, TCGv rd)
   ;
     }
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_and_i32(temp_3, b, tmp);
+  tcg_gen_and_i32(temp_3, p_b, tmp);
   tcg_gen_setcondi_i32(TCG_COND_NE, temp_4, temp_3, 0);
   tcg_gen_xori_i32(temp_5, temp_4, 1); tcg_gen_andi_i32(temp_5, temp_5, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_5, arc_true, done_2);;
