@@ -36,37 +36,39 @@ static const char * const regnames[64] =
   "r56", "r57", "r58", "r59", "lp_count", "rezerved", "LIMM", "pcl"
 };
 
-/* Structure for AUXILIARY registers.  */
-struct arc_aux_reg
-{
-  /* Register address.  */
-  int address;
-
-  /* One bit flags for the opcode.  These are primarily used to
-     indicate specific processors and environments support the
-     instructions.  */
-  unsigned cpu;
-
-  /* AUX register subclass.  */
-  insn_subclass_t subclass;
-
-  /* Register name.  */
-  const char * name;
-
-  /* Size of the string.  */
-  size_t length;
-};
-
-const struct arc_aux_reg arc_aux_regs[] =
-{
-#undef DEF
-#define DEF(ADDR, CPU, SUBCLASS, NAME)		\
-  { ADDR, CPU, SUBCLASS, #NAME, sizeof (#NAME)-1 },
-
+///* Structure for AUXILIARY registers.  */
+//struct arc_aux_reg
+//{
+//  /* Register address.  */
+//  int address;
+//
+//  /* One bit flags for the opcode.  These are primarily used to
+//     indicate specific processors and environments support the
+//     instructions.  */
+//  unsigned cpu;
+//
+//  /* AUX register subclass.  */
+//  insn_subclass_t subclass;
+//
+//  /* Register name.  */
+//  const char * name;
+//
+//  /* Size of the string.  */
+//  size_t length;
+//};
+//
+//const struct arc_aux_reg arc_aux_regs[] =
+//{
+//#undef DEF
+//#define DEF(ADDR, CPU, SUBCLASS, NAME, A, B)		\
+//  { ADDR, CPU, SUBCLASS, #NAME, sizeof (#NAME)-1 },
+//
+//#include "target/arc/arc-regs.def"
+//
+//#undef DEF
+//};
 #include "target/arc/arc-regs.h"
 
-#undef DEF
-};
 
 #define ARRANGE_ENDIAN(info, buf)					\
   (info->endian == BFD_ENDIAN_LITTLE ? bfd_getm32 (bfd_getl32 (buf))	\

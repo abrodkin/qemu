@@ -1,7 +1,7 @@
 /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2016 Michael Rolnik
+ * Copyright (c) 2018 Cupertino Miranda
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 #include "exec/helper-proto.h"
 #include "exec/ioport.h"
 #include "translate-all.h"
+#include "arc-regs.h"
 
 #define AUX_ID_STATUS           0x000
 #define AUX_ID_SEMAPHORE        0x001
