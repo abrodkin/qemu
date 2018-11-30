@@ -175,58 +175,58 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
         case AUX_ID_INT_VECTOR_BASE: {
         } break;
 
-        case AUX_ID_INT_MACMODE: {
+        case AUX_ID_aux_macmode: {
         } break;
 
-        case AUX_ID_IRQ_LV12: {
+        case AUX_ID_aux_irq_lv12: {
         } break;
 
-        case AUX_ID_IRQ_LEV: {
+        case AUX_ID_aux_irq_lev: {
         } break;
 
-        case AUX_ID_IRQ_HINT: {
+        case AUX_ID_aux_irq_hint: {
         } break;
 
-        case AUX_ID_ERET: {
+        case AUX_ID_eret: {
         } break;
 
-        case AUX_ID_ERBTA: {
+        case AUX_ID_erbta: {
         } break;
 
-        case AUX_ID_ERSTATUS: {
+        case AUX_ID_erstatus: {
         } break;
 
-        case AUX_ID_ECR: {
+        case AUX_ID_ecr: {
         } break;
 
-        case AUX_ID_EFA: {
+        case AUX_ID_efa: {
         } break;
 
-        case AUX_ID_ICAUSE1: {
+        case AUX_ID_icause1: {
         } break;
 
-        case AUX_ID_ICAUSE2: {
+        case AUX_ID_icause2: {
         } break;
 
-        case AUX_ID_IENABLE: {
+        case AUX_ID_aux_ienable: {
         } break;
 
-        case AUX_ID_ITRIGGER: {
+        case AUX_ID_aux_itrigger: {
         } break;
 
-        case AUX_ID_BTA: {
+        case AUX_ID_bta: {
         } break;
 
-        case AUX_ID_BTA_L1: {
+        case AUX_ID_bta_l1: {
         } break;
 
-        case AUX_ID_BTA_L2: {
+        case AUX_ID_bta_l2: {
         } break;
 
-        case AUX_ID_IRQ_PULSE_CANSEL: {
+        case AUX_ID_aux_irq_pulse_cancel: {
         } break;
 
-        case AUX_ID_IRQ_PENDING: {
+        case AUX_ID_aux_irq_pending: {
         } break;
 
         default: {
@@ -383,8 +383,8 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 {
     target_ulong result = 0;
 
-    switch (aux) {
-        case AUX_ID_STATUS: {
+    switch (arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS)->id) {
+        case AUX_ID_status: {
             result = get_status(env);
         } break;
 
@@ -392,107 +392,104 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
             NOTE: SEMAPHORE should be handled by a device
         */
 
-        case AUX_ID_LP_START: {
+        case AUX_ID_lp_start: {
 	    result = env->lps;
-//            result = env->lps;
         } break;
 
-        case AUX_ID_LP_END: {
+        case AUX_ID_lp_end: {
 	    result = env->lpe;
-//            result = env->lpe;
         } break;
-
-        case AUX_ID_IDENTITY: {
+        case AUX_ID_identity: {
             result = get_identity(env);
         } break;
 
-        case AUX_ID_DEBUG: {
+        case AUX_ID_debug: {
             result = get_debug(env);
         } break;
 
-        case AUX_ID_PC: {
+        case AUX_ID_pc: {
             result = env->pc & 0xfffffffe;
         } break;
 
-        case AUX_ID_STATUS32: {
+        case AUX_ID_status32: {
             result = get_status32(env);
         } break;
 
-        case AUX_ID_STATUS32_L1: {
+        case AUX_ID_status32_l1: {
             result = get_status32_l1(env);
         } break;
 
-        case AUX_ID_STATUS32_L2: {
+        case AUX_ID_status32_l2: {
             result = get_status32_l2(env);
         } break;
 
-        case AUX_ID_MULHI: {
+        case AUX_ID_mulhi: {
             result = CPU_MHI(env);
         } break;
 
-        case AUX_ID_INT_VECTOR_BASE: {
+        case AUX_ID_int_vector_base: {
             result = env->intvec;
         } break;
 
-        case AUX_ID_INT_MACMODE: {
+        case AUX_ID_aux_macmode: {
         } break;
 
-        case AUX_ID_IRQ_LV12: {
+        case AUX_ID_aux_irq_lv12: {
         } break;
 
-        case AUX_ID_IRQ_LEV: {
+        case AUX_ID_aux_irq_lev: {
         } break;
 
-        case AUX_ID_IRQ_HINT: {
+        case AUX_ID_aux_irq_hint: {
         } break;
 
-        case AUX_ID_ERET: {
+        case AUX_ID_eret: {
             result = env->eret;
         } break;
 
-        case AUX_ID_ERBTA: {
+        case AUX_ID_erbta: {
             result = env->erbta;
         } break;
 
-        case AUX_ID_ERSTATUS: {
+        case AUX_ID_erstatus: {
         } break;
 
-        case AUX_ID_ECR: {
+        case AUX_ID_ecr: {
             result = env->ecr;
         } break;
 
-        case AUX_ID_EFA: {
+        case AUX_ID_efa: {
             result = env->efa;
         } break;
 
-        case AUX_ID_ICAUSE1: {
+        case AUX_ID_icause1: {
         } break;
 
-        case AUX_ID_ICAUSE2: {
+        case AUX_ID_icause2: {
         } break;
 
-        case AUX_ID_IENABLE: {
+        case AUX_ID_aux_ienable: {
         } break;
 
-        case AUX_ID_ITRIGGER: {
+        case AUX_ID_aux_itrigger: {
         } break;
 
-        case AUX_ID_BTA: {
+        case AUX_ID_bta: {
             result = env->bta;
         } break;
 
-        case AUX_ID_BTA_L1: {
+        case AUX_ID_bta_l1: {
             result = env->bta_l1;
         } break;
 
-        case AUX_ID_BTA_L2: {
+        case AUX_ID_bta_l2: {
             result = env->bta_l2;
         } break;
 
-        case AUX_ID_IRQ_PULSE_CANSEL: {
+        case AUX_ID_aux_irq_pulse_cancel: {
         } break;
 
-        case AUX_ID_IRQ_PENDING: {
+        case AUX_ID_aux_irq_pending: {
         } break;
 
         default: {

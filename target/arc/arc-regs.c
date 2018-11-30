@@ -27,9 +27,10 @@ struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST] = {
     NUM, \
     CPU, \
     SUB, \
-    NAME, \
+    AUX_ID_##NAME, \
     #NAME, \
     sizeof (#NAME) - 1, \
+    NULL, \
     NULL, \
   },
 #include "arc-regs-detail.def"
@@ -52,14 +53,16 @@ static void arc_aux_regs_init(void)
   for(int i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++)
   {
     enum arc_aux_reg_enum id = arc_aux_regs_detail[i].id;
-    struct arc_aux_regs_detail *next = arc_aux_regs[id].first;
+    struct arc_aux_reg_detail *next = arc_aux_regs[id].first;
     arc_aux_regs_detail[i].next = next;
+    arc_aux_regs_detail[i].aux_reg = &(arc_aux_regs[id]);
     arc_aux_regs[id].first = &(arc_aux_regs_detail[i]);
   }
 }
 
 int
-arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def)
+arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def,
+			int isa_mask)
 {
   static bool prepared = false;
   if(prepared == false)
@@ -69,6 +72,25 @@ arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def)
   }
 
   // TODO: This must validate for CPU.
-  return arc_aux_regs[aux_reg_def].first->address;
-  return -1;
+  struct arc_aux_reg_detail *detail = arc_aux_regs[aux_reg_def].first;
+  while(detail != NULL) {
+    if((detail->cpu & isa_mask) != 0)
+      return detail->address;
+    detail = detail->next;
+  }
+  assert(0);
+}
+
+struct arc_aux_reg_detail *
+arc_aux_reg_struct_for_address(int address, int isa_mask)
+{
+  /* TODO: Make this a binary search or something faster. */
+  for(int i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++) {
+    if ((arc_aux_regs_detail[i].cpu & isa_mask) != 0
+	&& arc_aux_regs_detail[i].address == address)
+    {
+      return &(arc_aux_regs_detail[i]);
+    }
+  }
+  assert(0);
 }

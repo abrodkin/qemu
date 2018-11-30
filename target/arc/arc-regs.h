@@ -27,7 +27,7 @@
 enum arc_aux_reg_enum
 {
   ARC_AUX_REGS_INVALID = -1,
-#define AUX_REG(NAME, GET, SET) NAME,
+#define AUX_REG(NAME, GET, SET) AUX_ID_##NAME,
 #include "arc-regs.def"
 #undef AUX_REG
   ARC_AUX_REGS_LAST
@@ -68,6 +68,9 @@ struct arc_aux_reg_detail {
 
   /* pointer to the first element in the list. */
   struct arc_aux_reg_detail *next;
+
+  /* pointer to the first element in the list. */
+  struct arc_aux_reg *aux_reg;
 };
 
 typedef void (* aux_reg_set_func)(struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data);
@@ -85,6 +88,7 @@ struct arc_aux_reg {
 extern struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST];
 extern struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST];
 
-int arc_aux_reg_address_for(enum arc_aux_reg_enum);
+int arc_aux_reg_address_for(enum arc_aux_reg_enum, int);
+struct arc_aux_reg_detail *arc_aux_reg_struct_for_address(int, int);
 
 #endif /* ARC_REGS_H */

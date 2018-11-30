@@ -135,6 +135,8 @@ static void arc_cpu_initfn(Object *obj)
 #ifndef CONFIG_USER_ONLY
   qdev_init_gpio_in(DEVICE(cpu), arc_cpu_set_int, 37);
 #endif
+
+
 }
 
 static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)

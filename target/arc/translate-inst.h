@@ -191,8 +191,9 @@ enum target_options {
   LL64_OPTION
 };
 
-#define LP_START (arc_aux_reg_address_for(lp_start))
-#define LP_END (arc_aux_reg_address_for(lp_end))
+/* TODO: Change this to allow something else then ARC HS. */
+#define LP_START (arc_aux_reg_address_for(AUX_ID_lp_start, ARC_OPCODE_ARCv2HS))
+#define LP_END (arc_aux_reg_address_for(AUX_ID_lp_end, ARC_OPCODE_ARCv2HS))
 
 TCGv arc_gen_verifyCCFlag(DisasCtxt *ctx);
 #define getCCFlag() arc_gen_verifyCCFlag(ctx)
