@@ -36,39 +36,7 @@ static const char * const regnames[64] =
   "r56", "r57", "r58", "r59", "lp_count", "rezerved", "LIMM", "pcl"
 };
 
-///* Structure for AUXILIARY registers.  */
-//struct arc_aux_reg
-//{
-//  /* Register address.  */
-//  int address;
-//
-//  /* One bit flags for the opcode.  These are primarily used to
-//     indicate specific processors and environments support the
-//     instructions.  */
-//  unsigned cpu;
-//
-//  /* AUX register subclass.  */
-//  insn_subclass_t subclass;
-//
-//  /* Register name.  */
-//  const char * name;
-//
-//  /* Size of the string.  */
-//  size_t length;
-//};
-//
-//const struct arc_aux_reg arc_aux_regs[] =
-//{
-//#undef DEF
-//#define DEF(ADDR, CPU, SUBCLASS, NAME, A, B)		\
-//  { ADDR, CPU, SUBCLASS, #NAME, sizeof (#NAME)-1 },
-//
-//#include "target/arc/arc-regs.def"
-//
-//#undef DEF
-//};
 #include "target/arc/arc-regs.h"
-
 
 #define ARRANGE_ENDIAN(info, buf)					\
   (info->endian == BFD_ENDIAN_LITTLE ? bfd_getm32 (bfd_getl32 (buf))	\
@@ -168,7 +136,7 @@ get_auxreg (const struct arc_opcode *opcode,
 	    unsigned isa_mask)
 {
   unsigned int i;
-  const struct arc_aux_reg *auxr = &arc_aux_regs[0];
+  const struct arc_aux_reg_detail *auxr = &arc_aux_regs_detail[0];
 
   if (opcode->insn_class != AUXREG)
     return NULL;

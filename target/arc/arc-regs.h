@@ -24,19 +24,27 @@
 #include "arc-decoder.h"
 
 #ifndef ARC
-enum arc_aux_regs_enum {
+enum arc_aux_reg_enum
+{
   ARC_AUX_REGS_INVALID = -1,
-#define DEF(N,CPU,B,NAME,C,D) CPU##_##NAME,
+#define AUX_REG(NAME, GET, SET) NAME,
 #include "arc-regs.def"
-#undef DEF
+#undef AUX_REG
   ARC_AUX_REGS_LAST
+};
+
+enum arc_aux_reg_detail_enum
+{
+  ARC_AUX_REGS_DETAIL_INVALID = -1,
+#define DEF(NUM, CPU, SUB, NAME) CPU##_##NAME,
+#include "arc-regs-detail.def"
+#undef DEF
+  ARC_AUX_REGS_DETAIL_LAST
 };
 #endif
 
 struct arc_aux_regs_data;
-typedef void (* aux_reg_set_func)(struct arc_aux_reg *aux_reg, uint32_t val, void *data);
-typedef uint32_t (* aux_reg_get_func)(struct arc_aux_reg *aux_reg, void *data);
-struct arc_aux_reg {
+struct arc_aux_reg_detail {
 
   /* Register address.  */
   int address;
@@ -49,17 +57,34 @@ struct arc_aux_reg {
   /* AUX register subclass.  */
   insn_subclass_t subclass;
 
+  /* Enum for aux-reg. */
+  enum arc_aux_reg_enum id;
+
   /* Register name.  */
   const char *name;
 
   /* Size of the string.  */
   size_t length;
 
+  /* pointer to the first element in the list. */
+  struct arc_aux_reg_detail *next;
+};
+
+typedef void (* aux_reg_set_func)(struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data);
+typedef uint32_t (* aux_reg_get_func)(struct arc_aux_reg_detail *aux_reg, void *data);
+
+struct arc_aux_reg {
+  /* pointer to the first element in the list. */
+  struct arc_aux_reg_detail *first;
+
   /* get and set function for lr and sr helpers */
   aux_reg_get_func get_func;
   aux_reg_set_func set_func;
 };
 
-extern const struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST];
+extern struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST];
+extern struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST];
+
+int arc_aux_reg_address_for(enum arc_aux_reg_enum);
 
 #endif /* ARC_REGS_H */

@@ -36,8 +36,6 @@
 #include "exec/helper-gen.h"
 #include "exec/log.h"
 
-#include "aux-reg.h"
-
 extern TCGv     cpu_gp;
 extern TCGv     cpu_fp;
 extern TCGv     cpu_sp;

@@ -24,6 +24,7 @@
 #include "translate.h"
 #include "qemu/bitops.h"
 #include "tcg/tcg.h"
+#include "arc-regs.h"
 
 typedef enum ARC_COND {
     ARC_COND_AL      = 0x00,
@@ -189,6 +190,9 @@ enum target_options {
   STACK_CHECKING,
   LL64_OPTION
 };
+
+#define LP_START (arc_aux_reg_address_for(lp_start))
+#define LP_END (arc_aux_reg_address_for(lp_end))
 
 TCGv arc_gen_verifyCCFlag(DisasCtxt *ctx);
 #define getCCFlag() arc_gen_verifyCCFlag(ctx)
