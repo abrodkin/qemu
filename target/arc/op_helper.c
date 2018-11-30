@@ -352,6 +352,33 @@ static target_ulong get_debug(CPUARCState *env)
     return res;
 }
 
+static target_ulong get_identity(CPUARCState *env)
+{
+    target_ulong chipid = 0xffff, arcnum = 0, arcver, res;
+
+    switch (env->family) {
+        case ARC_OPCODE_ARC700: {
+            arcver = 0x34;
+        } break;
+
+        case ARC_OPCODE_ARCv2EM: {
+            arcver = 0x44;
+        } break;
+
+        case ARC_OPCODE_ARCv2HS: {
+            arcver = 0x54;
+        } break;
+
+        default: {
+            arcver = 0;
+        }
+    }
+
+    // TODO: in SMP, arcnum depends on the cpu instance
+    res = ((chipid & 0xFFFF) << 16) | ((arcnum & 0xFF) << 8) | (arcver & 0xFF);
+    return res;
+}
+
 target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 {
     target_ulong result = 0;
@@ -376,6 +403,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
         } break;
 
         case AUX_ID_IDENTITY: {
+            result = get_identity(env);
         } break;
 
         case AUX_ID_DEBUG: {
