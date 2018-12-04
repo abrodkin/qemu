@@ -23,16 +23,28 @@
 
 #include "arc-regs.h"
 
+#define TLB_ENTRIES     1024
+
+#define PD0     0
+#define PD1     1
+
 struct arc_mmu {
   bool enabled;
 
-  uint32_t nTLB[1024];
-  uint32_t sTLB[16];
+  /* nTLB is organized as {PD0,PD1} tuple */
+  uint32_t nTLB[2][TLB_ENTRIES];
+
+  /* 8-bit Address Space ID is actually present in AUX PID
+   * we {re,de}construct the PID reg as needed by LR/SR respectively
+   */
+  uint32_t asid;
 
   uint32_t tlbpd0;
   uint32_t tlbpd1;
   uint32_t tlbpd1_hi;
   uint32_t tlbindex;
+  uint32_t tlbcmd;
+  uint32_t scratch_data0;
 };
 
 

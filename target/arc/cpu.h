@@ -138,10 +138,7 @@ typedef struct CPUARCState {
 
 //  uint32_t aux_regs[AUX_REG_SIZE];
 
-  /* MMU Struct kept in mmu.h */
-  struct arc_mmu mmu;
-  /* Should this be here or inside MMU struct? */
-  uint32_t aux_reg_scratch_data0;
+  struct arc_mmu mmu;   /* mmu.h */
 
   bool            stopped;
 

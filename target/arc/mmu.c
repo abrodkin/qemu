@@ -22,10 +22,6 @@
 #include "arc-regs.h"
 #include "qemu/osdep.h"
 
-/*
-void arc_aux_reg_set_func(struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data);
-uint32_t aux_reg_get_func(struct arc_aux_reg_detail *aux_reg, void *data);
-*/
 void
 arc_aux_reg_set_tlbcommand(struct arc_aux_reg_detail *aux_reg,
 			   uint32_t val, void *data)
