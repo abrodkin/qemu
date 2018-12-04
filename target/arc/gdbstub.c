@@ -1,3 +1,4 @@
+
 /*
  * QEMU ARC CPU
  *
@@ -65,62 +66,71 @@ static void arc_cpu_set_stat32(CPUState *cs, uint32_t val)
     env->stat.Lf  = 0 != (val & BIT(12));
 }
 
-#define CPU_STATUS32_VAL \
+#define QEMU_AUX_REG_SET(A) (A)
+
+#define CPU_STATUS32_VAL                        \
   arc_cpu_get_stat32(cs);
-#define GDB_REG(NAME, QEMU_LOC) \
+
+#define GDB_REG(NAME, QEMU_LOC)                 \
   case GDB_REG_##NAME: \
     val = QEMU_LOC; \
     break;
-#define GDB_AUX_REG(NAME, QEMU_LOC) \
+#define GDB_AUX_REG(NAME, QEMU_LOC)             \
   case GDB_AUX_REG_##NAME: \
     val = QEMU_LOC; \
     break;
+
 int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
 {
-    ARCCPU *cpu = ARC_CPU(cs);
-    CPUARCState *env = &cpu->env;
-    uint32_t val = 0;
+  ARCCPU *cpu = ARC_CPU(cs);
+  CPUARCState *env = &cpu->env;
+  uint32_t val = 0;
 
-    switch (n) {
+  switch (n)
+    {
 #include "gdb_map.def"
 
-      default:
+    default:
 	assert(0); // Should never happen
     }
 
-    return gdb_get_reg32(mem_buf, val);
+  return gdb_get_reg32(mem_buf, val);
 }
+
 #undef CPU_STATUS32_VAL
 #undef GDB_REG
 #undef GDB_AUX_REG
+#undef QEMU_AUX_REG_SET
 
-#define CPU_STATUS32_VAL \
-  arc_cpu_set_stat32(cs, val); \
-  uint32_t tmp
+#define CPU_STATUS32_VAL                        \
+  arc_cpu_set_stat32 (cs, val);
 
-#define GDB_AUX_REG(NAME, QEMU_LOC) \
-  case GDB_AUX_REG_##NAME: \
-    QEMU_LOC = val; \
-    break;
-#define GDB_REG(NAME, QEMU_LOC) \
-  case GDB_REG_##NAME: \
-    QEMU_LOC = val; \
-    break;
+#define QEMU_AUX_REG_SET(A)                     \
+  A = val;
+
+#define GDB_AUX_REG(NAME, QEMU_LOC)             \
+  case GDB_AUX_REG_##NAME:                      \
+  QEMU_LOC                                      \
+  break;
+#define GDB_REG(NAME, QEMU_LOC)                 \
+  case GDB_REG_##NAME:                          \
+  QEMU_LOC = val;                               \
+  break;
 int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
 {
-    ARCCPU *cpu = ARC_CPU(cs);
-    CPUARCState *env = &cpu->env;
-    uint16_t val = ldl_p(mem_buf);
+  ARCCPU *cpu = ARC_CPU(cs);
+  CPUARCState *env = &cpu->env;
+  uint16_t val = ldl_p(mem_buf);
 
-    switch (n) {
+  switch (n)
+    {
 #include "gdb_map.def"
 
-
-      default:
-	assert(0); // Should never happen
+    default:
+      assert(0); // Should never happen
     }
 
-    return 4;
+  return 4;
 }
 #undef CPU_STATUS32_VAL
 #undef GDB_AUX_REG

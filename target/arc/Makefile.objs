@@ -24,7 +24,6 @@ obj-y   += cpu.o
 obj-y   += op_helper.o
 obj-y   += translate-inst.o
 obj-y   += gdbstub.o
-obj-y   += decode.o
 obj-y   += arc-decoder.o
 obj-y   += arc-regs.o
 obj-y   += arc-semfunc.o

@@ -35,5 +35,5 @@ GDB_REG(lp_count, CPU_LP(env))
 GDB_REG(pcl,	  CPU_PCL(env))
 
 /* Minimal Aux registers */
-GDB_AUX_REG(pc, env->pc)
-GDB_AUX_REG(status32, CPU_STATUS32_VAL)
+GDB_AUX_REG (pc, QEMU_AUX_REG_SET (env->pc))
+GDB_AUX_REG (status32, CPU_STATUS32_VAL)
