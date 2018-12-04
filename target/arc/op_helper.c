@@ -136,7 +136,7 @@ target_ulong helper_fls(CPUARCState *env, uint32_t src)
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
-    switch (aux) {
+    switch (arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS)->id) {
         case AUX_ID_STATUS: {
         } break;
 

@@ -187,8 +187,6 @@ arc_gen_getCarry(DisasCtxt *ctx)
   TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_mov_tl(ret, cpu_Cf);
   return ret;
-
-  // return cpu_Cf;
 }
 
 TCGv

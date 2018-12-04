@@ -1,7 +1,7 @@
 /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2018 Cupertino Miranda
+ * Copyright (c) 2018 Cupertino Miranda (cmiranda@synopsys.com)
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

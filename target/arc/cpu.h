@@ -25,6 +25,7 @@
 #include "cpu-qom.h"
 #include "arc-common.h"
 //#include "aux-reg.h"
+#include "mmu.h"
 
 #define TARGET_LONG_BITS            32
 
@@ -136,6 +137,11 @@ typedef struct CPUARCState {
   } debug;
 
 //  uint32_t aux_regs[AUX_REG_SIZE];
+
+  /* MMU Struct kept in mmu.h */
+  struct arc_mmu mmu;
+  /* Should this be here or inside MMU struct? */
+  uint32_t aux_reg_scratch_data0;
 
   bool            stopped;
 

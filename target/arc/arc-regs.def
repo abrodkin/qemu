@@ -2,6 +2,7 @@
    Copyright (C, NULL, NULL) 2015-2017 Free Software Foundation, Inc.
 
    Contributed by Claudiu Zissulescu (claziss@synopsys.com, NULL, NULL)
+   Contributed by Cupertino Miranda (cmiranda@synopsys.com, NULL, NULL)
 
    This file is part of libopcodes.
 
@@ -377,7 +378,7 @@ AUX_REG (tag_addr_mask, NULL, NULL)
 AUX_REG (tag_data_mask, NULL, NULL)
 AUX_REG (timer_build, NULL, NULL)
 AUX_REG (timer_xx, NULL, NULL)
-AUX_REG (tlbcommand, NULL, NULL)
+AUX_REG (tlbcommand, NULL, arc_aux_reg_set_tlbcommand)
 AUX_REG (tlbindex, NULL, NULL)
 AUX_REG (tlbpd0, NULL, NULL)
 AUX_REG (tlbpd1_hi, NULL, NULL)

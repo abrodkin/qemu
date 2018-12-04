@@ -19,7 +19,7 @@
  */
 
 #include "arc-regs.h"
-
+#include "mmu.h"
 
 struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST] = {
 #define DEF(NUM, CPU, SUB, NAME) \

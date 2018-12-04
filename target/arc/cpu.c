@@ -67,6 +67,9 @@ static void arc_cpu_reset(CPUState *s)
     log_cpu_state(s, 0);
   }
 
+  /* MMU enable be disabled on reset. */
+  env->mmu.enabled = false;
+
   arcc->parent_reset(s);
 
   memset(env->r, 0, sizeof(env->r));
