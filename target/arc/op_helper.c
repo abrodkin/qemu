@@ -97,12 +97,9 @@ target_ulong helper_fls(CPUARCState *env, uint32_t src)
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
-    switch (arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS)->id) {
-        case AUX_ID_status: {
-        } break;
-
-        case AUX_ID_semaphore: {
-        } break;
+    struct arc_aux_reg_detail *aux_reg_detail =
+      arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+    switch (aux_reg_detail->id) {
 
         case AUX_ID_lp_start: {
 	  env->lps = val;
@@ -112,85 +109,11 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 	  env->lpe = val;
         } break;
 
-        case AUX_ID_identity: {
-        } break;
-
-        case AUX_ID_debug: {
-        } break;
-
-        case AUX_ID_pc: {
-        } break;
-
-        case AUX_ID_status32: {
-        } break;
-
-        case AUX_ID_status32_l1: {
-        } break;
-
-        case AUX_ID_status32_l2: {
-        } break;
-
-        case AUX_ID_mulhi: {
-        } break;
-
-        case AUX_ID_int_vector_base: {
-        } break;
-
-        case AUX_ID_aux_macmode: {
-        } break;
-
-        case AUX_ID_aux_irq_lv12: {
-        } break;
-
-        case AUX_ID_aux_irq_lev: {
-        } break;
-
-        case AUX_ID_aux_irq_hint: {
-        } break;
-
-        case AUX_ID_eret: {
-        } break;
-
-        case AUX_ID_erbta: {
-        } break;
-
-        case AUX_ID_erstatus: {
-        } break;
-
-        case AUX_ID_ecr: {
-        } break;
-
-        case AUX_ID_efa: {
-        } break;
-
-        case AUX_ID_icause1: {
-        } break;
-
-        case AUX_ID_icause2: {
-        } break;
-
-        case AUX_ID_aux_ienable: {
-        } break;
-
-        case AUX_ID_aux_itrigger: {
-        } break;
-
-        case AUX_ID_bta: {
-        } break;
-
-        case AUX_ID_bta_l1: {
-        } break;
-
-        case AUX_ID_bta_l2: {
-        } break;
-
-        case AUX_ID_aux_irq_pulse_cancel: {
-        } break;
-
-        case AUX_ID_aux_irq_pending: {
-        } break;
-
         default: {
+	    if(aux_reg_detail->aux_reg->set_func != NULL)
+	    {
+	      aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
+	    }
             cpu_outl(aux, val);
         }
     }

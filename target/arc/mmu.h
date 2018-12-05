@@ -70,7 +70,7 @@ arc_aux_reg_set_tlbcommand(struct arc_aux_reg_detail *aux_reg,
 			   uint32_t val, void *data);
 extern void
 arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail,
-		    struct CPUARCState *env, uint32_t val);
+		    uint32_t val, void *data) ;
 
 void arc_mmu_init(struct arc_mmu *mmu);
 

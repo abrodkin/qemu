@@ -23,8 +23,11 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 
-void arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail, struct CPUARCState *env, uint32_t val)
+void
+arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail,
+		    uint32_t val, void *data)
 {
+  CPUARCState *env = (CPUARCState *) data;
   struct arc_mmu *mmu = &env->mmu;
 
   switch (aux_reg_detail->id) {
