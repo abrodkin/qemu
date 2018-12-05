@@ -32,10 +32,6 @@ TCGv     cpu_limm;      /*  Long immediate data indicator       */
 TCGv     cpu_pcl;       /*  Program Counter [31:2], read-only,
                                     32-bit aligned address.     */
 
-TCGv     cpu_mlo;       /*  Multiply low 32 bits, read only     */
-TCGv     cpu_mmi;       /*  Multiply middle 32 bits, read only  */
-TCGv     cpu_mhi;       /*  Multiply high 32 bits, read only    */
-
 TCGv     cpu_S1f;
 TCGv     cpu_S2f;
 TCGv     cpu_CSf;
@@ -287,9 +283,6 @@ void arc_translate_init(void)
     cpu_ilink1 = cpu_r[29];
     cpu_ilink2 = cpu_r[30];
     cpu_blink = cpu_r[31];
-    cpu_mlo = cpu_r[57];
-    cpu_mmi = cpu_r[58];
-    cpu_mhi = cpu_r[59];
     cpu_lpc = cpu_r[60];
     cpu_limm = cpu_r[62];
     cpu_pcl = cpu_r[63];

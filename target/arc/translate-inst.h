@@ -242,9 +242,6 @@ void arc2_gen_set_zflag(TCGv elem);
 
 int arc2_get_tcgv_value(TCGv elem);
 
-TCGv arc2_get_pc(DisasCtxt *ctx);
-#define getPC() arc2_get_pc(ctx)
-
 TCGv arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx);
 #define nextInsnAddressAfterDelaySlot() arc2_get_next_insn_address_after_delayslot (ctx)
 TCGv arc2_get_next_insn_address(DisasCtxt *ctx);

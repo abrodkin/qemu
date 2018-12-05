@@ -1,7 +1,7 @@
 /*
  *  QEMU ARC CPU
  *
- *  Copyright (c) 2016 Michael Rolnik
+ *  Copyright (c) 2019
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -192,9 +192,7 @@ arc_gen_getCarry(DisasCtxt *ctx)
 TCGv
 arc_gen_verifyFFlag(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_tl(ret, (int) ctx->insn.f != 0);
-  return ret;
+  return tcg_const_i32 ((int) ctx->insn.f != 0);
 }
 
 TCGv
@@ -399,40 +397,21 @@ arc2_get_tcgv_value(TCGv elem)
 }
 
 TCGv
-arc2_get_pc(DisasCtxt *ctx)
-{
-  //TCGv ret = tcg_temp_local_new_i32();
-  //tcg_gen_mov_tl(ret, ctx->env->pc);
-  //return ret;
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_mov_tl(ret, cpu_pc);
-  return ret;
-}
-
-
-
-TCGv
 arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_tl(ret, ctx->dpc);
-  return ret;
+  return tcg_const_i32 (ctx->dpc);
 }
 
 TCGv
 arc2_get_next_insn_address(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_tl(ret, ctx->npc);
-  return ret;
+  return tcg_const_i32 (ctx->npc);
 }
 
 TCGv
 arc2_gen_get_pcl(DisasCtxt *ctx)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_tl(ret, ctx->pcl);
-  return ret;
+  return tcg_const_i32 (ctx->pcl);
 }
 
 void
@@ -645,9 +624,7 @@ arc2_gen_get_bit (TCGv a, TCGv pos)
 TCGv
 arc2_gen_get_aux_reg_index(enum arc_registers reg_id)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_tl(ret, reg_id);
-  return ret;
+  return tcg_const_i32 ((int) reg_id);
 }
 
 TCGv

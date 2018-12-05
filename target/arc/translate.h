@@ -45,10 +45,6 @@ extern TCGv     cpu_blink;
 extern TCGv     cpu_pcl;
 extern TCGv     cpu_limm;
 
-extern TCGv     cpu_mlo;
-extern TCGv     cpu_mmi;
-extern TCGv     cpu_mhi;
-
 extern TCGv     cpu_S1f;
 extern TCGv     cpu_S2f;
 extern TCGv     cpu_CSf;
@@ -186,4 +182,3 @@ int arc_decode(DisasCtxt *ctx);
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest);
 
 #endif
-
