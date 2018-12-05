@@ -20,28 +20,20 @@ tn_\name:
 ;   instructions already work: 'push',  'pop',  'mov_s',  'ldb_s',
 ;                              'breq',  'stb',  'add_s',  'j'
 .macro  print message
-  .equ   VIDEO_DEVICE, 0x90000000     ; video device address in QEMU
+  .equ   OUTPUT_DEVICE, 0x90000000     ; video device address in QEMU
 
   .data
   0000:
   .asciz "\message"
 
   .text
-  push    r1
-  push    r2
-  push    r3
-  mov_s   r1, @0000b                  ; the message to be printed
-  mov_s   r3, VIDEO_DEVICE            ; output byte stream
+  mov_s   r11, @0000b                  ; the message to be printed
   1111:
-    ldb_s   r2, [r1]
-    breq    r2, 0, @2222f
-    stb     r2, [r3]
-    add_s   r1, r1, 1
+    ldb.ab	r12, [r11, 1]
+    breq	r12, 0, @2222f
+    stb		r12, [OUTPUT_DEVICE]
     j       @1111b
   2222:
-  pop     r3
-  pop     r2
-  pop     r1
 .endm
 
 
@@ -60,7 +52,7 @@ tn_\name:
   mov.ne  r0, 0x31      ; '1'
   print   "Ret:"
   mov     r2, r0
-  st      r2, [0x90000000]
+  st      r2, [OUTPUT_DEVICE]
   print   "\n"
 .endm
 
