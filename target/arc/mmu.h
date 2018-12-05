@@ -61,13 +61,17 @@ struct arc_mmu {
   uint32_t tlbpd1;
   uint32_t tlbpd1_hi;
   uint32_t tlbindex;
-  uint32_t tlbcmd;
   uint32_t scratch_data0;
 };
 
-
+struct CPUARCState;
 extern void
 arc_aux_reg_set_tlbcommand(struct arc_aux_reg_detail *aux_reg,
 			   uint32_t val, void *data);
+extern void
+arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail,
+		    struct CPUARCState *env, uint32_t val);
+
+void arc_mmu_init(struct arc_mmu *mmu);
 
 #endif /* ARC_MMU_H */

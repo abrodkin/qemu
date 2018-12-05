@@ -21,10 +21,72 @@
 #include "mmu.h"
 #include "arc-regs.h"
 #include "qemu/osdep.h"
+#include "cpu.h"
+
+void arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail, struct CPUARCState *env, uint32_t val)
+{
+  struct arc_mmu *mmu = &env->mmu;
+
+  switch (aux_reg_detail->id) {
+      case AUX_ID_tlbcommand:
+        break;
+      case AUX_ID_tlbindex:
+        mmu->tlbindex = val;
+        break;
+      case AUX_ID_tlbpd0:
+        mmu->tlbpd0 = val;
+        break;
+      case AUX_ID_tlbpd1:
+        mmu->tlbpd1 = val;
+        break;
+      case AUX_ID_tlbpd1_hi:
+        mmu->tlbpd1_hi = val;
+        break;
+      case AUX_ID_scratch_data0:
+        mmu->scratch_data0 = val;
+        break;
+      default:
+        break;
+  }
+}
 
 void
 arc_aux_reg_set_tlbcommand(struct arc_aux_reg_detail *aux_reg,
 			   uint32_t val, void *data)
 {
   return;
+}
+
+
+static void mmu_flush_idx(CPUARCState *env, unsigned int idx)
+{
+  /*
+    CPUState *cs = CPU(mb_env_get_cpu(env));
+    struct arc_mmy *mmu = &env->mmu;
+    unsigned int tlb_size;
+    uint32_t tlb_tag, end, t;
+
+    t = mmu->rams[RAM_TAG][idx];
+    if (!(t & TLB_VALID))
+        return;
+
+    tlb_tag = t & TLB_EPN_MASK;
+    tlb_size = tlb_decode_size((t & TLB_PAGESZ_MASK) >> 7);
+    end = tlb_tag + tlb_size;
+
+    while (tlb_tag < end) {
+        tlb_flush_page(cs, tlb_tag);
+        tlb_tag += TARGET_PAGE_SIZE;
+    }
+  */
+}
+
+void arc_mmu_init(struct arc_mmu *mmu)
+{
+  mmu->enabled = false;
+  mmu->tlbpd0 = 0;
+  mmu->tlbpd1 = 0;
+  mmu->tlbpd1_hi = 0;
+  mmu->tlbindex = 0;
+  mmu->scratch_data0 = 0;
 }

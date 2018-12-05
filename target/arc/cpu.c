@@ -24,6 +24,7 @@
 #include "qemu-common.h"
 #include "migration/vmstate.h"
 #include "exec/log.h"
+#include "mmu.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -67,8 +68,8 @@ static void arc_cpu_reset(CPUState *s)
     log_cpu_state(s, 0);
   }
 
-  /* MMU enable be disabled on reset. */
-  env->mmu.enabled = false;
+  /* Initialize mmu/reset it. */
+  arc_mmu_init(&env->mmu);
 
   arcc->parent_reset(s);
 

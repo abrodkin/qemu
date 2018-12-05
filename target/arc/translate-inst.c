@@ -43,7 +43,7 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
     {
       // AL, RA
       case 0x00:
-	tcg_gen_mov_i32(ret, ctx->one);
+	tcg_gen_movi_i32(ret, 1);
 	break;
       // EQ, Z
       case 0x01:
