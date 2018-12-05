@@ -835,7 +835,7 @@ const struct arc_flag_operand arc_flag_operands[] =
 #define F_AS22     (F_AS9 + 1)
   { "as", 3, 2, 22, 1 },
 #define F_ASFAKE   (F_AS22 + 1)
-  { "as", 0, 0, 0, 1 },
+  { "as", 3, 0, 0, 1 },
 
   /* Cache bypass.  */
 #define F_DI5     (F_ASFAKE + 1)
@@ -859,7 +859,7 @@ const struct arc_flag_operand arc_flag_operands[] =
 #define F_H17    (F_H7 + 1)
   { "h", 2, 2, 17, 1 },
 #define F_SIZED  (F_H17 + 1)
-  { "dd", 8, 0, 0, 0 },  /* Fake.  */
+  { "dd", 3, 0, 0, 0 },  /* Fake.  */
 
   /* Fake Flags.  */
 #define F_NE   (F_SIZED + 1)
@@ -1070,7 +1070,7 @@ const struct arc_flag_class arc_flag_classes[] =
   { F_CLASS_OPTIONAL | F_CLASS_ZZ, { F_SIZEB1, F_SIZEW1, F_H1, F_NULL}},
 
 #define C_AS	    (C_ZZ29 + 1)
-  { F_CLASS_OPTIONAL | F_CLASS_WB, { F_ASFAKE, F_NULL}},
+  { F_CLASS_IMPLICIT | F_CLASS_OPTIONAL | F_CLASS_WB, { F_ASFAKE, F_NULL}},
 
 #define C_NE	    (C_AS + 1)
   { F_CLASS_OPTIONAL | F_CLASS_COND, { F_NE, F_NULL}},
