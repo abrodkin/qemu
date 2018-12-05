@@ -45,6 +45,7 @@ TESTCASES += check_t02.tst
 TESTCASES += check_basic1.tst
 TESTCASES += check_basic2.tst
 TESTCASES += check_norm.tst
+TESTCASES += check_excp.tst
 
 all: $(TESTCASES)
 

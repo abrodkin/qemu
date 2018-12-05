@@ -74,6 +74,7 @@ enum gdb_aux_regs {
 #define CPU_GP(env)     ((env)->r[26])
 #define CPU_FP(env)     ((env)->r[27])
 #define CPU_SP(env)     ((env)->r[28])
+#define CPU_ILINK(env)  ((env)->r[29])
 #define CPU_ILINK1(env) ((env)->r[29])
 #define CPU_ILINK2(env) ((env)->r[30])
 #define CPU_BLINK(env)  ((env)->r[31])
@@ -83,6 +84,25 @@ enum gdb_aux_regs {
 #define CPU_LP(env)     ((env)->r[60])
 #define CPU_IMM(env)    ((env)->r[62])
 #define CPU_PCL(env)    ((env)->r[63])
+
+enum exception_code_list {
+    EXCP_RESET = 0,
+    EXCP_MEMORY_ERROR,
+    EXCP_INST_ERROR,
+    EXCP_MACHINE_CHECK,
+    EXCP_TLB_MISS_I,
+    EXCP_TLB_MISS_D,
+    EXCP_PROTV,
+    EXCP_PRIVILRGEV,
+    EXCP_SWI,
+    EXCP_TRAP,
+    EXCP_EXTENSION,
+    EXCP_DIVZERO,
+    EXCP_DCERROR,
+    EXCP_MALIGNED,
+    EXCP_FIRQ,
+    EXCP_IRQ
+};
 
 typedef struct CPUARCState {
   uint32_t        r[64];
@@ -102,6 +122,7 @@ typedef struct CPUARCState {
     uint32_t    E2f;    /*  interrupt 1 mask        */
     uint32_t    E1f;    /*  interrupt 2 mask        */
     uint32_t    Hf;     /*  halt                    */
+    uint32_t    IEf;
   } stat, stat_l1, stat_l2, stat_er;
 
   struct {
@@ -151,6 +172,8 @@ typedef struct CPUARCState {
   /* Fields after CPU_COMMON are preserved across CPU reset. */
   uint64_t features;
   uint32_t family;
+  uint32_t causecode;
+  uint32_t param;
 
     void *irq[32];
 } CPUARCState;
@@ -290,7 +313,6 @@ void arc_cpu_do_interrupt(CPUState *cpu);
 void arc_cpu_dump_state(CPUState *cs, FILE *f,
                         fprintf_function cpu_fprintf, int flags);
 hwaddr arc_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
-bool arc_cpu_exec_interrupt(CPUState *cpu, int int_req);
 int arc_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int arc_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
 

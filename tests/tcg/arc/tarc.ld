@@ -1,6 +1,10 @@
 ENTRY(main)
 SECTIONS
 {
+ .ivt 0x00 :
+ {
+  KEEP (*(.ivt));
+ }
  . = 0x100;
  .text : { *(.text) }
  .data : { *(.data) }

@@ -485,6 +485,8 @@ void helper_rtie(CPUARCState *env)
         env->stat = env->stat_er;
         env->bta = env->stat.AEf;
     }
+
+    qemu_log_mask(CPU_LOG_INT, "RTIE:0x%08x\n", env->eret);
 }
 
 void helper_flush(CPUARCState *env)
@@ -492,10 +494,20 @@ void helper_flush(CPUARCState *env)
     tb_flush((CPUState *)arc_env_get_cpu(env));
 }
 
-void helper_raise_exception (CPUARCState *env, uint32_t index)
+/* This should only be called from translate, via gen_raise_exception.
+   We expect that ENV->PC has already been updated.  */
+
+void QEMU_NORETURN
+helper_raise_exception (CPUARCState *env,
+                        uint32_t index,
+                        uint32_t causecode,
+                        uint32_t param)
 {
-    CPUState *cs = CPU (arc_env_get_cpu(env));
-    cpu_loop_exit(cs);
+  CPUState *cs = CPU (arc_env_get_cpu(env));
+  cs->exception_index = index;
+  env->causecode = causecode;
+  env->param = param;
+  cpu_loop_exit(cs);
 }
 
 uint32_t helper_get_status32(CPUARCState *env)
@@ -558,3 +570,8 @@ void helper_set_lf(uint32_t v)
 {
   lf_variable = v;
 }
+
+/* Local variables:
+   eval: (c-set-style "gnu")
+   indent-tabs-mode: t
+   End:  */

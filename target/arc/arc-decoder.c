@@ -1545,6 +1545,7 @@ enum arc_opcode_map {
 #define MAPPING(MNEMONIC, NAME, NOPS, ...) \
   MAP_##MNEMONIC##_##NAME,
 #include "arc-semfunc_mapping.h"
+#include "arc-extra_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
   /* Add some include to generated files */
@@ -1556,6 +1557,7 @@ number_of_ops_semfunc[MAP_LAST + 1] = {
 #define SEMANTIC_FUNCTION(...)
 #define MAPPING(MNEMONIC, NAME, NOPS, ...) NOPS,
 #include "arc-semfunc_mapping.h"
+#include "arc-extra_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
     2
@@ -1569,8 +1571,10 @@ arc_map_opcode (const struct arc_opcode *opcode)
   if(strcmp(opcode->name, #MNEMONIC) == 0) \
     return MAP_##MNEMONIC##_##NAME;
 #include "arc-semfunc_mapping.h"
+#include "arc-extra_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
+
   return MAP_NONE;
 }
 
@@ -1627,6 +1631,52 @@ arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned ch
   return ret;
 }
 
+/* Generate exception.  */
+
+static void gen_excp (DisasCtxt *ctx,
+                      uint32_t index,
+                      uint32_t causecode,
+                      uint32_t param)
+{
+  TCGv_i32 tmp0 = tcg_const_i32 (index);
+  TCGv_i32 tmp1 = tcg_const_i32 (causecode);
+  TCGv_i32 tmp2 = tcg_const_i32 (param);
+
+  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
+  tcg_gen_movi_tl (cpu_eret, ctx->cpc);
+  gen_helper_raise_exception (cpu_env, tmp0, tmp1, tmp2);
+
+  tcg_temp_free_i32 (tmp0);
+  tcg_temp_free_i32 (tmp1);
+  tcg_temp_free_i32 (tmp2);
+}
+
+/* Generate trap.  */
+
+static void gen_trap (DisasCtxt *ctx, uint32_t param)
+{
+  TCGv_i32 tmp0 = tcg_const_i32 (EXCP_TRAP);
+  TCGv_i32 tmp1 = tcg_const_i32 (0);
+  TCGv_i32 tmp2 = tcg_const_i32 (param);
+
+  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
+  tcg_gen_movi_tl (cpu_eret, ctx->npc);
+  gen_helper_raise_exception (cpu_env, tmp0, tmp1, tmp2);
+
+  tcg_temp_free_i32 (tmp0);
+  tcg_temp_free_i32 (tmp1);
+  tcg_temp_free_i32 (tmp2);
+}
+
+/* Return from exception.  */
+
+static void gen_rtie (DisasCtxt *ctx)
+{
+  gen_helper_rtie (cpu_env);
+  tcg_gen_mov_tl (cpu_pc, cpu_eret);
+  gen_goto_tb (ctx, 1, cpu_pc);
+}
+
 int arc_decode (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
@@ -1648,12 +1698,16 @@ int arc_decode (DisasCtxt *ctx)
           ops[i] = arc2_decode_operand (opcode, ctx, i);
         }
 
-      /* Store some elements statically to implement less dynamic features of instructions.
-       * Started by the need to keep a static reference to LP_START and LP_END.  */
-      switch(mapping) {
+      /* Store some elements statically to implement less dynamic
+         features of instructions.  Started by the need to keep a
+         static reference to LP_START and LP_END.  */
+      switch(mapping)
+        {
 	case MAP_lp_LP:
 	  ctx->env->lps = ctx->npc;
 	  ctx->env->lpe = ctx->pcl + ctx->insn.operands[0].value;
+          break;
+
 	default:
 	  break;
       }
@@ -1676,6 +1730,23 @@ int arc_decode (DisasCtxt *ctx)
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
+
+        case MAP_swi_SWI:
+        case MAP_swi_s_SWI:
+          gen_excp (ctx, EXCP_SWI, 0, ctx->insn.operands[0].value);
+	  ret = BS_NONE;
+          break;
+
+        case MAP_trap_s_TRAP:
+          gen_trap (ctx, ctx->insn.operands[0].value);
+	  ret = BS_NONE;
+          break;
+
+        case MAP_rtie_RTIE:
+          gen_rtie (ctx);
+          ret = BS_BRANCH;
+          break;
+
         default:
           arc_debug_opcode(opcode, ctx, "Could not map opcode");
 	  ret = BS_NONE;
@@ -1698,6 +1769,8 @@ int arc_decode (DisasCtxt *ctx)
     }
   else
     {
+      // FIXME! enable it when we have full support.
+      //gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
       arc_debug_opcode(opcode, ctx, "Could not identify opcode");
       ret = BS_NONE;
       should_stop = false;
@@ -1709,6 +1782,7 @@ int arc_decode (DisasCtxt *ctx)
   ret = (!opcode || should_stop) ? BS_STOP : ret;
   return ret;
 }
+
 /* Local variables:
    eval: (c-set-style "gnu")
    indent-tabs-mode: t

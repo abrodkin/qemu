@@ -44,7 +44,7 @@ static void arc_cpu_set_pc(CPUState *cs, vaddr value)
 
 static bool arc_cpu_has_work(CPUState *cs)
 {
-  return false;
+  return (cs->interrupt_request & CPU_INTERRUPT_HARD);
 }
 
 static void arc_cpu_synchronize_from_tb(CPUState *cs, TranslationBlock *tb)
@@ -124,9 +124,22 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
   arcc->parent_realize(dev, errp);
 }
 
+#ifndef CONFIG_USER_ONLY
+
+/* Handler for TIMERx interrupt.  */
 static void arc_cpu_set_int(void *opaque, int irq, int level)
 {
+  ARCCPU *cpu = opaque;
+  CPUState *cs = CPU (cpu);
+  int type = CPU_INTERRUPT_HARD;
+
+  if (level)
+    cpu_interrupt (cs, type);
+  else
+    cpu_reset_interrupt (cs, type);
 }
+
+#endif
 
 static void arc_cpu_initfn(Object *obj)
 {
@@ -136,10 +149,8 @@ static void arc_cpu_initfn(Object *obj)
   cs->env_ptr = &cpu->env;
 
 #ifndef CONFIG_USER_ONLY
-  qdev_init_gpio_in(DEVICE(cpu), arc_cpu_set_int, 37);
+  qdev_init_gpio_in(DEVICE(cpu), arc_cpu_set_int, 16);
 #endif
-
-
 }
 
 static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
@@ -171,6 +182,27 @@ static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
 static gchar *arc_gdb_arch_name(CPUState *cs)
 {
     return g_strdup("arc");
+}
+
+/* Check if we can interrupt the cpu.  */
+
+static bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
+{
+  ARCCPU *cpu = ARC_CPU (cs);
+  CPUARCState *env = &cpu->env;
+
+  /* Regular interrupts.  */
+  if ((interrupt_request & CPU_INTERRUPT_HARD)
+      && (env->stat.Hf == 0)
+      //&& (env->stat.IEf == 1)
+      && (env->stat.AEf == 0))
+    {
+      /* FIXME! add check priority interrupts.  */
+      cs->exception_index = EXCP_IRQ;
+      arc_cpu_do_interrupt (cs);
+      return true;
+    }
+  return false;
 }
 
 static void arc_cpu_class_init(ObjectClass *oc, void *data)

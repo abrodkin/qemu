@@ -1,7 +1,7 @@
 /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2016 Michael Rolnik
+ * Copyright (c) 2019
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,106 @@
 #include "exec/cpu_ldst.h"
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
+
+#if defined (CONFIG_USER_ONLY)
+
+void arc_cpu_do_interrupt (CPUState *cs)
+{
+  ARCCPU *cpu = ARC_CPU (cs);
+  CPUARCState *env = &cpu->env;
+
+  cs->exception_index = -1;
+  CPU_ILINK (env) = env->pc;
+
+}
+#else /* !CONFIG_USER_ONLY */
+
+void arc_cpu_do_interrupt (CPUState *cs)
+{
+  ARCCPU *cpu = ARC_CPU (cs);
+  CPUARCState *env = &cpu->env;
+  uint32_t offset = 0;
+  uint32_t vectno;
+
+  /* FIXME! we cannot do interrupts in delay slots.  */
+
+  /* Generic computation for exceptions.  */
+  switch (cs->exception_index)
+    {
+    case EXCP_RESET:
+    case EXCP_MEMORY_ERROR:
+    case EXCP_INST_ERROR:
+    case EXCP_MACHINE_CHECK:
+    case EXCP_TLB_MISS_I:
+    case EXCP_TLB_MISS_D:
+    case EXCP_PROTV:
+    case EXCP_PRIVILRGEV:
+    case EXCP_SWI:
+    case EXCP_TRAP:
+    case EXCP_EXTENSION:
+    case EXCP_DIVZERO:
+    case EXCP_DCERROR:
+    case EXCP_MALIGNED:
+      qemu_log_mask (CPU_LOG_INT, "exception %d at pc=0x%08x\n",
+                     cs->exception_index, env->pc);
+
+      env->stat_er = env->stat;
+      /* If we take an exception within an exception => fatal Machine
+         Check.  */
+      if (env->stat.AEf == 1)
+        {
+          cs->exception_index = EXCP_MACHINE_CHECK;
+          env->causecode = 0;
+          env->param = 0;
+        }
+      vectno = cs->exception_index & 0x0F;
+      offset = vectno << 2;
+
+      /* 3. exception status register is loaded with the contents of
+         STATUS32.  */
+      env->stat_er = env->stat;
+
+      /* 4. exception return branch target address register.  */
+      env->erbta = env->bta;
+
+      /* 5. eception cause register is loaded with a code to indicate
+         the cause of the exception.  */
+      env->ecr = (vectno & 0xFF) << 16;
+      env->ecr |= (env->causecode & 0xFF) << 8;
+      env->ecr |= (env->param & 0xFF);
+
+      /* 7. CPU is switched into kernel mode.  */
+      env->stat.Uf = 0;
+
+      /* 8. Interrupts are disabled.  */
+      env->stat.IEf = 0;
+
+      /* 9. The active exception flag is set.  */
+      env->stat.AEf = 1;
+      break;
+    case EXCP_FIRQ:
+    case EXCP_IRQ:
+      qemu_log_mask (CPU_LOG_INT, "interrupt at pc=0x%08x\n", env->pc);
+      /* FIXME! for ARCv1 we need to set ILINK1/ILINK2.  */
+      CPU_ILINK (env) = env->pc;
+      env->stat_l1 = env->stat;
+      env->bta_l1 = env->bta;
+      break;
+    default:
+      cpu_abort(cs, "unhandled exception type=%d\n",
+                cs->exception_index);
+      break;
+    }
+
+  /* XX. The PC is set with the appropriate exception vector. */
+  env->pc = cpu_ldl_code (env, env->intvec + offset);
+  CPU_PCL (env) = env->pc & 0xfffffffe;
+
+  qemu_log_mask(CPU_LOG_INT, "%s isr=%x vec=%x ecr=0x%08x\n",
+                __func__, env->pc, offset, env->ecr);
+}
+
+#endif
 
 //void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu)
 //{
@@ -101,16 +201,6 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }
 
-void arc_cpu_do_interrupt(CPUState *cs)
-{
-  cs->exception_index = -1;
-}
-
-bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
-{
-  return false;
-}
-
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,
                             int len, bool is_write)
 {
@@ -129,3 +219,8 @@ void helper_debug(CPUARCState *env)
   cs->exception_index = EXCP_DEBUG;
   cpu_loop_exit(cs);
 }
+
+/* Local variables:
+   eval: (c-set-style "gnu")
+   indent-tabs-mode: t
+   End:  */
