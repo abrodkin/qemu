@@ -23,19 +23,37 @@
 
 #include "arc-regs.h"
 
+/* PD0 flags */
+#define TLB_G   0x00000100      /* Global */
+#define TLB_V   0x00000200      /* Valid */
+#define TLB_SZ  0x00000400      /* Size: Normal or Super Page */
+#define TLB_L   0x00000800      /* Lock */
+
+/* PD1 permission bits */
+#define TLB_FC  0x00000001      /* Cached */
+#define TLB_XU  0x00000002      /* User Execute */
+#define TLB_WU  0x00000004      /* User Write */
+#define TLB_RU  0x00000008      /* User Read */
+#define TLB_XK  0x00000010      /* Kernel Execute */
+#define TLB_WK  0x00000020      /* Kernel Write */
+#define TLB_RK  0x00000040      /* Kernel Read */
+
 #define TLB_ENTRIES     1024
 
-#define PD0     0
-#define PD1     1
 
 struct arc_mmu {
   bool enabled;
 
-  /* nTLB is organized as {PD0,PD1} tuple */
-  uint32_t nTLB[2][TLB_ENTRIES];
+  /* nTLB is actually {PD0,PD1} tuples, better keep it "unpacked" for speed */
+#define TLB_FLG     0    // includes both PD1 permissions and PD0 flags
+#define TLB_ASID    1
+#define TLB_PFN     2
+  uint32_t nTLB[3][TLB_ENTRIES];
 
-  /* 8-bit Address Space ID is actually present in AUX PID
-   * we {re,de}construct the PID reg as needed by LR/SR respectively
+  /* Current Address Space ID (in whose context mmu lookups done)
+   * Note that it is actually present in AUX PID reg, which we don't
+   * explicitly maintain, but {re,de}construct as needed by LR/SR insns
+   * respectively.
    */
   uint32_t asid;
 
