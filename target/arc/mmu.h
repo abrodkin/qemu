@@ -28,6 +28,7 @@
 #define PD0_V   0x00000200      /* Valid */
 #define PD0_SZ  0x00000400      /* Size: Normal or Super Page */
 #define PD0_L   0x00000800      /* Lock */
+#define PD0_S   0x80000000      /* Shared Library ASID */
 #define PD0_FLG (PD0_G | PD0_V | PD0_SZ | PD0_L)
 
 /* PD1 permission bits */
@@ -52,27 +53,33 @@
 #define PAGE_SIZE       (1 << PAGE_SHIFT)
 #define PAGE_MASK       (~(PAGE_SIZE - 1))
 
+enum access_type {
+  MMU_MEM_READ = 0,
+  MMU_MEM_WRITE,
+  MMU_MEM_FETCH  /* Read for execution. */
+};
 
 struct arc_tlb_e {
   // TLB entry is {PD0,PD1} tuple, kept "unpacked" to avoid bit fiddling
   // flags includes both PD0 flags and PD1 permissions
   uint32_t flags, asid, vpn, pfn;
+
+  struct arc_tlb_e *next;
 };
 
 struct arc_mmu {
   uint32_t enabled;
 
-  struct arc_tlb_e nTLB[N_SETS][N_WAYS];
-
-  /* insert uses vaddr to find set; way selection could be random/rr/lru */
-  uint32_t way_sel[N_SETS];
+  struct arc_tlb_e *nTLB[N_SETS];
 
   /* Current Address Space ID (in whose context mmu lookups done)
    * Note that it is actually present in AUX PID reg, which we don't
    * explicitly maintain, but {re,de}construct as needed by LR/SR insns
    * respectively.
    */
-  uint32_t asid;
+  uint32_t pid_asid;
+  uint32_t sasid0;
+  uint32_t sasid1;
 
   uint32_t tlbpd0;
   uint32_t tlbpd1;

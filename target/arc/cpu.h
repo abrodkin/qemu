@@ -113,7 +113,7 @@ typedef struct CPUARCState {
     uint32_t    Nf;     /*  negative                */
     uint32_t    Cf;     /*  carry                   */
     uint32_t    Vf;     /*  overflow                */
-    uint32_t    Uf;
+    uint32_t    Uf;	/*  User mode ? */
 
     uint32_t    DEf;
     uint32_t    AEf;

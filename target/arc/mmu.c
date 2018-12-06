@@ -55,7 +55,14 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
         reg = mmu->tlbcmd;
         break;
       case AUX_ID_pid:
-        reg = (mmu->enabled << 31) | mmu->asid;
+        reg = (mmu->enabled << 31) | mmu->pid_asid;
+	break;
+      case AUX_ID_sasid0:
+        reg = mmu->sasid0;
+	break;
+      case AUX_ID_sasid1:
+        reg = mmu->sasid1;
+	break;
       default:
         break;
   }
@@ -89,11 +96,42 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
         break;
       case AUX_ID_pid:
         mmu->enabled = (val >> 31);
-        mmu->asid = val & 0xff;
+        mmu->pid_asid = val & 0xff;
+        break;
+      case AUX_ID_sasid0:
+        mmu->sasid0 = val;
+        break;
+      case AUX_ID_sasid1:
+        mmu->sasid1 = val;
         break;
       default:
         break;
   }
+}
+
+#define VPN(addr) ((addr & PAGE_MASK) & ~0x10000000)
+#define PFN(addr) (addr & PAGE_MASK)
+
+static struct arc_tlb_e *
+arc_mmu_create_tlb_entry()
+{
+  struct arc_tlb_e *ret = (struct arc_tlb_e *) malloc(sizeof(struct arc_tlb_e));
+  ret->next = NULL;
+  return ret;
+}
+
+static struct arc_tlb_e *
+arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu)
+{
+  uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
+  struct arc_tlb_e *tlb = mmu->nTLB[set];
+  while(tlb)
+    {
+      if(VPN(vaddr) == VPN(tlb->vpn))
+	return tlb;
+      tlb = tlb->next;
+    }
+  return NULL;
 }
 
 /*
@@ -112,24 +150,111 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   mmu->tlbcmd = val;
 
   if (val == TLB_CMD_INSERT) {
-        uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
-        uint32_t way = mmu->way_sel[set];
-        struct arc_tlb_e *tlb = &mmu->nTLB[set][way];
+	struct arc_tlb_e *tlb = arc_mmu_create_tlb_entry();
+
 
         tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
         tlb->asid = (pd0 & 0xff);
-        tlb->vpn = (pd0 & PAGE_MASK) & ~0x10000000;   // vaddr can't have top bit
-        tlb->pfn = (pd1 & PAGE_MASK);
+        tlb->vpn = VPN(pd0);   // vaddr can't have top bit
+        tlb->pfn = PFN(pd1);
 
-        // RR replacement for now
-        mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
+	/* Find the SET for this tlb entry and add it. */
+	uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
+	tlb->next = mmu->nTLB[set];
+	mmu->nTLB[set] = tlb;
   }
+}
+
+/* Function to verify if we have permission to use MMU TLB entry. */
+static bool
+arc_mmu_have_permission(CPUARCState *env,
+			struct arc_tlb_e *tlb,
+			enum access_type type)
+{
+  bool ret = false;
+  bool in_kernel_mode = !env->stat.Uf; /* Read status for user mode. */
+  switch(type) {
+    case MMU_MEM_READ:
+      ret = in_kernel_mode ? tlb->flags & PD1_RK : tlb->flags & PD1_RU;
+      break;
+    case MMU_MEM_WRITE:
+      ret = in_kernel_mode ? tlb->flags & PD1_WK : tlb->flags & PD1_WU;
+      break;
+    case MMU_MEM_FETCH:
+      ret = in_kernel_mode ? tlb->flags & PD1_XK : tlb->flags & PD1_XU;
+      break;
+  }
+  return ret;
+}
+
+/* Translation function to get physical address from virtual address. */
+target_ulong
+arc_mmu_translate(CPUARCState *env,
+		  target_ulong vaddr, enum access_type rwe)
+{
+  struct arc_mmu *mmu = &env->mmu;
+  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu);
+  /* TODO: HW validation. Check for multiple matches in nTLB. */
+
+  bool match = true;
+
+  /* Check that we are not addressing an address above 0x80000000.
+   * Return the same address in that case. */
+  if((vaddr & 0x80000000) != 0 || mmu->enabled != true)
+    return vaddr;
+
+  if(tlb == NULL)
+    {
+      /* TODO: TLB Miss exception */
+      return 0;
+    }
+
+  /* Check if entry if related to this address */
+  if(VPN(vaddr) != tlb->vpn || (tlb->flags & PD0_V) != 0)
+    {
+      /* Call the interrupt. */
+      match = false;
+    }
+
+  /* In case entry is not global.
+   * Logic from PRM, in TLBPD0 description, more precisely ASID one. */
+  if((tlb->flags & PD0_G) == 0)
+    {
+      /* ASID check against library.  */
+      if((tlb->flags & PD0_S) != 0
+	 && (tlb->asid & 0x1f) != (mmu->pid_asid & 0x1f))
+      {
+        match = false;
+      } else {
+        /* Check if ASID matches with PID. */
+        if(mmu->pid_asid != tlb->asid)
+          {
+            match = false;
+          }
+      }
+    }
+
+  if(!arc_mmu_have_permission(env, tlb, rwe))
+    {
+      /* TODO: Protection Violation exception. */
+      return 0;
+    }
+
+  if(match == true)
+    return tlb->pfn | (vaddr & (~PAGE_MASK));
+  else
+    {
+      /* TODO: TLB Miss Exception. */
+      return 0;
+    }
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)
 {
   mmu->enabled = 0;
-  mmu->asid = 0;
+  mmu->pid_asid = 0;
+  mmu->sasid0 = 0;
+  mmu->sasid1 = 0;
 
   mmu->tlbpd0 = 0;
   mmu->tlbpd1 = 0;
@@ -137,4 +262,8 @@ void arc_mmu_init(struct arc_mmu *mmu)
   mmu->tlbindex = 0;
   mmu->tlbcmd = 0;
   mmu->scratch_data0 = 0;
+
+  for(int i = 0; i < N_SETS; i++)
+    mmu->nTLB[i] = NULL;
 }
+
