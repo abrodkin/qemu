@@ -63,14 +63,15 @@ struct arc_tlb_e {
   // TLB entry is {PD0,PD1} tuple, kept "unpacked" to avoid bit fiddling
   // flags includes both PD0 flags and PD1 permissions
   uint32_t flags, asid, vpn, pfn;
-
-  struct arc_tlb_e *next;
 };
 
 struct arc_mmu {
   uint32_t enabled;
 
-  struct arc_tlb_e *nTLB[N_SETS];
+  struct arc_tlb_e nTLB[N_SETS][N_WAYS];
+
+  /* insert uses vaddr to find set; way selection could be random/rr/lru */
+  uint32_t way_sel[N_SETS];
 
   /* Current Address Space ID (in whose context mmu lookups done)
    * Note that it is actually present in AUX PID reg, which we don't

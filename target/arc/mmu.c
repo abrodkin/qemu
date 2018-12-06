@@ -109,27 +109,22 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
   }
 }
 
+// vaddr can't have top bit
 #define VPN(addr) ((addr & PAGE_MASK) & ~0x10000000)
 #define PFN(addr) (addr & PAGE_MASK)
-
-static struct arc_tlb_e *
-arc_mmu_create_tlb_entry(void)
-{
-  struct arc_tlb_e *ret = (struct arc_tlb_e *) malloc(sizeof(struct arc_tlb_e));
-  ret->next = NULL;
-  return ret;
-}
 
 static struct arc_tlb_e *
 arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu)
 {
   uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
-  struct arc_tlb_e *tlb = mmu->nTLB[set];
-  while(tlb)
+  struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
+  int w;
+
+  for (w = 0; w < N_WAYS; w++)
     {
       if(VPN(vaddr) == VPN(tlb->vpn))
 	return tlb;
-      tlb = tlb->next;
+      tlb++;
     }
   return NULL;
 }
@@ -150,18 +145,17 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   mmu->tlbcmd = val;
 
   if (val == TLB_CMD_INSERT) {
-	struct arc_tlb_e *tlb = arc_mmu_create_tlb_entry();
-
+        uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
+        uint32_t way = mmu->way_sel[set];
+        struct arc_tlb_e *tlb = &mmu->nTLB[set][way];
 
         tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
-        tlb->asid = (pd0 & 0xff);
-        tlb->vpn = VPN(pd0);   // vaddr can't have top bit
+        tlb->asid = pd0 & 0xff;
+        tlb->vpn = VPN(pd0);
         tlb->pfn = PFN(pd1);
 
-	/* Find the SET for this tlb entry and add it. */
-	uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
-	tlb->next = mmu->nTLB[set];
-	mmu->nTLB[set] = tlb;
+        // RR replacement for now
+        mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
   }
 }
 
@@ -263,7 +257,6 @@ void arc_mmu_init(struct arc_mmu *mmu)
   mmu->tlbcmd = 0;
   mmu->scratch_data0 = 0;
 
-  for(int i = 0; i < N_SETS; i++)
-    mmu->nTLB[i] = NULL;
+  memset(mmu->nTLB, 0, sizeof(mmu->nTLB));
 }
 
