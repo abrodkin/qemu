@@ -49,6 +49,8 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
       case AUX_ID_tlbcommand:
         reg = mmu->tlbcmd;
         break;
+      case AUX_ID_pid:
+        reg = (mmu->enabled << 31) | mmu->asid;
       default:
         break;
   }
@@ -80,6 +82,10 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
       case AUX_ID_scratch_data0:
         mmu->scratch_data0 = val;
         break;
+      case AUX_ID_pid:
+        mmu->enabled = (val >> 31);
+        mmu->asid = val & 0xff;
+        break;
       default:
         break;
   }
@@ -97,7 +103,9 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 
 void arc_mmu_init(struct arc_mmu *mmu)
 {
-  mmu->enabled = false;
+  mmu->enabled = 0;
+  mmu->asid = 0;
+
   mmu->tlbpd0 = 0;
   mmu->tlbpd1 = 0;
   mmu->tlbpd1_hi = 0;

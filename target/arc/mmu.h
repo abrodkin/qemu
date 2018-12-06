@@ -42,7 +42,7 @@
 
 
 struct arc_mmu {
-  bool enabled;
+  uint32_t enabled;
 
   /* nTLB is actually {PD0,PD1} tuples, better keep it "unpacked" for speed */
 #define TLB_FLG     0    // includes both PD1 permissions and PD0 flags
