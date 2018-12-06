@@ -96,14 +96,34 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
   }
 }
 
+/*
+ * TLB Insert/Delete triggered by writing the cmd to TLBCommand Aux
+ *  - Requires PD0 and PD1 be setup apriori
+ */
 void
 arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 		       uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
   struct arc_mmu *mmu = &env->mmu;
+  uint32_t pd0 = mmu->tlbpd0;
+  uint32_t pd1 = mmu->tlbpd1;
 
   mmu->tlbcmd = val;
+
+  if (val == TLB_CMD_INSERT) {
+        uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
+        uint32_t way = mmu->way_sel[set];
+        struct arc_tlb_e *tlb = &mmu->nTLB[set][way];
+
+        tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
+        tlb->asid = (pd0 & 0xff);
+        tlb->vpn = (pd0 & PAGE_MASK) & ~0x10000000;   // vaddr can't have top bit
+        tlb->pfn = (pd1 & PAGE_MASK);
+
+        // RR replacement for now
+        mmu->way_sel[set] = (mmu->way_sel[set] + 1) % (N_WAYS - 1);
+  }
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)

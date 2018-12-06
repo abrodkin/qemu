@@ -24,31 +24,48 @@
 #include "arc-regs.h"
 
 /* PD0 flags */
-#define TLB_G   0x00000100      /* Global */
-#define TLB_V   0x00000200      /* Valid */
-#define TLB_SZ  0x00000400      /* Size: Normal or Super Page */
-#define TLB_L   0x00000800      /* Lock */
+#define PD0_G   0x00000100      /* Global */
+#define PD0_V   0x00000200      /* Valid */
+#define PD0_SZ  0x00000400      /* Size: Normal or Super Page */
+#define PD0_L   0x00000800      /* Lock */
+#define PD0_FLG (PD0_G | PD0_V | PD0_SZ | PD0_L)
 
 /* PD1 permission bits */
-#define TLB_FC  0x00000001      /* Cached */
-#define TLB_XU  0x00000002      /* User Execute */
-#define TLB_WU  0x00000004      /* User Write */
-#define TLB_RU  0x00000008      /* User Read */
-#define TLB_XK  0x00000010      /* Kernel Execute */
-#define TLB_WK  0x00000020      /* Kernel Write */
-#define TLB_RK  0x00000040      /* Kernel Read */
+#define PD1_FC  0x00000001      /* Cached */
+#define PD1_XU  0x00000002      /* User Execute */
+#define PD1_WU  0x00000004      /* User Write */
+#define PD1_RU  0x00000008      /* User Read */
+#define PD1_XK  0x00000010      /* Kernel Execute */
+#define PD1_WK  0x00000020      /* Kernel Write */
+#define PD1_RK  0x00000040      /* Kernel Read */
+#define PD1_FLG (PD1_FC | PD1_XU | PD1_WU | PD1_RU | PD1_XK | PD1_WK | PD1_RK)
 
-#define TLB_ENTRIES     1024
 
+#define TLB_CMD_INSERT  0x7
+#define TLB_CMD_DELETE  0x8
+
+#define N_SETS          256
+#define N_WAYS          4
+#define TLB_ENTRIES     (N_SETS * N_WAYS)
+
+#define PAGE_SHIFT      13
+#define PAGE_SIZE       (1 << PAGE_SHIFT)
+#define PAGE_MASK       (~(PAGE_SIZE - 1))
+
+
+struct arc_tlb_e {
+  // TLB entry is {PD0,PD1} tuple, kept "unpacked" to avoid bit fiddling
+  // flags includes both PD0 flags and PD1 permissions
+  uint32_t flags, asid, vpn, pfn;
+};
 
 struct arc_mmu {
   uint32_t enabled;
 
-  /* nTLB is actually {PD0,PD1} tuples, better keep it "unpacked" for speed */
-#define TLB_FLG     0    // includes both PD1 permissions and PD0 flags
-#define TLB_ASID    1
-#define TLB_PFN     2
-  uint32_t nTLB[3][TLB_ENTRIES];
+  struct arc_tlb_e nTLB[N_SETS][N_WAYS];
+
+  /* insert uses vaddr to find set; way selection could be random/rr/lru */
+  uint32_t way_sel[N_SETS];
 
   /* Current Address Space ID (in whose context mmu lookups done)
    * Note that it is actually present in AUX PID reg, which we don't
