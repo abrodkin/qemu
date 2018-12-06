@@ -31,6 +31,11 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
   uint32_t reg = 0;
 
   switch (aux_reg_detail->id) {
+      case AUX_ID_mmu_build:
+        // For now hardcode the TLB geometry and canonical page sizes
+        // MMUv4: 2M Super Page, 8k Page, 4 way set associative, 1K entries (256x4), 4 uITLB, 8 uDTLB
+        reg = 0x04e21a4a;
+        break;
       case AUX_ID_tlbindex:
         reg = mmu->tlbindex;
         break;
