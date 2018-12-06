@@ -100,6 +100,10 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 extern uint32_t
 arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data);
 
+uint32_t
+arc_mmu_translate(struct CPUARCState *env,
+		  uint32_t vaddr, enum access_type rwe);
+
 void arc_mmu_init(struct arc_mmu *mmu);
 
 #endif /* ARC_MMU_H */

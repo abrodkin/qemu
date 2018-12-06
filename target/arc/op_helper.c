@@ -24,7 +24,16 @@
 #include "exec/ioport.h"
 #include "translate-all.h"
 #include "arc-regs.h"
+#include "mmu.h"
 
+uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
+{
+  return arc_mmu_translate(env, vaddr, MMU_MEM_READ);
+}
+uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
+{
+  return arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
+}
 
 //target_ulong helper_norm(CPUARCState *env, uint32_t src1)
 //{

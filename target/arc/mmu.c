@@ -113,7 +113,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
-arc_mmu_create_tlb_entry()
+arc_mmu_create_tlb_entry(void)
 {
   struct arc_tlb_e *ret = (struct arc_tlb_e *) malloc(sizeof(struct arc_tlb_e));
   ret->next = NULL;
@@ -188,9 +188,9 @@ arc_mmu_have_permission(CPUARCState *env,
 }
 
 /* Translation function to get physical address from virtual address. */
-target_ulong
-arc_mmu_translate(CPUARCState *env,
-		  target_ulong vaddr, enum access_type rwe)
+uint32_t
+arc_mmu_translate(struct CPUARCState *env,
+		  uint32_t vaddr, enum access_type rwe)
 {
   struct arc_mmu *mmu = &env->mmu;
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu);
