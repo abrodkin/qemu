@@ -61,6 +61,7 @@ struct arc_mmu {
   uint32_t tlbpd1;
   uint32_t tlbpd1_hi;
   uint32_t tlbindex;
+  uint32_t tlbcmd;
   uint32_t scratch_data0;
 };
 

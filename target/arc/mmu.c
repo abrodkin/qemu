@@ -31,8 +31,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
   struct arc_mmu *mmu = &env->mmu;
 
   switch (aux_reg_detail->id) {
-      case AUX_ID_tlbcommand:
-        break;
+      /* AUX_ID_tlbcommand is more involved and handled seperately */
       case AUX_ID_tlbindex:
         mmu->tlbindex = val;
         break;
@@ -57,7 +56,10 @@ void
 arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 		       uint32_t val, void *data)
 {
-  return;
+  CPUARCState *env = (CPUARCState *) data;
+  struct arc_mmu *mmu = &env->mmu;
+
+  mmu->tlbcmd = val;
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)
@@ -67,5 +69,6 @@ void arc_mmu_init(struct arc_mmu *mmu)
   mmu->tlbpd1 = 0;
   mmu->tlbpd1_hi = 0;
   mmu->tlbindex = 0;
+  mmu->tlbcmd = 0;
   mmu->scratch_data0 = 0;
 }
