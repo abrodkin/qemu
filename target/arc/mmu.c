@@ -24,8 +24,8 @@
 #include "cpu.h"
 
 void
-arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail,
-		    uint32_t val, void *data)
+arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
+		uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
   struct arc_mmu *mmu = &env->mmu;
@@ -54,34 +54,10 @@ arc_aux_reg_mmu_set(struct arc_aux_reg_detail *aux_reg_detail,
 }
 
 void
-arc_aux_reg_set_tlbcommand(struct arc_aux_reg_detail *aux_reg,
-			   uint32_t val, void *data)
+arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
+		       uint32_t val, void *data)
 {
   return;
-}
-
-
-static void mmu_flush_idx(CPUARCState *env, unsigned int idx)
-{
-  /*
-    CPUState *cs = CPU(mb_env_get_cpu(env));
-    struct arc_mmy *mmu = &env->mmu;
-    unsigned int tlb_size;
-    uint32_t tlb_tag, end, t;
-
-    t = mmu->rams[RAM_TAG][idx];
-    if (!(t & TLB_VALID))
-        return;
-
-    tlb_tag = t & TLB_EPN_MASK;
-    tlb_size = tlb_decode_size((t & TLB_PAGESZ_MASK) >> 7);
-    end = tlb_tag + tlb_size;
-
-    while (tlb_tag < end) {
-        tlb_flush_page(cs, tlb_tag);
-        tlb_tag += TARGET_PAGE_SIZE;
-    }
-  */
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)
