@@ -23,6 +23,39 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 
+uint32_t
+arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
+{
+  CPUARCState *env = (CPUARCState *) data;
+  struct arc_mmu *mmu = &env->mmu;
+  uint32_t reg = 0;
+
+  switch (aux_reg_detail->id) {
+      case AUX_ID_tlbindex:
+        reg = mmu->tlbindex;
+        break;
+      case AUX_ID_tlbpd0:
+        reg = mmu->tlbpd0;
+        break;
+      case AUX_ID_tlbpd1:
+        reg = mmu->tlbpd1;
+        break;
+      case AUX_ID_tlbpd1_hi:
+        reg = mmu->tlbpd1_hi;
+        break;
+      case AUX_ID_scratch_data0:
+        reg = mmu->scratch_data0;
+        break;
+      case AUX_ID_tlbcommand:
+        reg = mmu->tlbcmd;
+        break;
+      default:
+        break;
+  }
+
+  return reg;
+}
+
 void
 arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 		uint32_t val, void *data)

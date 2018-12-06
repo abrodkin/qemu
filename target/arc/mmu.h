@@ -73,6 +73,9 @@ extern void
 arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 		    uint32_t val, void *data) ;
 
+extern uint32_t
+arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data);
+
 void arc_mmu_init(struct arc_mmu *mmu);
 
 #endif /* ARC_MMU_H */
