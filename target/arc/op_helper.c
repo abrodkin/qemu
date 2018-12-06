@@ -99,6 +99,7 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
     struct arc_aux_reg_detail *aux_reg_detail =
       arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+
     switch (aux_reg_detail->id) {
 
         case AUX_ID_lp_start: {
@@ -267,7 +268,10 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 {
     target_ulong result = 0;
 
-    switch (arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS)->id) {
+    struct arc_aux_reg_detail *aux_reg_detail =
+      arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+
+    switch (aux_reg_detail->id) {
         case AUX_ID_status: {
             result = get_status(env);
         } break;
@@ -377,7 +381,14 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
         } break;
 
         default: {
-            result = cpu_inl(aux);
+          if(aux_reg_detail->aux_reg->get_func != NULL)
+            {
+               result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
+            }
+          else
+            {
+               result = cpu_inl(aux);
+            }
         }
     }
 
