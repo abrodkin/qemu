@@ -122,7 +122,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
         tlb->pfn = (pd1 & PAGE_MASK);
 
         // RR replacement for now
-        mmu->way_sel[set] = (mmu->way_sel[set] + 1) % (N_WAYS - 1);
+        mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
   }
 }
 
