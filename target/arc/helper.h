@@ -43,3 +43,4 @@ DEF_HELPER_1(set_lf, void, i32)
 
 DEF_HELPER_2(mmu_translate_read, i32, env, i32)
 DEF_HELPER_2(mmu_translate_write, i32, env, i32)
+DEF_HELPER_1(mmu_get_exception, i32, env)

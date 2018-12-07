@@ -86,6 +86,7 @@ enum gdb_aux_regs {
 #define CPU_PCL(env)    ((env)->r[63])
 
 enum exception_code_list {
+    EXCP_NO_EXCEPTION = -1,
     EXCP_RESET = 0,
     EXCP_MEMORY_ERROR,
     EXCP_INST_ERROR,

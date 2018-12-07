@@ -114,19 +114,24 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
-arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu)
+arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu, int *num_finds)
 {
+  struct arc_tlb_e *ret = NULL;
   uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
   struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
   int w;
 
+  *num_finds = 0;
   for (w = 0; w < N_WAYS; w++)
     {
-      if(VPN(vaddr) == VPN(tlb->vpn))
-	return tlb;
+      if(VPN(vaddr) == VPN(tlb->vpn) && (tlb->flags & PD0_V) != 0)
+      {
+	ret = tlb;
+	*num_finds += 1;
+      }
       tlb++;
     }
-  return NULL;
+  return ret;
 }
 
 /*
@@ -163,7 +168,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 static bool
 arc_mmu_have_permission(CPUARCState *env,
 			struct arc_tlb_e *tlb,
-			enum access_type type)
+			enum mmu_access_type type)
 {
   bool ret = false;
   bool in_kernel_mode = !env->stat.Uf; /* Read status for user mode. */
@@ -184,27 +189,39 @@ arc_mmu_have_permission(CPUARCState *env,
 /* Translation function to get physical address from virtual address. */
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
-		  uint32_t vaddr, enum access_type rwe)
+		  uint32_t vaddr, enum mmu_access_type rwe)
 {
   struct arc_mmu *mmu = &env->mmu;
-  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu);
-  /* TODO: HW validation. Check for multiple matches in nTLB. */
+  int num_matching_tlb = 0;
+  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu, &num_matching_tlb);
+  mmu->exception = EXCP_NO_EXCEPTION;
+
+  /* Check for multiple matches in nTLB, and return machine check exception. */
+  if(num_matching_tlb > 1)
+  {
+    mmu->exception = EXCP_MACHINE_CHECK;
+    return 0;
+  }
+
 
   bool match = true;
 
   /* Check that we are not addressing an address above 0x80000000.
    * Return the same address in that case. */
-  if((vaddr & 0x80000000) != 0 || mmu->enabled != true)
+  if((vaddr & 0x80000000) != 0 || mmu->enabled == false)
     return vaddr;
 
   if(tlb == NULL)
     {
-      /* TODO: TLB Miss exception */
+      if(rwe == MMU_MEM_FETCH)
+	mmu->exception = EXCP_TLB_MISS_I;
+      else
+	mmu->exception = EXCP_TLB_MISS_D;
       return 0;
     }
 
   /* Check if entry if related to this address */
-  if(VPN(vaddr) != tlb->vpn || (tlb->flags & PD0_V) != 0)
+  if(VPN(vaddr) != tlb->vpn || (tlb->flags & PD0_V) == 0)
     {
       /* Call the interrupt. */
       match = false;
@@ -230,7 +247,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(!arc_mmu_have_permission(env, tlb, rwe))
     {
-      /* TODO: Protection Violation exception. */
+      mmu->exception = EXCP_MEMORY_ERROR;
       return 0;
     }
 
@@ -238,9 +255,18 @@ arc_mmu_translate(struct CPUARCState *env,
     return tlb->pfn | (vaddr & (~PAGE_MASK));
   else
     {
-      /* TODO: TLB Miss Exception. */
+      if(rwe == MMU_MEM_FETCH)
+	mmu->exception = EXCP_TLB_MISS_I;
+      else
+	mmu->exception = EXCP_TLB_MISS_D;
       return 0;
     }
+}
+
+enum exception_code_list
+arc_mmu_get_exception(struct CPUARCState *env)
+{
+  return env->mmu.exception;
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)

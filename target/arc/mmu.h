@@ -53,10 +53,17 @@
 #define PAGE_SIZE       (1 << PAGE_SHIFT)
 #define PAGE_MASK       (~(PAGE_SIZE - 1))
 
-enum access_type {
+enum mmu_access_type {
   MMU_MEM_READ = 0,
   MMU_MEM_WRITE,
   MMU_MEM_FETCH  /* Read for execution. */
+};
+
+enum mmu_exception_type {
+  MMU_NO_EXCP = 0,
+  MMU_EXCP_MACHINE_CHECK ,
+  MMU_EXCP_TLB_MISS,
+  MMU_EXCP_MEMORY_ERROR,
 };
 
 struct arc_tlb_e {
@@ -67,6 +74,7 @@ struct arc_tlb_e {
 
 struct arc_mmu {
   uint32_t enabled;
+  uint32_t exception;
 
   struct arc_tlb_e nTLB[N_SETS][N_WAYS];
 
@@ -103,7 +111,10 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data);
 
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
-		  uint32_t vaddr, enum access_type rwe);
+		  uint32_t vaddr, enum mmu_access_type rwe);
+
+enum exception_code_list
+arc_mmu_get_exception(struct CPUARCState *env);
 
 void arc_mmu_init(struct arc_mmu *mmu);
 

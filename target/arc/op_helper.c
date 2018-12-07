@@ -26,13 +26,19 @@
 #include "arc-regs.h"
 #include "mmu.h"
 
+uint32_t helper_mmu_get_exception(CPUARCState *env)
+{
+  return arc_mmu_get_exception(env);
+}
 uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
 {
-  return arc_mmu_translate(env, vaddr, MMU_MEM_READ);
+  uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);
+  return ret;
 }
 uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
 {
-  return arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
+  uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
+  return ret;
 }
 
 //target_ulong helper_norm(CPUARCState *env, uint32_t src1)
