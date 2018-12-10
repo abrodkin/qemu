@@ -220,22 +220,8 @@ void
 arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_extend)
 {
   TCGv addr = tcg_temp_local_new_i32();
-  TCGv excp = tcg_temp_local_new_i32();
 
   gen_helper_mmu_translate_write(addr, cpu_env, vaddr);
-  gen_helper_mmu_get_exception(excp, cpu_env);
-
-  TCGLabel *label = gen_new_label();
-  tcg_gen_brcondi_i32(TCG_COND_EQ, excp, (int) EXCP_NO_EXCEPTION, label);;
-
-  TCGv_i32 causecode = tcg_const_i32 (0);
-  TCGv_i32 param = tcg_const_i32 (0);
-
-  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
-  tcg_gen_movi_tl (cpu_eret, ctx->cpc);
-  gen_helper_raise_exception (cpu_env, excp, causecode, param);
-
-  gen_set_label(label);
 
   switch (size)
     {
@@ -261,29 +247,14 @@ arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_e
 	assert(!"reserved");
 	break;
     }
+  tcg_temp_free(addr);
 }
 
 TCGv
 arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 {
-  TCGv dest = tcg_temp_local_new_i32();
   TCGv addr = tcg_temp_local_new_i32();
-  TCGv excp = tcg_temp_local_new_i32();
-
   gen_helper_mmu_translate_read(addr, cpu_env, vaddr);
-  gen_helper_mmu_get_exception(excp, cpu_env);
-
-  TCGLabel *label = gen_new_label();
-  tcg_gen_brcondi_i32(TCG_COND_EQ, excp, (uint32_t) EXCP_NO_EXCEPTION, label);;
-
-  TCGv_i32 causecode = tcg_const_i32 (0);
-  TCGv_i32 param = tcg_const_i32 (0);
-
-  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
-  tcg_gen_movi_tl (cpu_eret, ctx->cpc);
-  gen_helper_raise_exception (cpu_env, excp, causecode, param);
-
-  gen_set_label(label);
 
   switch (size)
     {
@@ -309,6 +280,8 @@ arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 	assert(!"reserved");
 	break;
     }
+
+  tcg_temp_free(addr);
   return dest;
 }
 
