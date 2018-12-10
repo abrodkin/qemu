@@ -113,27 +113,6 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define VPN(addr) ((addr & PAGE_MASK) & ~0x10000000)
 #define PFN(addr) (addr & PAGE_MASK)
 
-static struct arc_tlb_e *
-arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu, int *num_finds)
-{
-  struct arc_tlb_e *ret = NULL;
-  uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
-  struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
-  int w;
-
-  *num_finds = 0;
-  for (w = 0; w < N_WAYS; w++)
-    {
-      if(VPN(vaddr) == VPN(tlb->vpn) && (tlb->flags & PD0_V) != 0)
-      {
-	ret = tlb;
-	*num_finds += 1;
-      }
-      tlb++;
-    }
-  return ret;
-}
-
 /*
  * TLB Insert/Delete triggered by writing the cmd to TLBCommand Aux
  *  - Requires PD0 and PD1 be setup apriori
@@ -198,66 +177,57 @@ arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t vaddr, enum mmu_access_type rwe)
 {
   struct arc_mmu *mmu = &env->mmu;
-  int num_matching_tlb = 0;
-  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu, &num_matching_tlb);
-  SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
-
-  /* Check for multiple matches in nTLB, and return machine check exception. */
-  if(num_matching_tlb > 1)
-  {
-    SET_MMU_EXCEPTION(env, EXCP_MACHINE_CHECK, 0x01, 0x00);
-    return 0;
-  }
-
-
-  bool match = true;
 
   /* Check that we are not addressing an address above 0x80000000.
    * Return the same address in that case. */
   if((vaddr & 0x80000000) != 0 || mmu->enabled == false)
     return vaddr;
 
-  if(tlb == NULL)
-    {
-      goto tlb_miss_exception;
-    }
+  SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
-  /* Check if entry if related to this address */
-  if(VPN(vaddr) != tlb->vpn || (tlb->flags & PD0_V) == 0)
-    {
-      /* Call the interrupt. */
-      match = false;
-    }
+  uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
+  struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
+  bool match = false;
+  int w;
 
-  /* In case entry is not global.
-   * Logic from PRM, in TLBPD0 description, more precisely ASID one. */
-  if((tlb->flags & PD0_G) == 0)
-    {
-      /* ASID check against library.  */
-      if((tlb->flags & PD0_S) != 0
-	 && (tlb->asid & 0x1f) != (mmu->pid_asid & 0x1f))
+  for (w = 0; w < N_WAYS; w++)
+  {
+      if (!(tlb->flags & PD0_V))
+          continue;
+
+      if(VPN(vaddr) != VPN(tlb->vpn))
+          continue;
+
+      /* TBD: shared TLB entries not supported for now */
+      if((tlb->flags & PD0_S))
+          continue;
+
+      if(tlb->flags & PD0_G)
       {
-        match = false;
-      } else {
-        /* Check if ASID matches with PID. */
-        if(mmu->pid_asid != tlb->asid)
-          {
-            match = false;
-          }
+          match = true;
+          break;
       }
-    }
 
-  if(!arc_mmu_have_permission(env, tlb, rwe))
-    {
-      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
-      return 0;
-    }
+      /* ASID based entries */
+      if(mmu->pid_asid == tlb->asid)
+      {
+          match = true;
+          break;
+      }
+  }
 
-  if(match == true)
-    return tlb->pfn | (vaddr & (~PAGE_MASK));
+  if (match == true)
+  {
+      if(!arc_mmu_have_permission(env, tlb, rwe))
+      {
+          SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+          return 0;
+      }
+
+      return tlb->pfn | (vaddr & (~PAGE_MASK));
+  }
   else
-    {
-tlb_miss_exception:
+  {
       if(rwe == MMU_MEM_FETCH)
 	{
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
@@ -267,7 +237,7 @@ tlb_miss_exception:
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
 	}
       return 0;
-    }
+  }
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)
