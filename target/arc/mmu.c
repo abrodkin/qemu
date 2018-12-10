@@ -190,7 +190,7 @@ arc_mmu_translate(struct CPUARCState *env,
   bool match = false;
   int w;
 
-  for (w = 0; w < N_WAYS; w++)
+  for (w = 0; w < N_WAYS; w++, tlb++)
   {
       if (!(tlb->flags & PD0_V))
           continue;
