@@ -105,26 +105,29 @@ enum exception_code_list {
     EXCP_IRQ
 };
 
+typedef struct status_register
+{
+  uint32_t    Lf;
+  uint32_t    Zf;     /*  zero                    */
+  uint32_t    Nf;     /*  negative                */
+  uint32_t    Cf;     /*  carry                   */
+  uint32_t    Vf;     /*  overflow                */
+  uint32_t    Uf;
+
+  uint32_t    DEf;
+  uint32_t    AEf;
+  uint32_t    A2f;    /*  interrupt 1 is active   */
+  uint32_t    A1f;    /*  interrupt 2 is active   */
+  uint32_t    E2f;    /*  interrupt 1 mask        */
+  uint32_t    E1f;    /*  interrupt 2 mask        */
+  uint32_t    Hf;     /*  halt                    */
+  uint32_t    IEf;
+} status_t;
+
 typedef struct CPUARCState {
   uint32_t        r[64];
 
-  struct {
-    uint32_t    Lf;
-    uint32_t    Zf;     /*  zero                    */
-    uint32_t    Nf;     /*  negative                */
-    uint32_t    Cf;     /*  carry                   */
-    uint32_t    Vf;     /*  overflow                */
-    uint32_t    Uf;	/*  User mode ? */
-
-    uint32_t    DEf;
-    uint32_t    AEf;
-    uint32_t    A2f;    /*  interrupt 1 is active   */
-    uint32_t    A1f;    /*  interrupt 2 is active   */
-    uint32_t    E2f;    /*  interrupt 1 mask        */
-    uint32_t    E1f;    /*  interrupt 2 mask        */
-    uint32_t    Hf;     /*  halt                    */
-    uint32_t    IEf;
-  } stat, stat_l1, stat_l2, stat_er;
+  status_t stat, stat_l1, stat_l2, stat_er;
 
   struct {
     uint32_t    S2;
@@ -306,19 +309,19 @@ void arc_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 int cpu_arc_exec(CPUState *cpu);
 int cpu_arc_signal_handler(int host_signum, void *pinfo, void *puc);
 int arc_cpu_handle_mmu_fault(CPUState *cpu, vaddr address, int rw,
-                                int mmu_idx);
+				int mmu_idx);
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr address, uint8_t *buf,
-                                int len, bool is_write);
+				int len, bool is_write);
 void arc_cpu_do_interrupt(CPUState *cpu);
 
 void arc_cpu_dump_state(CPUState *cs, FILE *f,
-                        fprintf_function cpu_fprintf, int flags);
+			fprintf_function cpu_fprintf, int flags);
 hwaddr arc_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
 int arc_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int arc_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
 
 static inline void cpu_get_tb_cpu_state(CPUARCState *env, target_ulong *pc,
-                                target_ulong *cs_base, uint32_t *pflags)
+				target_ulong *cs_base, uint32_t *pflags)
 {
     *pc = env->pc;
     *cs_base = 0;

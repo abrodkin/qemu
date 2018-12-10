@@ -1644,6 +1644,11 @@ static void gen_excp (DisasCtxt *ctx,
 
   tcg_gen_movi_tl (cpu_pc, ctx->cpc);
   tcg_gen_movi_tl (cpu_eret, ctx->cpc);
+  if (ctx->ds)
+    tcg_gen_movi_tl (cpu_erbta, ctx->dpc);
+  else
+    tcg_gen_movi_tl (cpu_erbta, ctx->npc);
+
   gen_helper_raise_exception (cpu_env, tmp0, tmp1, tmp2);
 
   tcg_temp_free_i32 (tmp0);
@@ -1661,6 +1666,11 @@ static void gen_trap (DisasCtxt *ctx, uint32_t param)
 
   tcg_gen_movi_tl (cpu_pc, ctx->cpc);
   tcg_gen_movi_tl (cpu_eret, ctx->npc);
+  if (ctx->ds)
+    tcg_gen_movi_tl (cpu_erbta, ctx->dpc);
+  else
+    tcg_gen_movi_tl (cpu_erbta, ctx->npc);
+
   gen_helper_raise_exception (cpu_env, tmp0, tmp1, tmp2);
 
   tcg_temp_free_i32 (tmp0);
