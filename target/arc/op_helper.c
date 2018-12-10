@@ -68,30 +68,19 @@ static target_ulong get_status32_l2 (CPUARCState *env)
   return get_status32_internal (&env->stat_l2);
 }
 
-uint32_t helper_mmu_get_exception(CPUARCState *env)
-{
-  return arc_mmu_get_exception(env);
-}
-
 uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
 {
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);
-  if(env->mmu_exception_type != EXCP_NO_EXCEPTION)
-  {
-    /* TODO: Set causecode and value. */
-    helper_raise_exception(env, env->mmu_exception_type, 0, 0);
-  }
+  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+    RAISE_MMU_EXCEPTION(env);
   return ret;
 }
 
 uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
 {
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
-  if(env->mmu_exception_type != EXCP_NO_EXCEPTION)
-  {
-    /* TODO: Set causecode and value. */
-    helper_raise_exception(env, env->mmu_exception_type, 0, 0);
-  }
+  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+    RAISE_MMU_EXCEPTION(env);
   return ret;
 }
 

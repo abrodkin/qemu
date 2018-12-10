@@ -186,6 +186,12 @@ arc_mmu_have_permission(CPUARCState *env,
   return ret;
 }
 
+#define SET_MMU_EXCEPTION(ENV, N, C, P) { \
+  ENV->mmu.exception.number = N; \
+  ENV->mmu.exception.causecode = C; \
+  ENV->mmu.exception.parameter = P; \
+}
+
 /* Translation function to get physical address from virtual address. */
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
@@ -194,12 +200,12 @@ arc_mmu_translate(struct CPUARCState *env,
   struct arc_mmu *mmu = &env->mmu;
   int num_matching_tlb = 0;
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu, &num_matching_tlb);
-  mmu->exception = EXCP_NO_EXCEPTION;
+  SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */
   if(num_matching_tlb > 1)
   {
-    mmu->exception = EXCP_MACHINE_CHECK;
+    SET_MMU_EXCEPTION(env, EXCP_MACHINE_CHECK, 0x01, 0x00);
     return 0;
   }
 
@@ -213,11 +219,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(tlb == NULL)
     {
-      if(rwe == MMU_MEM_FETCH)
-	mmu->exception = EXCP_TLB_MISS_I;
-      else
-	mmu->exception = EXCP_TLB_MISS_D;
-      return 0;
+      goto tlb_miss_exception;
     }
 
   /* Check if entry if related to this address */
@@ -247,7 +249,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(!arc_mmu_have_permission(env, tlb, rwe))
     {
-      mmu->exception = EXCP_MEMORY_ERROR;
+      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
       return 0;
     }
 
@@ -255,18 +257,17 @@ arc_mmu_translate(struct CPUARCState *env,
     return tlb->pfn | (vaddr & (~PAGE_MASK));
   else
     {
+tlb_miss_exception:
       if(rwe == MMU_MEM_FETCH)
-	mmu->exception = EXCP_TLB_MISS_I;
+	{
+	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
+	}
       else
-	mmu->exception = EXCP_TLB_MISS_D;
+	{
+	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
+	}
       return 0;
     }
-}
-
-enum exception_code_list
-arc_mmu_get_exception(struct CPUARCState *env)
-{
-  return env->mmu.exception;
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)

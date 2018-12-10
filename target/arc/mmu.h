@@ -56,15 +56,13 @@
 enum mmu_access_type {
   MMU_MEM_READ = 0,
   MMU_MEM_WRITE,
-  MMU_MEM_FETCH  /* Read for execution. */
+  MMU_MEM_ATTOMIC,
+  MMU_MEM_FETCH,  /* Read for execution. */
 };
 
-enum mmu_exception_type {
-  MMU_NO_EXCP = 0,
-  MMU_EXCP_MACHINE_CHECK ,
-  MMU_EXCP_TLB_MISS,
-  MMU_EXCP_MEMORY_ERROR,
-};
+#define CAUSE_CODE(ENUM) \
+  ((uint8_t) ENUM + 1)
+
 
 struct arc_tlb_e {
   // TLB entry is {PD0,PD1} tuple, kept "unpacked" to avoid bit fiddling
@@ -72,9 +70,20 @@ struct arc_tlb_e {
   uint32_t flags, asid, vpn, pfn;
 };
 
+#define RAISE_MMU_EXCEPTION(ENV) { \
+  helper_raise_exception(env, \
+			 env->mmu.exception.number, \
+			 env->mmu.exception.causecode, \
+			 env->mmu.exception.parameter); \
+}
+
 struct arc_mmu {
   uint32_t enabled;
-  uint32_t exception;
+  struct {
+    int32_t number;
+    uint8_t causecode;
+    uint8_t parameter;
+  } exception;
 
   struct arc_tlb_e nTLB[N_SETS][N_WAYS];
 
@@ -112,9 +121,6 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data);
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t vaddr, enum mmu_access_type rwe);
-
-enum exception_code_list
-arc_mmu_get_exception(struct CPUARCState *env);
 
 void arc_mmu_init(struct arc_mmu *mmu);
 

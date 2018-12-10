@@ -1477,7 +1477,8 @@ read_and_decode_context (DisasCtxt *ctx,
   uint64_t insn;
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
-  buffer[0] = cpu_lduw_code(ctx->env, ctx->cpc);
+  uint32_t cpc_phy_addr = arc_mmu_translate(ctx->env, ctx->cpc, MMU_MEM_FETCH);
+  buffer[0] = cpu_lduw_code(ctx->env, cpc_phy_addr);
   length = arc_insn_length (buffer[0], ctx->env->family);
 
   switch (length)
@@ -1488,7 +1489,7 @@ read_and_decode_context (DisasCtxt *ctx,
       break;
     case 4:
       /* 32-bit instructions.  */
-      buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
+      buffer[1] = cpu_lduw_code(ctx->env, cpc_phy_addr + 2);
       uint32_t buf = (buffer[0] << 16) | buffer[1];
       insn = buf;
       break;
@@ -1509,7 +1510,7 @@ read_and_decode_context (DisasCtxt *ctx,
     {
       ctx->insn.limm = ARRANGE_ENDIAN (true,
                                        cpu_ldl_code (ctx->env,
-                                                     ctx->cpc + length));
+                                                     cpc_phy_addr + length));
       length += 4;
     }
   else

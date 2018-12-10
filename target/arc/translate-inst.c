@@ -253,6 +253,7 @@ arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_e
 TCGv
 arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 {
+  TCGv dest = tcg_temp_local_new_i32();
   TCGv addr = tcg_temp_local_new_i32();
   gen_helper_mmu_translate_read(addr, cpu_env, vaddr);
 
