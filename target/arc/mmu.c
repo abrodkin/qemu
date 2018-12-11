@@ -114,23 +114,34 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
-arc_mmu_lookup_tlb(uint32_t vaddr, struct arc_mmu *mmu, int *num_finds)
+arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds)
 {
   struct arc_tlb_e *ret = NULL;
   uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
   struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
   int w;
+  int first_not_valid = -1;
 
   *num_finds = 0;
-  for (w = 0; w < N_WAYS; w++)
+  for (w = 0; w < N_WAYS; w++, tlb++)
     {
-      if(VPN(vaddr) == VPN(tlb->vpn) && (tlb->flags & PD0_V) != 0)
+      if((VPN(vaddr) & compare_mask) == (VPN(tlb->vpn) & compare_mask))
       {
 	ret = tlb;
-	*num_finds += 1;
+	if(num_finds != NULL)
+	  *num_finds += 1;
       }
-      tlb++;
     }
+
+  if(ret == NULL)
+    {
+      uint32_t way = mmu->way_sel[set];
+      ret = &mmu->nTLB[set][way];
+
+      // TODO: Replace by something more significant.
+      mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
+    }
+
   return ret;
 }
 
@@ -148,19 +159,52 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   uint32_t pd1 = mmu->tlbpd1;
 
   mmu->tlbcmd = val;
+  uint32_t matching_mask = (PD0_VPN | PD0_SZ | PD0_G | PD0_S | PD0_ASID);
 
-  if (val == TLB_CMD_INSERT) {
-        uint32_t set = (pd0 >> PAGE_SHIFT) & (N_SETS - 1);
-        uint32_t way = mmu->way_sel[set];
-        struct arc_tlb_e *tlb = &mmu->nTLB[set][way];
+  if((pd0 & PD0_G) != 0)
+    matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
 
-        tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
-        tlb->asid = pd0 & 0xff;
-        tlb->vpn = VPN(pd0);
-        tlb->pfn = PFN(pd1);
+  if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
+    {
+      int num_finds = 4;
 
-        // RR replacement for now
-        mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
+      if((pd0 & PD0_G) != 0)
+	matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
+
+      struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(pd0,
+						 matching_mask | PD0_V,
+						 &env->mmu, &num_finds);
+      if(tlb == NULL)
+	mmu->tlbindex = 0x80000000;
+      tlb->flags &= ~PD0_V;
+
+      for(int i = 0; num_finds > 1; i++)
+	{
+	  tlb = arc_mmu_lookup_tlb(pd0,
+				   (PD0_VPN | PD0_V | PD0_SZ | PD0_G | PD0_S),
+				   mmu, &num_finds);
+	  if(i == 0 && tlb == NULL)
+	    {
+	      mmu->tlbindex = 0x80000000;
+	      break;
+	    }
+	  tlb->flags &= ~PD0_V;
+	}
+    }
+
+  if (val == TLB_CMD_INSERT)
+    {
+      if((pd0 & PD0_V) == 0)
+	mmu->tlbindex = 0x80000000;
+      else
+	{
+	  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(pd0 , matching_mask, mmu, NULL);
+
+	  tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
+	  tlb->asid = pd0 & 0xff;
+	  tlb->vpn = VPN(pd0);
+	  tlb->pfn = PFN(pd1);
+	}
   }
 }
 
@@ -199,7 +243,11 @@ arc_mmu_translate(struct CPUARCState *env,
 {
   struct arc_mmu *mmu = &env->mmu;
   int num_matching_tlb = 0;
-  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(vaddr, mmu, &num_matching_tlb);
+  uint32_t match_pd0 = ((vaddr & PD0_VPN) | PD0_VPN);
+  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
+					     (PD0_VPN | PD0_V),
+					     mmu,
+					     &num_matching_tlb);
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */

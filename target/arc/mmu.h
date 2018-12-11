@@ -24,6 +24,8 @@
 #include "arc-regs.h"
 
 /* PD0 flags */
+#define PD0_VPN 0x7ffff000
+#define PD0_ASID 0x000000ff
 #define PD0_G   0x00000100      /* Global */
 #define PD0_V   0x00000200      /* Valid */
 #define PD0_SZ  0x00000400      /* Size: Normal or Super Page */
@@ -32,6 +34,7 @@
 #define PD0_FLG (PD0_G | PD0_V | PD0_SZ | PD0_L)
 
 /* PD1 permission bits */
+#define PD1_PPN 0xfffff000      /* Cached */
 #define PD1_FC  0x00000001      /* Cached */
 #define PD1_XU  0x00000002      /* User Execute */
 #define PD1_WU  0x00000004      /* User Write */
