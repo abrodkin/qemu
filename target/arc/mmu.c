@@ -114,13 +114,12 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
-arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds)
+arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds, int *index)
 {
   struct arc_tlb_e *ret = NULL;
   uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
   struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
   int w;
-  int first_not_valid = -1;
 
   *num_finds = 0;
   for (w = 0; w < N_WAYS; w++, tlb++)
@@ -130,6 +129,8 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	ret = tlb;
 	if(num_finds != NULL)
 	  *num_finds += 1;
+	if(index != NULL)
+	  *index = (set << 2) + w;
       }
     }
 
@@ -139,6 +140,9 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
       ret = &mmu->nTLB[set][way];
 
       // TODO: Replace by something more significant.
+      if(index != NULL)
+        *index = (set << 2) + way;
+
       mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
     }
 
@@ -157,6 +161,8 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   struct arc_mmu *mmu = &env->mmu;
   uint32_t pd0 = mmu->tlbpd0;
   uint32_t pd1 = mmu->tlbpd1;
+  int num_finds = 4;
+  int index = -1;
 
   mmu->tlbcmd = val;
   uint32_t matching_mask = (PD0_VPN | PD0_SZ | PD0_G | PD0_S | PD0_ASID);
@@ -166,29 +172,33 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 
   if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
     {
-      int num_finds = 4;
 
       if((pd0 & PD0_G) != 0)
 	matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
 
       struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(pd0,
 						 matching_mask | PD0_V,
-						 &env->mmu, &num_finds);
-      if(tlb == NULL)
-	mmu->tlbindex = 0x80000000;
-      tlb->flags &= ~PD0_V;
+						 &env->mmu, &num_finds, &index);
 
-      for(int i = 0; num_finds > 1; i++)
-	{
-	  tlb = arc_mmu_lookup_tlb(pd0,
-				   (PD0_VPN | PD0_V | PD0_SZ | PD0_G | PD0_S),
-				   mmu, &num_finds);
-	  if(i == 0 && tlb == NULL)
-	    {
-	      mmu->tlbindex = 0x80000000;
-	      break;
-	    }
+      if(tlb == NULL)
+        {
+          mmu->tlbindex = 0x80000000; /* No entry to delete */
+        }
+      else if(num_finds == 1)
+        {
+          mmu->tlbindex = index; /* Entry is deleted set index */
 	  tlb->flags &= ~PD0_V;
+	  num_finds--;
+        }
+      else
+	{
+          while(num_finds > 0)
+	    {
+	      tlb->flags &= ~PD0_V;
+	      tlb = arc_mmu_lookup_tlb(pd0,
+				       (PD0_VPN | PD0_V | PD0_SZ | PD0_G | PD0_S),
+				       mmu, &num_finds, NULL);
+	    }
 	}
     }
 
@@ -198,12 +208,17 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	mmu->tlbindex = 0x80000000;
       else
 	{
-	  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(pd0 , matching_mask, mmu, NULL);
+	  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(pd0 , matching_mask, mmu, NULL, &index);
 
 	  tlb->flags = (pd0 & PD0_FLG) | (pd1 & PD1_FLG);
 	  tlb->asid = pd0 & 0xff;
 	  tlb->vpn = VPN(pd0);
 	  tlb->pfn = PFN(pd1);
+
+	  /* Set index for latest inserted element. */
+	  mmu->tlbindex = index;
+
+	  /* TODO: More verifications needed. */
 	}
   }
 }
@@ -226,6 +241,10 @@ arc_mmu_have_permission(CPUARCState *env,
     case MMU_MEM_FETCH:
       ret = in_kernel_mode ? tlb->flags & PD1_XK : tlb->flags & PD1_XU;
       break;
+    case MMU_MEM_ATTOMIC:
+      ret = in_kernel_mode ? tlb->flags & PD1_RK : tlb->flags & PD1_RU;
+      ret = ret & (in_kernel_mode ? tlb->flags & PD1_WK : tlb->flags & PD1_WU);
+      break;
   }
   return ret;
 }
@@ -247,7 +266,7 @@ arc_mmu_translate(struct CPUARCState *env,
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
 					     (PD0_VPN | PD0_V),
 					     mmu,
-					     &num_matching_tlb);
+					     &num_matching_tlb, NULL);
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */
