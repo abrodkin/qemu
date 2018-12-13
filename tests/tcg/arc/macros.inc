@@ -25,13 +25,14 @@ tn_\name:
   .data
   0000:
   .asciz "\message"
+  .align 4
 
   .text
   mov_s     r11, @0000b                 ; the message to be printed
   1111:
     ldb.ab  r12, [r11, 1]
-    breq	  r12, 0, @2222f
-    stb		  r12, [OUTPUT_DEVICE]
+    breq    r12, 0, @2222f
+    stb     r12, [OUTPUT_DEVICE]
     j       @1111b
   2222:
 .endm

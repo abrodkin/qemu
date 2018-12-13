@@ -14,6 +14,7 @@ LD = $(CROSS)ld
 AS = $(CROSS)as
 CFLAGS  = -mcpu=archs -O1
 ASFLAGS = -mcpu=archs
+LDPHYSFLAGS = --section-start=.text=0x80000000
 
 TESTCASES = check_add.tst
 TESTCASES += check_lp.tst
@@ -46,11 +47,15 @@ TESTCASES += check_basic1.tst
 TESTCASES += check_basic2.tst
 TESTCASES += check_norm.tst
 TESTCASES += check_excp.tst
+TESTCASES += check_mmu.tst
 
 all: $(TESTCASES)
 
 %.o: $(SRC_PATH)/tests/tcg/arc/%.S
 	$(CC) $(ASFLAGS) -c $< -o $@ -I$(TST_PATH)
+
+%_mmu.tst: %_mmu.o $(SRC_PATH)/tests/tcg/arc/macros.inc $(SRC_PATH)/tests/tcg/arc/mmu.inc
+	$(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld $< -o $@
 
 %.tst: %.o $(SRC_PATH)/tests/tcg/arc/macros.inc
 	$(LD) -T $(TST_PATH)/tarc.ld $< -o $@
