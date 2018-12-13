@@ -72,7 +72,7 @@ static void sample_machine_init(MachineClass *mc)
 {
     mc->desc = "ARC sample/example board";
     mc->init = sample_init;
-    mc->is_default = 1;
+    mc->is_default = 0;
 }
 
 DEFINE_MACHINE("sample", sample_machine_init)
