@@ -18,4 +18,4 @@
 #  http://www.gnu.org/licenses/lgpl-2.1.html
 #
 
-obj-y   = arc_sim.o sample.o pic_cpu.o boot.o
+obj-y   = arc_sim.o sample.o pic_cpu.o boot.o hsdk.o
