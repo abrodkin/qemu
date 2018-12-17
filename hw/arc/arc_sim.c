@@ -27,10 +27,8 @@
 #include "exec/address-spaces.h"
 #include "sysemu/sysemu.h"
 #include "hw/sysbus.h"
-#include "sysemu/qtest.h"
 #include "hw/arc/cpudevs.h"
-
-#define KERNEL_LOAD_ADDR 0x100
+#include "boot.h"
 
 static void main_cpu_reset(void *opaque)
 {
@@ -59,40 +57,6 @@ static void arc_sim_net_init(MemoryRegion *address_space,
                                 sysbus_mmio_get_region(s, 1));
 }
 
-static void cpu_arc_load_kernel(ram_addr_t ram_size,
-                                const char *kernel_filename,
-                                ARCCPU *cpu)
-{
-    long kernel_size;
-    uint64_t elf_entry;
-    hwaddr entry;
-
-    if (kernel_filename && !qtest_enabled()) {
-        kernel_size = load_elf(kernel_filename, NULL, NULL,
-                               &elf_entry, NULL, NULL, 0, cpu->env.family > 2 ?
-                               EM_ARC_COMPACT2 : EM_ARC_COMPACT,
-                               1, 0);
-        entry = elf_entry;
-        if (kernel_size < 0) {
-            kernel_size = load_uimage(kernel_filename,
-                                      &entry, NULL, NULL, NULL, NULL);
-        }
-        if (kernel_size < 0) {
-            kernel_size = load_image_targphys(kernel_filename,
-                                              KERNEL_LOAD_ADDR,
-                                              ram_size - KERNEL_LOAD_ADDR);
-            entry = KERNEL_LOAD_ADDR;
-        }
-
-        if (kernel_size < 0) {
-            fprintf(stderr, "QEMU: couldn't load the kernel '%s'\n",
-                    kernel_filename);
-            exit(1);
-        }
-        cpu->env.pc = entry;
-    }
-}
-
 static uint64_t arc_io_read(void *opaque, hwaddr addr,
         unsigned size)
 {
@@ -119,6 +83,7 @@ static const MemoryRegionOps arc_io_ops = {
 
 static void arc_sim_init(MachineState *machine)
 {
+    ram_addr_t ram_base = 0;
     ram_addr_t ram_size = machine->ram_size;
     const char *cpu_model = machine->cpu_model;
     const char *kernel_filename = machine->kernel_filename;
@@ -147,7 +112,7 @@ static void arc_sim_init(MachineState *machine)
 
     ram = g_new(MemoryRegion, 1);
     memory_region_init_ram(ram, NULL, "arc.ram", ram_size, &error_fatal);
-    memory_region_add_subregion(get_system_memory(), 0, ram);
+    memory_region_add_subregion(get_system_memory(), ram_base, ram);
 
     system_io = g_new(MemoryRegion, 1);
     memory_region_init_io (system_io, NULL, &arc_io_ops, NULL, "arc.io",
@@ -162,7 +127,7 @@ static void arc_sim_init(MachineState *machine)
                               0x92000400, cpu->env.irq[4], nd_table);
     }
 
-    cpu_arc_load_kernel(ram_size, kernel_filename, cpu);
+    arc_load_kernel(cpu, ram_base, ram_size, kernel_filename);
 }
 
 static void arc_sim_machine_init(MachineClass *mc)
