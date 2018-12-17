@@ -38,15 +38,6 @@ tn_\name:
 .endm
 
 
-.macro check_r2x val
-  breq      r2, \val, @1f
-  print     "Fail\n"
-  .align 4
-1:
-  print     "Pass\n"
-2:
-.endm
-
 .macro check_r2 val
   sub.f     r0, r2, \val
   mov.eq    r0, 0x30      ; '0'
