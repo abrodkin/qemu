@@ -107,27 +107,48 @@ enum exception_code_list {
 
 typedef struct status_register
 {
-  uint32_t    Lf;
-  uint32_t    Zf;     /*  zero                    */
-  uint32_t    Nf;     /*  negative                */
-  uint32_t    Cf;     /*  carry                   */
-  uint32_t    Vf;     /*  overflow                */
-  uint32_t    Uf;
-
-  uint32_t    DEf;
-  uint32_t    AEf;
-  uint32_t    A2f;    /*  interrupt 1 is active   */
-  uint32_t    A1f;    /*  interrupt 2 is active   */
-  uint32_t    E2f;    /*  interrupt 1 mask        */
-  uint32_t    E1f;    /*  interrupt 2 mask        */
-  uint32_t    Hf;     /*  halt                    */
-  uint32_t    IEf;
+  uint32_t Hf;     /*  halt                    */
+  uint32_t Ef;     /* irq priority treshold.  */
+  uint32_t AEf;
+  uint32_t DEf;
+  uint32_t Uf;
+  uint32_t Vf;     /*  overflow                */
+  uint32_t Cf;     /*  carry                   */
+  uint32_t Nf;     /*  negative                */
+  uint32_t Zf;     /*  zero                    */
+  uint32_t Lf;
+  uint32_t DZf;
+  uint32_t SCf;
+  uint32_t ESf;
+  uint32_t RBf;
+  uint32_t ADf;
+  uint32_t USf;
+  uint32_t IEf;
 } status_t;
+
+/* ARC processor timer module.  */
+typedef struct
+{
+  uint32_t T_Count;
+  uint32_t T_Cntrl;
+  uint32_t T_Limit;
+} arc_timer_t;
+
+/* ARC PIC interrupt bancked regs.  */
+typedef struct
+{
+  uint32_t priority;
+  uint32_t trigger;
+  uint32_t pulse_cancel;
+  uint32_t enable;
+  uint32_t pending;
+  uint32_t status;
+} arc_irq_t;
 
 typedef struct CPUARCState {
   uint32_t        r[64];
 
-  status_t stat, stat_l1, stat_l2, stat_er;
+  status_t stat, stat_l1, stat_er;
 
   struct {
     uint32_t    S2;
@@ -161,7 +182,24 @@ typedef struct CPUARCState {
     uint32_t    SS;     /*  single step             */
   } debug;
 
-//  uint32_t aux_regs[AUX_REG_SIZE];
+#define TMR_IE  (1<<0)
+#define TMR_NH  (1<<1)
+#define TMR_W   (1<<2)
+#define TMR_IP  (1<<3)
+#define TMR_PD  (1<<4)
+  arc_timer_t timer[2]; /* ARC CPU-Timer 0/1.  */
+
+  arc_irq_t irq_bank[256]; /* IRQ register bank.  */
+  uint32_t irq_select; /* AUX register.  */
+  uint32_t aux_irq_act; /* AUX register.*/
+  uint32_t irq_priority_pending; /* AUX register.  */
+  uint32_t icause[16]; /* Banked cause register.  */
+  uint32_t aux_irq_hint; /* AUX register, used to trigger soft irq.  */
+  uint32_t aux_user_sp;
+
+  /* Fields required by exception handling.  */
+  uint32_t causecode;
+  uint32_t param;
 
   struct arc_mmu mmu;   /* mmu.h */
 
@@ -176,10 +214,21 @@ typedef struct CPUARCState {
   /* Fields after CPU_COMMON are preserved across CPU reset. */
   uint64_t features;
   uint32_t family;
-  uint32_t causecode;
-  uint32_t param;
 
-    void *irq[32];
+  uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
+  uint64_t last_clk;
+
+  void *irq[256];
+  QEMUTimer *cpu_timer0; /* Internal timer.  */
+  QEMUTimer *cpu_timer1; /* Internal timer.  */
+
+  /* Build AUX regs.  */
+#define TB_T0  (1<<8)
+#define TB_T1  (1<<9)
+#define TB_RTC (1<<10)
+  uint32_t timer_build; /* Timer configuration AUX register.  */
+  uint32_t irq_build; /* Interrupt Build Configuration Register.  */
+
 } CPUARCState;
 
 /**

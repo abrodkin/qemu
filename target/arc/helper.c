@@ -38,8 +38,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
   cs->exception_index = -1;
   CPU_ILINK (env) = env->pc;
-
 }
+
 #else /* !CONFIG_USER_ONLY */
 
 void arc_cpu_do_interrupt (CPUState *cs)
@@ -48,6 +48,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
   CPUARCState *env = &cpu->env;
   uint32_t offset = 0;
   uint32_t vectno;
+  int i, j;
 
   /* FIXME! we cannot do interrupts in delay slots.  */
 
@@ -69,34 +70,34 @@ void arc_cpu_do_interrupt (CPUState *cs)
     case EXCP_DCERROR:
     case EXCP_MALIGNED:
       qemu_log_mask (CPU_LOG_INT, "exception %d at pc=0x%08x\n",
-                     cs->exception_index, env->pc);
+		     cs->exception_index, env->pc);
 
       env->stat_er = env->stat;
       /* If we take an exception within an exception => fatal Machine
-         Check.  */
+	 Check.  */
       if (env->stat.AEf == 1)
-        {
-          cs->exception_index = EXCP_MACHINE_CHECK;
-          env->causecode = 0;
-          env->param = 0;
-        }
+	{
+	  cs->exception_index = EXCP_MACHINE_CHECK;
+	  env->causecode = 0;
+	  env->param = 0;
+	}
       vectno = cs->exception_index & 0x0F;
       offset = vectno << 2;
 
       /* 3. exception status register is loaded with the contents of
-         STATUS32.  */
+	 STATUS32.  */
       env->stat_er = env->stat;
 
       /* 4. exception return branch target address register.  */
       env->erbta = env->bta;
 
       /* 5. eception cause register is loaded with a code to indicate
-         the cause of the exception.  */
+	 the cause of the exception.  */
       env->ecr = (vectno & 0xFF) << 16;
       env->ecr |= (env->causecode & 0xFF) << 8;
       env->ecr |= (env->param & 0xFF);
 
-      /* 7. CPU is switched into kernel mode.  */
+      /* 7. CPU is switched to kernel mode.  */
       env->stat.Uf = 0;
 
       /* 8. Interrupts are disabled.  */
@@ -107,15 +108,46 @@ void arc_cpu_do_interrupt (CPUState *cs)
       break;
     case EXCP_FIRQ:
     case EXCP_IRQ:
-      qemu_log_mask (CPU_LOG_INT, "interrupt at pc=0x%08x\n", env->pc);
-      /* FIXME! for ARCv1 we need to set ILINK1/ILINK2.  */
-      CPU_ILINK (env) = env->pc;
-      env->stat_l1 = env->stat;
-      env->bta_l1 = env->bta;
+      {
+	bool found = false;
+	qemu_log_mask (CPU_LOG_INT, "interrupt at pc=0x%08x\n", env->pc);
+	CPU_ILINK (env) = env->pc;
+	env->stat_l1 = env->stat;
+
+	/* Find the first IRQ to serve.  */
+	for (j = 0; j < cpu->cfg.number_of_levels && !found; j++)
+	  for (i = 0; i < cpu->cfg.number_of_interrupts; i++)
+	    if (env->irq_bank[16 + i].priority == j
+		&& env->irq_bank[16 + i].pending)
+	      {
+		found = true;
+		break;
+	      }
+	offset = (i + 16) << 2;
+
+	/* Set the AUX_IRQ_ACT.  */
+	if ((env->aux_irq_act & 0xff) == 0)
+	  env->aux_irq_act = env->stat.Uf << 31;
+	env->aux_irq_act |= 1 << (--j);
+
+	/* Set ICAUSE register.  */
+	env->icause[j] = i;
+
+	/* Switch SP with AUX_SP.  */
+	if (env->stat.Uf)
+	{
+	    uint32_t tmp = env->aux_user_sp;
+	    env->aux_user_sp = env->r[28];
+	    env->r[28] = tmp;
+	}
+
+	/* CPU is switched to kernel mode.  */
+	env->stat.Uf = 0;
+      }
       break;
     default:
-      cpu_abort(cs, "unhandled exception type=%d\n",
-                cs->exception_index);
+      cpu_abort(cs, "unhandled exception/irq type=%d\n",
+		cs->exception_index);
       break;
     }
 
@@ -124,7 +156,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
   CPU_PCL (env) = env->pc & 0xfffffffe;
 
   qemu_log_mask(CPU_LOG_INT, "%s isr=%x vec=%x ecr=0x%08x\n",
-                __func__, env->pc, offset, env->ecr);
+		__func__, env->pc, offset, env->ecr);
 }
 
 #endif
@@ -187,7 +219,7 @@ void arc_cpu_list (FILE *f, fprintf_function cpu_fprintf)
 
 void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 	      MMUAccessType access_type,
-              int mmu_idx, uintptr_t retaddr)
+	      int mmu_idx, uintptr_t retaddr)
 {
   target_ulong page_size = TARGET_PAGE_SIZE;
   int prot = 0;
@@ -202,7 +234,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 }
 
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,
-                            int len, bool is_write)
+			    int len, bool is_write)
 {
   return  cpu_memory_rw_debug(cs, addr, buf, len, is_write);
 }

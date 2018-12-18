@@ -25,6 +25,8 @@
 #include "translate-all.h"
 #include "arc-regs.h"
 #include "mmu.h"
+#include "hw/arc/cpudevs.h"
+#include "qemu/main-loop.h"
 
 static uint32_t get_status32_internal (status_t *status_r)
 {
@@ -38,10 +40,7 @@ static uint32_t get_status32_internal (status_t *status_r)
   res |= (status_r->Uf) ? BIT(7)  : 0;
   res |= (status_r->DEf) ? BIT(6)  : 0;
   res |= (status_r->AEf) ? BIT(5)  : 0;
-  res |= (status_r->A2f) ? BIT(4)  : 0;
-  res |= (status_r->A1f) ? BIT(3)  : 0;
-  res |= (status_r->E2f) ? BIT(2)  : 0;
-  res |= (status_r->E1f) ? BIT(1)  : 0;
+  res |= (status_r->Ef) << 1;
 
   return res;
 }
@@ -61,11 +60,6 @@ static uint32_t get_status32 (CPUARCState *env)
 static uint32_t get_status32_l1 (CPUARCState *env)
 {
   return get_status32_internal (&env->stat_l1);
-}
-
-static target_ulong get_status32_l2 (CPUARCState *env)
-{
-  return get_status32_internal (&env->stat_l2);
 }
 
 uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
@@ -132,106 +126,148 @@ target_ulong helper_fls(CPUARCState *env, uint32_t src)
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
-    struct arc_aux_reg_detail *aux_reg_detail =
-      arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+  struct arc_aux_reg_detail *aux_reg_detail =
+    arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
 
-    switch (aux_reg_detail->id) {
+  switch (aux_reg_detail->id)
+    {
+    case AUX_ID_lp_start:
+      env->lps = val;
+      break;
 
-	case AUX_ID_lp_start: {
-	  env->lps = val;
-	} break;
+    case AUX_ID_lp_end:
+      env->lpe = val;
+      break;
 
-	case AUX_ID_lp_end: {
-	  env->lpe = val;
-	} break;
+    case AUX_ID_identity:
+      break;
 
-	case AUX_ID_identity: {
-	} break;
+    case AUX_ID_debug:
+      break;
 
-	case AUX_ID_debug: {
-	} break;
+    case AUX_ID_pc:
+      /* FIXME! Raise illegal instruction.  */
+      break;
 
-	case AUX_ID_pc: {
-	} break;
+    case AUX_ID_status32:
+      break;
 
-	case AUX_ID_status32: {
-	} break;
+    case AUX_ID_status32_l1:
+      break;
 
-	case AUX_ID_status32_l1: {
-	} break;
+    case AUX_ID_status32_l2:
+      break;
 
-	case AUX_ID_status32_l2: {
-	} break;
+    case AUX_ID_int_vector_base:
+      env->intvec = val;
+      break;
 
-	case AUX_ID_int_vector_base:
-	  env->intvec = val;
-	  break;
+    case AUX_ID_aux_macmode:
+      break;
 
-	case AUX_ID_aux_macmode: {
-	} break;
+    case AUX_ID_aux_irq_lv12:
+      break;
 
-	case AUX_ID_aux_irq_lv12: {
-	} break;
+    case AUX_ID_aux_irq_lev:
+      break;
 
-	case AUX_ID_aux_irq_lev: {
-	} break;
+    case AUX_ID_eret:
+      env->eret = val;
+      break;
 
-	case AUX_ID_aux_irq_hint: {
-	} break;
+    case AUX_ID_erbta:
+      env->erbta = val;
+      break;
 
-	case AUX_ID_eret:
-	  env->eret = val;
-	  break;
+    case AUX_ID_erstatus:
+      break;
 
-	case AUX_ID_erbta:
-	  env->erbta = val;
-	  break;
+    case AUX_ID_ecr:
+      env->ecr = val;
+      break;
 
-	case AUX_ID_erstatus:
-	  break;
+    case AUX_ID_efa:
+      env->efa = val;
+      break;
 
-	case AUX_ID_ecr:
-	  env->ecr = val;
-	  break;
+    case AUX_ID_icause1:
+      break;
 
-	case AUX_ID_efa:
-	  env->efa = val;
-	  break;
+    case AUX_ID_icause2:
+      break;
 
-	case AUX_ID_icause1: {
-	} break;
+    case AUX_ID_aux_ienable:
+      break;
 
-	case AUX_ID_icause2: {
-	} break;
+    case AUX_ID_aux_itrigger:
+      break;
 
-	case AUX_ID_aux_ienable: {
-	} break;
+    case AUX_ID_bta:
+      break;
 
-	case AUX_ID_aux_itrigger: {
-	} break;
+    case AUX_ID_bta_l1:
+      break;
 
-	case AUX_ID_bta: {
-	} break;
+    case AUX_ID_bta_l2:
+      break;
 
-	case AUX_ID_bta_l1: {
-	} break;
+    case AUX_ID_aux_irq_pulse_cancel:
+      break;
 
-	case AUX_ID_bta_l2: {
-	} break;
+    case AUX_ID_aux_irq_pending:
+      break;
 
-	case AUX_ID_aux_irq_pulse_cancel: {
-	} break;
+    case AUX_ID_control0:
+      if (env->timer_build & TB_T0)
+        env->timer[0].T_Cntrl = val & 0x1f;
+      break;
 
-	case AUX_ID_aux_irq_pending: {
-	} break;
+    case AUX_ID_control1:
+      if (env->timer_build & TB_T1)
+        env->timer[1].T_Cntrl = val & 0x1f; /* Fixme! need a way to lower the irq */
+      break;
 
-	default:
-	  if(aux_reg_detail->aux_reg->set_func != NULL)
-	    {
-	      aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
-	    }
-	  cpu_outl(aux, val);
-	  break;
+    case AUX_ID_count0:
+      if (env->timer_build & TB_T0)
+        cpu_arc_count_set (env, 0, val);
+      break;
+
+    case AUX_ID_count1:
+      if (env->timer_build & TB_T1)
+        env->timer[1].T_Count = val;
+      break;
+
+    case AUX_ID_limit0:
+      if (env->timer_build & TB_T0)
+        env->timer[0].T_Limit = val;
+      break;
+
+    case AUX_ID_limit1:
+      if (env->timer_build & TB_T1)
+        env->timer[1].T_Limit = val;
+      break;
+
+    case AUX_ID_timer_build:
+      break;
+
+    case AUX_ID_irq_build:
+      break;
+
+    case AUX_ID_aux_irq_hint:
+      qemu_mutex_lock_iothread ();
+      if (val == 0)
+        qemu_irq_lower (env->irq[env->aux_irq_hint]);
+      else
+        qemu_irq_raise (env->irq[val]);
+      env->aux_irq_hint = val;
+      qemu_mutex_unlock_iothread ();
+      break;
+
+    default:
+      if(aux_reg_detail->aux_reg->set_func != NULL)
+        aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
+      cpu_outl(aux, val);
+      break;
     }
     cpu_outl(aux, val);
 }
@@ -244,8 +280,7 @@ static target_ulong get_status(CPUARCState *env)
     res |= (env->stat.Nf) ? BIT(30) : 0;
     res |= (env->stat.Cf) ? BIT(29) : 0;
     res |= (env->stat.Vf) ? BIT(28) : 0;
-    res |= (env->stat.E2f) ? BIT(27) : 0;
-    res |= (env->stat.E1f) ? BIT(26) : 0;
+    res |= (env->stat.Ef) << 1;
 
     if (env->stopped)
       res |= BIT(25);
@@ -257,18 +292,15 @@ static target_ulong get_status(CPUARCState *env)
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
-    env->stat.Lf = ((value >> 12) & 1);
-    env->stat.Zf = ((value >> 11) & 1);
-    env->stat.Nf = ((value >> 10) & 1);
-    env->stat.Cf = ((value >> 9)  & 1);
-    env->stat.Vf = ((value >> 8)  & 1);
-    env->stat.Uf = ((value >> 7)  & 1);
-    env->stat.DEf = ((value >> 6) & 1);
-    env->stat.AEf = ((value >> 5) & 1);
-    env->stat.A2f = ((value >> 4) & 1);
-    env->stat.A1f = ((value >> 3) & 1);
-    env->stat.E2f = ((value >> 2) & 1);
-    env->stat.E1f = ((value >> 1) & 1);
+  env->stat.Lf = ((value >> 12) & 1);
+  env->stat.Zf = ((value >> 11) & 1);
+  env->stat.Nf = ((value >> 10) & 1);
+  env->stat.Cf = ((value >> 9)  & 1);
+  env->stat.Vf = ((value >> 8)  & 1);
+  env->stat.Uf = ((value >> 7)  & 1);
+  env->stat.DEf = ((value >> 6) & 1);
+  env->stat.AEf = ((value >> 5) & 1);
+  env->stat.Ef = (value >> 1) & 0x0f;
 }
 
 
@@ -357,10 +389,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = get_status32_l1(env);
       break;
 
-    case AUX_ID_status32_l2:
-      result = get_status32_l2(env);
-      break;
-
     case AUX_ID_int_vector_base:
       result = env->intvec;
       break;
@@ -424,6 +452,38 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
     case AUX_ID_aux_irq_pending:
       break;
 
+    case AUX_ID_control0:
+      result = env->timer[0].T_Cntrl;
+      break;
+
+    case AUX_ID_control1:
+      result = env->timer[1].T_Cntrl;
+      break;
+
+    case AUX_ID_count0:
+      result = cpu_arc_count_get (env, 0);
+      break;
+
+    case AUX_ID_count1:
+      result = env->timer[1].T_Count;
+      break;
+
+    case AUX_ID_limit0:
+      result = env->timer[0].T_Limit;
+      break;
+
+    case AUX_ID_limit1:
+      result = env->timer[1].T_Limit;
+      break;
+
+    case AUX_ID_timer_build:
+      result = env->timer_build;
+      break;
+
+    case AUX_ID_irq_build:
+      result = env->irq_build;
+      break;
+
     default:
       if(aux_reg_detail->aux_reg->get_func != NULL)
 	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
@@ -448,23 +508,12 @@ void helper_rtie(CPUARCState *env)
       env->stat = env->stat_er;
       env->bta = env->erbta;
     }
-  else if (env->stat.A2f)
-    {
-      CPU_PCL(env) = CPU_ILINK2(env);
-      env->stat = env->stat_l2;
-      env->bta = env->bta_l2;
-    }
-  else if (env->stat.A1f)
-    {
-      CPU_PCL(env) = CPU_ILINK1(env);
-      env->stat = env->stat_l1;
-      env->bta = env->bta_l1;
-    }
   else
     {
-      CPU_PCL(env) = env->eret;
-      env->stat = env->stat_er;
-      env->bta = env->stat.AEf;
+      /* clear the currently active irq env->aux_irq_act[p] = 0; */
+      /* restore SP when user land. */
+      CPU_PCL(env) = CPU_ILINK(env);
+      env->stat = env->stat_l1;
     }
 
   qemu_log_mask(CPU_LOG_INT, "RTIE:0x%08x\n", env->eret);

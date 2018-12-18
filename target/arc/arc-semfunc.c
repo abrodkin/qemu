@@ -3786,6 +3786,7 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 {
   int ret = BS_NONE;
 
+  writeAuxReg(src2, src1);
   return ret;
 }
 

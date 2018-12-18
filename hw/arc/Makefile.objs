@@ -1,7 +1,7 @@
 #
 #  QEMU ARC CPU
 #
-#  Copyright (c) 2016 Michael Rolnik
+#  Copyright (c) 2019
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -18,4 +18,4 @@
 #  http://www.gnu.org/licenses/lgpl-2.1.html
 #
 
-obj-y   = sample.o arc_sim.o
+obj-y   = arc_sim.o sample.o pic_cpu.o

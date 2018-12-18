@@ -45,11 +45,8 @@ TCGv     cpu_Uf;
 
 TCGv     cpu_DEf;
 TCGv     cpu_AEf;
-TCGv     cpu_A2f;
-TCGv     cpu_A1f;
-TCGv     cpu_E2f;
-TCGv     cpu_E1f;
 TCGv     cpu_Hf;
+TCGv     cpu_IEf;
 
 TCGv     cpu_l1_Lf;
 TCGv     cpu_l1_Zf;
@@ -60,10 +57,6 @@ TCGv     cpu_l1_Uf;
 
 TCGv     cpu_l1_DEf;
 TCGv     cpu_l1_AEf;
-TCGv     cpu_l1_A2f;
-TCGv     cpu_l1_A1f;
-TCGv     cpu_l1_E2f;
-TCGv     cpu_l1_E1f;
 TCGv     cpu_l1_Hf;
 
 TCGv     cpu_l2_Lf;
@@ -75,10 +68,6 @@ TCGv     cpu_l2_Uf;
 
 TCGv     cpu_l2_DEf;
 TCGv     cpu_l2_AEf;
-TCGv     cpu_l2_A2f;
-TCGv     cpu_l2_A1f;
-TCGv     cpu_l2_E2f;
-TCGv     cpu_l2_E1f;
 TCGv     cpu_l2_Hf;
 
 TCGv     cpu_er_Lf;
@@ -90,10 +79,6 @@ TCGv     cpu_er_Uf;
 
 TCGv     cpu_er_DEf;
 TCGv     cpu_er_AEf;
-TCGv     cpu_er_A2f;
-TCGv     cpu_er_A1f;
-TCGv     cpu_er_E2f;
-TCGv     cpu_er_E1f;
 TCGv     cpu_er_Hf;
 
 TCGv     cpu_eret;
@@ -207,11 +192,8 @@ void arc_translate_init(void)
     cpu_Uf = NEW_ARC_REG(stat.Uf);
     cpu_DEf = NEW_ARC_REG(stat.DEf);
     cpu_AEf = NEW_ARC_REG(stat.AEf);
-    cpu_A2f = NEW_ARC_REG(stat.A2f);
-    cpu_A1f = NEW_ARC_REG(stat.A1f);
-    cpu_E2f = NEW_ARC_REG(stat.E2f);
-    cpu_E1f = NEW_ARC_REG(stat.E1f);
     cpu_Hf = NEW_ARC_REG(stat.Hf);
+    cpu_IEf = NEW_ARC_REG (stat.IEf);
 
     cpu_l1_Zf = NEW_ARC_REG(stat_l1.Zf);
     cpu_l1_Lf = NEW_ARC_REG(stat_l1.Lf);
@@ -221,25 +203,7 @@ void arc_translate_init(void)
     cpu_l1_Uf = NEW_ARC_REG(stat_l1.Uf);
     cpu_l1_DEf = NEW_ARC_REG(stat_l1.DEf);
     cpu_l1_AEf = NEW_ARC_REG(stat_l1.AEf);
-    cpu_l1_A2f = NEW_ARC_REG(stat_l1.A2f);
-    cpu_l1_A1f = NEW_ARC_REG(stat_l1.A1f);
-    cpu_l1_E2f = NEW_ARC_REG(stat_l1.E2f);
-    cpu_l1_E1f = NEW_ARC_REG(stat_l1.E1f);
     cpu_l1_Hf = NEW_ARC_REG(stat_l1.Hf);
-
-    cpu_l2_Zf = NEW_ARC_REG(stat_l2.Zf);
-    cpu_l2_Lf = NEW_ARC_REG(stat_l2.Lf);
-    cpu_l2_Nf = NEW_ARC_REG(stat_l2.Nf);
-    cpu_l2_Cf = NEW_ARC_REG(stat_l2.Cf);
-    cpu_l2_Vf = NEW_ARC_REG(stat_l2.Vf);
-    cpu_l2_Uf = NEW_ARC_REG(stat_l2.Uf);
-    cpu_l2_DEf = NEW_ARC_REG(stat_l2.DEf);
-    cpu_l2_AEf = NEW_ARC_REG(stat_l2.AEf);
-    cpu_l2_A2f = NEW_ARC_REG(stat_l2.A2f);
-    cpu_l2_A1f = NEW_ARC_REG(stat_l2.A1f);
-    cpu_l2_E2f = NEW_ARC_REG(stat_l2.E2f);
-    cpu_l2_E1f = NEW_ARC_REG(stat_l2.E1f);
-    cpu_l2_Hf = NEW_ARC_REG(stat_l2.Hf);
 
     cpu_er_Zf = NEW_ARC_REG(stat_er.Zf);
     cpu_er_Lf = NEW_ARC_REG(stat_er.Lf);
@@ -249,10 +213,6 @@ void arc_translate_init(void)
     cpu_er_Uf = NEW_ARC_REG(stat_er.Uf);
     cpu_er_DEf = NEW_ARC_REG(stat_er.DEf);
     cpu_er_AEf = NEW_ARC_REG(stat_er.AEf);
-    cpu_er_A2f = NEW_ARC_REG(stat_er.A2f);
-    cpu_er_A1f = NEW_ARC_REG(stat_er.A1f);
-    cpu_er_E2f = NEW_ARC_REG(stat_er.E2f);
-    cpu_er_E1f = NEW_ARC_REG(stat_er.E1f);
     cpu_er_Hf = NEW_ARC_REG(stat_er.Hf);
 
     cpu_eret = NEW_ARC_REG(eret);
@@ -483,10 +443,10 @@ void arc_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
                         env->stat.Uf ? 'U' : '-',
                         env->stat.DEf ? "DE" : "--",
                         env->stat.AEf ? "AE" : "--",
-                        env->stat.A2f ? "A2" : "--",
-                        env->stat.A1f ? "A1" : "--",
-                        env->stat.E2f ? "E2" : "--",
-                        env->stat.E1f ? "E1" : "--",
+                        env->stat.Ef ? "E" : "--",
+                        env->stat.DZf ? "DZ" : "--",
+                        env->stat.SCf ? "SC" : "--",
+                        env->stat.IEf ? "IE" : "--",
                         env->stat.Hf ? 'H' : '-'
                         );
 

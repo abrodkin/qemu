@@ -28,6 +28,7 @@
 #include "sysemu/sysemu.h"
 #include "hw/sysbus.h"
 #include "sysemu/qtest.h"
+#include "hw/arc/cpudevs.h"
 
 #define KERNEL_LOAD_ADDR 0x100
 
@@ -135,6 +136,11 @@ static void arc_sim_init(MachineState *machine)
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
         }
+
+        /* Initialize internal devices.  */
+        cpu_arc_pic_init (cpu);
+        cpu_arc_clock_init (cpu);
+
         qemu_register_reset(main_cpu_reset, cpu);
         main_cpu_reset(cpu);
     }

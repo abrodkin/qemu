@@ -58,10 +58,7 @@ extern TCGv     cpu_Uf;
 
 extern TCGv     cpu_DEf;
 extern TCGv     cpu_AEf;
-extern TCGv     cpu_A2f;
-extern TCGv     cpu_A1f;
-extern TCGv     cpu_E2f;
-extern TCGv     cpu_E1f;
+extern TCGv     cpu_IEf;
 extern TCGv     cpu_Hf;
 
 extern TCGv     cpu_l1_Lf;
@@ -73,10 +70,6 @@ extern TCGv     cpu_l1_Uf;
 
 extern TCGv     cpu_l1_DEf;
 extern TCGv     cpu_l1_AEf;
-extern TCGv     cpu_l1_A2f;
-extern TCGv     cpu_l1_A1f;
-extern TCGv     cpu_l1_E2f;
-extern TCGv     cpu_l1_E1f;
 extern TCGv     cpu_l1_Hf;
 
 extern TCGv     cpu_l2_Lf;
@@ -88,10 +81,6 @@ extern TCGv     cpu_l2_Uf;
 
 extern TCGv     cpu_l2_DEf;
 extern TCGv     cpu_l2_AEf;
-extern TCGv     cpu_l2_A2f;
-extern TCGv     cpu_l2_A1f;
-extern TCGv     cpu_l2_E2f;
-extern TCGv     cpu_l2_E1f;
 extern TCGv     cpu_l2_Hf;
 
 extern TCGv     cpu_er_Lf;
@@ -103,10 +92,6 @@ extern TCGv     cpu_er_Uf;
 
 extern TCGv     cpu_er_DEf;
 extern TCGv     cpu_er_AEf;
-extern TCGv     cpu_er_A2f;
-extern TCGv     cpu_er_A1f;
-extern TCGv     cpu_er_E2f;
-extern TCGv     cpu_er_E1f;
 extern TCGv     cpu_er_Hf;
 
 extern TCGv     cpu_eret;

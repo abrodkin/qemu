@@ -1,7 +1,7 @@
 /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2016 Michael Rolnik
+ * Copyright (c) 2019
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,7 @@
 #include "migration/vmstate.h"
 #include "exec/log.h"
 #include "mmu.h"
+#include "hw/qdev-properties.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -33,6 +34,84 @@ static const VMStateDescription vms_arc_cpu = {
   .fields = (VMStateField[]) {
     VMSTATE_END_OF_LIST()
   }
+};
+
+static Property arc_properties[] =
+{
+ DEFINE_PROP_UINT32 ("address-size", ARCCPU, cfg.addr_size, 32),
+ DEFINE_PROP_BOOL ("aps", ARCCPU, cfg.aps_feature, false),
+ DEFINE_PROP_BOOL ("byte-order", ARCCPU, cfg.byte_order, false),
+ DEFINE_PROP_BOOL ("bitscan", ARCCPU, cfg.bitscan_option, true),
+ DEFINE_PROP_UINT32 ("br_bc-entries", ARCCPU, cfg.br_bc_entries, -1),
+ DEFINE_PROP_UINT32 ("br_pt-entries", ARCCPU, cfg.br_pt_entries, -1),
+ DEFINE_PROP_BOOL ("full-tag", ARCCPU, cfg.br_bc_full_tag, false),
+ DEFINE_PROP_UINT8 ("rs-entries", ARCCPU, cfg. br_rs_entries, -1),
+ DEFINE_PROP_UINT32 ("tag-size", ARCCPU, cfg.br_bc_tag_size, -1),
+ DEFINE_PROP_UINT8 ("tosq-entries", ARCCPU, cfg. br_tosq_entries, -1),
+ DEFINE_PROP_UINT8 ("fb-entries", ARCCPU, cfg. br_fb_entries, -1),
+ DEFINE_PROP_BOOL ("code-density", ARCCPU, cfg.code_density, true),
+ DEFINE_PROP_BOOL ("code-protect", ARCCPU, cfg.code_protect, false),
+ DEFINE_PROP_UINT8 ("dcc-memcyc", ARCCPU, cfg. dccm_mem_cycles, -1),
+ DEFINE_PROP_BOOL ("ddcm-posedge", ARCCPU, cfg.dccm_posedge, false),
+ DEFINE_PROP_UINT8 ("dcc-mem-banks", ARCCPU, cfg. dccm_mem_bancks, -1),
+ DEFINE_PROP_UINT8 ("mem-cycles", ARCCPU, cfg. dc_mem_cycles, -1),
+ DEFINE_PROP_BOOL ("dc-posedge", ARCCPU, cfg.dc_posedge, false),
+ DEFINE_PROP_BOOL ("unaligned", ARCCPU, cfg.dmp_unaligned, true),
+ DEFINE_PROP_BOOL ("ecc-excp", ARCCPU, cfg.ecc_exception, false),
+ DEFINE_PROP_UINT32 ("ext-irq", ARCCPU, cfg.external_interrupts, 128),
+ DEFINE_PROP_UINT8 ("ecc-option", ARCCPU, cfg. ecc_option, -1),
+ DEFINE_PROP_BOOL ("firq", ARCCPU, cfg.firq_option, false),
+ DEFINE_PROP_BOOL ("fpu-dp", ARCCPU, cfg.fpu_dp_option, false),
+ DEFINE_PROP_BOOL ("fpu-fma", ARCCPU, cfg.fpu_fma_option, false),
+ DEFINE_PROP_BOOL ("fpu-div", ARCCPU, cfg.fpu_div_option, false),
+ DEFINE_PROP_BOOL ("actionpoints", ARCCPU, cfg.has_actionpoints, false),
+ DEFINE_PROP_BOOL ("fpu", ARCCPU, cfg.has_fpu, false),
+ DEFINE_PROP_BOOL ("has-irq", ARCCPU, cfg.has_interrupts, true),
+ DEFINE_PROP_BOOL ("has-mmu", ARCCPU, cfg.has_mmu, true),
+ DEFINE_PROP_BOOL ("has-mpu", ARCCPU, cfg.has_mpu, false),
+ DEFINE_PROP_BOOL ("timer0", ARCCPU, cfg.has_timer_0, true),
+ DEFINE_PROP_BOOL ("timer1", ARCCPU, cfg.has_timer_1, false),
+ DEFINE_PROP_BOOL ("has-pct", ARCCPU, cfg.has_pct, false),
+ DEFINE_PROP_BOOL ("has-rtt", ARCCPU, cfg.has_rtt, false),
+ DEFINE_PROP_BOOL ("has-smart", ARCCPU, cfg.has_smart, false),
+ DEFINE_PROP_UINT32 ("intv-base", ARCCPU, cfg.intvbase_preset, -1),
+ DEFINE_PROP_UINT32 ("lpc-size", ARCCPU, cfg.lpc_size, 32),
+ DEFINE_PROP_UINT8 ("mpu-numreg", ARCCPU, cfg. mpu_num_regions, -1),
+ DEFINE_PROP_UINT8 ("mpy-option", ARCCPU, cfg. mpy_option, 2),
+ DEFINE_PROP_UINT32 ("mmu-pagesize0", ARCCPU, cfg.mmu_page_size_sel0, -1),
+ DEFINE_PROP_UINT32 ("mmu-pagesize1", ARCCPU, cfg.mmu_page_size_sel1, -1),
+ DEFINE_PROP_UINT32 ("mmu-pae", ARCCPU, cfg.mmu_pae_enabled, -1),
+ DEFINE_PROP_UINT32 ("ntlb-numentries", ARCCPU, cfg.ntlb_num_entries, -1),
+ DEFINE_PROP_UINT32 ("num-actionpoints", ARCCPU, cfg.num_actionpoints, -1),
+ DEFINE_PROP_UINT32 ("num-irq", ARCCPU, cfg.number_of_interrupts, 240),
+ DEFINE_PROP_UINT32 ("num-irqlevels", ARCCPU, cfg.number_of_levels, -1),
+ DEFINE_PROP_UINT32 ("pct-counters", ARCCPU, cfg.pct_counters, -1),
+ DEFINE_PROP_UINT32 ("pct-irq", ARCCPU, cfg.pct_interrupt, -1),
+ DEFINE_PROP_UINT32 ("pc-size", ARCCPU, cfg.pc_size, 32),
+ DEFINE_PROP_UINT32 ("num-regs", ARCCPU, cfg.rgf_num_regs, 32),
+ DEFINE_PROP_UINT32 ("banked-regs", ARCCPU, cfg.rgf_banked_regs, -1),
+ DEFINE_PROP_UINT32 ("num-banks", ARCCPU, cfg.rgf_num_banks, -1),
+ DEFINE_PROP_BOOL ("rtc-opt", ARCCPU, cfg. rtc_option, false),
+ DEFINE_PROP_UINT32 ("rtt-featurelevel", ARCCPU, cfg. rtt_feature_level, -1),
+ DEFINE_PROP_BOOL ("stack-check", ARCCPU, cfg. stack_checking, false),
+ DEFINE_PROP_BOOL ("swap-option", ARCCPU, cfg. swap_option, true),
+ DEFINE_PROP_UINT32 ("smrt-stackentries", ARCCPU, cfg.smar_stack_entries, -1),
+ DEFINE_PROP_UINT32 ("smrt-impl", ARCCPU, cfg.smart_implementation, -1),
+ DEFINE_PROP_UINT32 ("stlb", ARCCPU, cfg.stlb_num_entries, -1),
+ DEFINE_PROP_UINT32 ("slc-size", ARCCPU, cfg.slc_size, -1),
+ DEFINE_PROP_UINT32 ("slc-linesize", ARCCPU, cfg.slc_line_size, -1),
+ DEFINE_PROP_UINT32 ("slc-ways", ARCCPU, cfg.slc_ways, -1),
+ DEFINE_PROP_UINT32 ("slc-tagbanks", ARCCPU, cfg.slc_tag_banks, -1),
+ DEFINE_PROP_UINT32 ("slc-tram", ARCCPU, cfg.slc_tram_delay, -1),
+ DEFINE_PROP_UINT32 ("slc-dbank", ARCCPU, cfg.slc_dbank_width, -1),
+ DEFINE_PROP_UINT32 ("slc-data", ARCCPU, cfg.slc_data_banks, -1),
+ DEFINE_PROP_UINT32 ("slc-delay", ARCCPU, cfg.slc_dram_delay, -1),
+ DEFINE_PROP_BOOL ("slc-memwidth", ARCCPU, cfg. slc_mem_bus_width, false),
+ DEFINE_PROP_UINT32 ("slc-ecc", ARCCPU, cfg. slc_ecc_option, -1),
+ DEFINE_PROP_BOOL ("slc-datahalf", ARCCPU, cfg.slc_data_halfcycle_steal, false),
+ DEFINE_PROP_BOOL ("slc-dataadd", ARCCPU, cfg.slc_data_add_pre_pipeline, false),
+ DEFINE_PROP_BOOL ("uaux", ARCCPU, cfg.uaux_option, false),
+ DEFINE_PROP_END_OF_LIST(),
 };
 
 static void arc_cpu_set_pc(CPUState *cs, vaddr value)
@@ -107,9 +186,11 @@ static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)
 static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 {
   CPUState *cs = CPU (dev);
-  //ARCCPU *cpu = ARC_CPU(dev);
+  ARCCPU *cpu = ARC_CPU(dev);
   ARCCPUClass *arcc = ARC_CPU_GET_CLASS (dev);
   Error *local_err = NULL;
+  CPUARCState *env = &cpu->env;
+  uint32_t i;
 
   cpu_exec_realizefn (cs, &local_err);
   if (local_err != NULL) {
@@ -120,27 +201,31 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
   //arc_cpu_register_gdb_regs_for_features(cpu);
 
   qemu_init_vcpu(cs);
+
+  /* Initialize build registers depending on the simulation
+     parameters.  */
+  env->timer_build = 0x04 | (cpu->cfg.has_timer_0 ? TB_T0 : 0) |
+    (cpu->cfg.has_timer_1 ? TB_T1 : 0);
+  if (cpu->cfg.has_interrupts)
+    {
+      env->irq_build = 0x01 | ((cpu->cfg.number_of_interrupts & 0xff) << 8) |
+        ((cpu->cfg.external_interrupts & 0xff) << 16) |
+        ((cpu->cfg.number_of_levels & 0x0f) << 24) |
+        (cpu->cfg.firq_option ? (1 << 28) : 0); /* FIXME! add N (NMI) bit.  */
+
+      for (i = 0; i < (cpu->cfg.number_of_interrupts & 0xff); i++)
+        {
+          env->irq_bank[16 + i].enable = 1; /*FIXME! check if this bit is
+                                              keept over reset cycle.  */
+        }
+    }
+  else
+    env->irq_build = 0;
+
   cpu_reset(cs);
 
   arcc->parent_realize(dev, errp);
 }
-
-#ifndef CONFIG_USER_ONLY
-
-/* Handler for TIMERx interrupt.  */
-static void arc_cpu_set_int(void *opaque, int irq, int level)
-{
-  ARCCPU *cpu = opaque;
-  CPUState *cs = CPU (cpu);
-  int type = CPU_INTERRUPT_HARD;
-
-  if (level)
-    cpu_interrupt (cs, type);
-  else
-    cpu_reset_interrupt (cs, type);
-}
-
-#endif
 
 static void arc_cpu_initfn(Object *obj)
 {
@@ -148,10 +233,6 @@ static void arc_cpu_initfn(Object *obj)
   ARCCPU *cpu = ARC_CPU(obj);
 
   cs->env_ptr = &cpu->env;
-
-#ifndef CONFIG_USER_ONLY
-  qdev_init_gpio_in(DEVICE(cpu), arc_cpu_set_int, 16);
-#endif
 }
 
 static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
@@ -195,10 +276,9 @@ static bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
   /* Regular interrupts.  */
   if ((interrupt_request & CPU_INTERRUPT_HARD)
       && (env->stat.Hf == 0)
-      //&& (env->stat.IEf == 1)
+      && (env->stat.IEf == 1)
       && (env->stat.AEf == 0))
     {
-      /* FIXME! add check priority interrupts.  */
       cs->exception_index = EXCP_IRQ;
       arc_cpu_do_interrupt (cs);
       return true;
@@ -234,6 +314,7 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
 #endif
   cc->disas_set_info = arc_cpu_disas_set_info;
   cc->synchronize_from_tb = arc_cpu_synchronize_from_tb;
+  dc->props = arc_properties;
   cc->gdb_read_register = arc_cpu_gdb_read_register;
   cc->gdb_write_register = arc_cpu_gdb_write_register;
   //cc->gdb_num_core_regs = GDB_REG_LAST;

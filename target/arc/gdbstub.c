@@ -30,10 +30,7 @@ static uint32_t arc_cpu_get_stat32(CPUState *cs)
     uint32_t val = 0;
 
     val |= env->stat.Hf  ? BIT(0)  : 0;
-    val |= env->stat.E1f ? BIT(1)  : 0;
-    val |= env->stat.E2f ? BIT(2)  : 0;
-    val |= env->stat.A1f ? BIT(3)  : 0;
-    val |= env->stat.A2f ? BIT(4)  : 0;
+    val |= env->stat.Ef << 1;
     val |= env->stat.AEf ? BIT(5)  : 0;
     val |= env->stat.DEf ? BIT(6)  : 0;
     val |= env->stat.Uf  ? BIT(7)  : 0;
@@ -52,10 +49,7 @@ static void arc_cpu_set_stat32(CPUState *cs, uint32_t val)
     CPUARCState *env = &cpu->env;
 
     env->stat.Hf  = 0 != (val & BIT(0));
-    env->stat.E1f = 0 != (val & BIT(1));
-    env->stat.E2f = 0 != (val & BIT(2));
-    env->stat.A1f = 0 != (val & BIT(3));
-    env->stat.A2f = 0 != (val & BIT(4));
+    env->stat.Ef = (val >> 1) & 0x0f;
     env->stat.AEf = 0 != (val & BIT(5));
     env->stat.DEf = 0 != (val & BIT(6));
     env->stat.Uf  = 0 != (val & BIT(7));

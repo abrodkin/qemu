@@ -48,6 +48,8 @@ TESTCASES += check_basic2.tst
 TESTCASES += check_norm.tst
 TESTCASES += check_excp.tst
 TESTCASES += check_mmu.tst
+TESTCASES += check_timer0.tst
+TESTCASES += check_swirq.tst
 
 all: $(TESTCASES)
 

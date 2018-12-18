@@ -1,7 +1,7 @@
 #
 #  QEMU ARC CPU
 #
-#  Copyright (c) 2016 Michael Rolnik
+#  Copyright (c) 2019
 #
 #  This library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,6 @@ obj-y   += gdbstub.o
 obj-y   += arc-decoder.o
 obj-y   += arc-regs.o
 obj-y   += arc-semfunc.o
-obj-y   += mmu.o
+obj-y   += mmu.o arc_timer.o
 # obj-$(CONFIG_SOFTMMU) += machine.o
 # obj-$(CONFIG_SOFTMMU) += machine.o
