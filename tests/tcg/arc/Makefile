@@ -59,8 +59,8 @@ all: $(TESTCASES)
 %_mmu.tst: %_mmu.o $(SRC_PATH)/tests/tcg/arc/macros.inc $(SRC_PATH)/tests/tcg/arc/mmu.inc
 	$(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld $< -o $@
 
-%.tst: %.o $(SRC_PATH)/tests/tcg/arc/macros.inc
-	$(LD) -T $(TST_PATH)/tarc.ld $< -o $@
+%.tst: %.o ivt.o $(SRC_PATH)/tests/tcg/arc/macros.inc
+	$(LD) -T $(TST_PATH)/tarc.ld ivt.o $< -o $@
 
 check: $(TESTCASES)
 	@for case in $(TESTCASES); do \
