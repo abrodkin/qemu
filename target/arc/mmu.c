@@ -261,14 +261,21 @@ uint32_t
 arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t vaddr, enum mmu_access_type rwe)
 {
-  struct arc_mmu *mmu = &env->mmu;
+  struct arc_mmu *mmu = &(env->mmu);
   int num_matching_tlb = 0;
-  uint32_t match_pd0 = ((vaddr & PD0_VPN) | PD0_VPN);
+
+  SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
+
+  /* Check that we are not addressing an address above 0x80000000.
+   * Return the same address in that case. */
+  if((vaddr >= 0x80000000) || mmu->enabled == false)
+    return vaddr;
+
+  uint32_t match_pd0 = ((vaddr & PD0_VPN) | PD0_V);
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
 					     (PD0_VPN | PD0_V),
 					     mmu,
 					     &num_matching_tlb, NULL);
-  SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */
   if(num_matching_tlb > 1)
@@ -279,11 +286,6 @@ arc_mmu_translate(struct CPUARCState *env,
 
 
   bool match = true;
-
-  /* Check that we are not addressing an address above 0x80000000.
-   * Return the same address in that case. */
-  if((vaddr & 0x80000000) != 0 || mmu->enabled == false)
-    return vaddr;
 
   if(tlb == NULL)
     {
