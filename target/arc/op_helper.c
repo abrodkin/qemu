@@ -516,7 +516,7 @@ void helper_rtie(CPUARCState *env)
       env->stat = env->stat_l1;
     }
 
-  qemu_log_mask(CPU_LOG_INT, "RTIE:0x%08x\n", env->eret);
+  qemu_log_mask(CPU_LOG_INT, "RTIE:0x%08x\n", env->r[63]);
 }
 
 void helper_flush(CPUARCState *env)

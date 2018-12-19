@@ -48,6 +48,7 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
   else
     {
       cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
+      env->irq_priority_pending &= ~(1 << env->irq_bank[irq].priority);
     }
 }
 

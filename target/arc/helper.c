@@ -111,7 +111,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
       {
 	bool found = false;
 	qemu_log_mask (CPU_LOG_INT, "interrupt at pc=0x%08x\n", env->pc);
-	CPU_ILINK (env) = env->pc;
+	CPU_ILINK (env) = env->pc & 0xfffffffe;
 	env->stat_l1 = env->stat;
 
 	/* Find the first IRQ to serve.  */
@@ -143,6 +143,9 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
 	/* CPU is switched to kernel mode.  */
 	env->stat.Uf = 0;
+
+        /* Cleanup pending bit.  */
+        env->irq_priority_pending &= ~(1 << j);
       }
       break;
     default:
@@ -157,6 +160,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
   qemu_log_mask(CPU_LOG_INT, "%s isr=%x vec=%x ecr=0x%08x\n",
 		__func__, env->pc, offset, env->ecr);
+
+  cs->exception_index = -1;
 }
 
 #endif

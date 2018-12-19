@@ -4,7 +4,7 @@
 	print "Start\n"
 	seti
 	sr	18, [aux_irq_hint]
-	print "End\n"
+	print "The End\n"
 	end
 
 	.align 4
@@ -14,5 +14,6 @@ IRQ_18:
 	clri
 	sr	0, [aux_irq_hint]
 	print "Pass SW-IRQ\n"
+	rtie
+	print "The bitter end\n"
 	end
-

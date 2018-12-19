@@ -71,12 +71,13 @@ static void cpu_arc_timer_update (CPUARCState *env)
 
 static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 {
+  /* Raise an interrupt if enabled.  */
+  if (env->timer[timer & 0x01].T_Cntrl & TMR_IE
+      && (!(env->timer[timer & 0x01].T_Cntrl & TMR_IP)))
+    qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
+
   /* Set the IP bit.  */
   env->timer[timer & 0x01].T_Cntrl |= TMR_IP;
-
-  /* Raise an interrupt if enabled.  */
-  if (env->timer[timer & 0x01].T_Cntrl & TMR_IE)
-    qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
 }
 
 /* This callback should occur when the counter is exactly equal to the

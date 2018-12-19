@@ -1684,7 +1684,7 @@ static void gen_trap (DisasCtxt *ctx, uint32_t param)
 static void gen_rtie (DisasCtxt *ctx)
 {
   gen_helper_rtie (cpu_env);
-  tcg_gen_mov_tl (cpu_pc, cpu_eret);
+  tcg_gen_mov_tl (cpu_pc, cpu_pcl);
   gen_goto_tb (ctx, 1, cpu_pc);
 }
 

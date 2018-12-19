@@ -31,5 +31,5 @@ IRQ_Timer0:
 	sr	0x00,[0x22]
 	print "Pass IRQ\n"
 	mov	r3, 1
-	;; 	rtie
+	rtie
 	end

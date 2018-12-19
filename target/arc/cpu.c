@@ -280,7 +280,12 @@ static bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
   if ((interrupt_request & CPU_INTERRUPT_HARD)
       && (env->stat.Hf == 0)
       && (env->stat.IEf == 1)
-      && (env->stat.AEf == 0))
+      && (env->stat.AEf == 0)
+      /* The following condition is required to avoid successive
+       * triggering of the same ISR between acknowledge the interrupt
+       * and executing it.  FIXME! we may need to change it to
+       * accomodate nesting ISR.  */
+      && (env->irq_priority_pending))
     {
       cs->exception_index = EXCP_IRQ;
       arc_cpu_do_interrupt (cs);
