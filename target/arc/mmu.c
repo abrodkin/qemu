@@ -125,7 +125,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
     *num_finds = 0;
   for (w = 0; w < N_WAYS; w++, tlb++)
     {
-      if((VPN(vaddr) & compare_mask) == (VPN(tlb->vpn) & compare_mask))
+      if((vaddr & compare_mask) == (tlb->vpn & compare_mask))
       {
 	ret = tlb;
 	if(num_finds != NULL)
@@ -317,7 +317,7 @@ arc_mmu_translate(struct CPUARCState *env,
       }
     }
 
-  if(!arc_mmu_have_permission(env, tlb, rwe))
+  if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
       SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
       return 0;

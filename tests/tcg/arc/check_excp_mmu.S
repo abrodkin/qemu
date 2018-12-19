@@ -33,7 +33,6 @@ start
 
 mmu_enable
 
-
 ; write to the mapped virtual address
 mov r0, MAGICDATA
 st  r0, [VIRT_ADR]
@@ -60,14 +59,6 @@ end
 	.global EV_TLBMissD
 	.type EV_TLBMissD, @function
 EV_TLBMissD:
-	; print "In EV_TLBMissD\n"
-	; insert into table: VA 0x13371337 (Global) --> PHY: 0x73311337 (RW kernel)
 	mmu_tlb_insert PD0_BITS, PD1_BITS
 	rtie
 
-	.align 4
-	.global EV_TLBMissI
-	.type EV_TLBMissI, @function
-EV_TLBMissI:
-	print "In exception\n"
-	rtie
