@@ -121,7 +121,8 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
   struct arc_tlb_e *tlb = &mmu->nTLB[set][0];
   int w;
 
-  *num_finds = 0;
+  if(num_finds != NULL)
+    *num_finds = 0;
   for (w = 0; w < N_WAYS; w++, tlb++)
     {
       if((VPN(vaddr) & compare_mask) == (VPN(tlb->vpn) & compare_mask))
