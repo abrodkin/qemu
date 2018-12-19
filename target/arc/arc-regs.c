@@ -48,7 +48,7 @@ struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST] = {
 #undef AUX_REG
 };
 
-static void arc_aux_regs_init(void)
+void arc_aux_regs_init(void)
 {
   for(int i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++)
   {
@@ -64,13 +64,6 @@ int
 arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def,
 			int isa_mask)
 {
-  static bool prepared = false;
-  if(prepared == false)
-  {
-    arc_aux_regs_init();
-    prepared = true;
-  }
-
   // TODO: This must validate for CPU.
   struct arc_aux_reg_detail *detail = arc_aux_regs[aux_reg_def].first;
   while(detail != NULL) {

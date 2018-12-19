@@ -88,6 +88,7 @@ struct arc_aux_reg {
 extern struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST];
 extern struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST];
 
+void arc_aux_regs_init(void);
 int arc_aux_reg_address_for(enum arc_aux_reg_enum, int);
 struct arc_aux_reg_detail *arc_aux_reg_struct_for_address(int, int);
 

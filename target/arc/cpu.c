@@ -232,6 +232,9 @@ static void arc_cpu_initfn(Object *obj)
   CPUState *cs = CPU(obj);
   ARCCPU *cpu = ARC_CPU(obj);
 
+  /* Initialize aux-regs. */
+  arc_aux_regs_init();
+
   cs->env_ptr = &cpu->env;
 }
 
