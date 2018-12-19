@@ -62,6 +62,15 @@ static uint32_t get_status32_l1 (CPUARCState *env)
   return get_status32_internal (&env->stat_l1);
 }
 
+static void
+do_exception_no_delayslot (CPUARCState *env, uint32_t index, uint32_t causecode, uint32_t param)
+{
+  env->eret = env->pc;
+  env->erbta = env->npc_helper;
+
+  helper_raise_exception (env, index, causecode, param);
+}
+
 uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
 {
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);

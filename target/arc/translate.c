@@ -110,6 +110,8 @@ TCGv     cpu_debug_IS;
 TCGv     cpu_debug_FH;
 TCGv     cpu_debug_SS;
 
+TCGv	 cpu_npc_helper;
+
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
@@ -256,6 +258,8 @@ void arc_translate_init(void)
     cpu_debug_IS = NEW_ARC_REG(debug.IS);
     cpu_debug_FH = NEW_ARC_REG(debug.FH);
     cpu_debug_SS = NEW_ARC_REG(debug.SS);
+
+    cpu_npc_helper = NEW_ARC_REG(npc_helper);
 
     init_not_done = 0;
 }

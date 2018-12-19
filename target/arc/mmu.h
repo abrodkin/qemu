@@ -74,10 +74,10 @@ struct arc_tlb_e {
 };
 
 #define RAISE_MMU_EXCEPTION(ENV) { \
-  helper_raise_exception(env, \
-			 env->mmu.exception.number, \
-			 env->mmu.exception.causecode, \
-			 env->mmu.exception.parameter); \
+  do_exception_no_delayslot(ENV, \
+			    ENV->mmu.exception.number, \
+			    ENV->mmu.exception.causecode, \
+			    ENV->mmu.exception.parameter); \
 }
 
 struct arc_mmu {

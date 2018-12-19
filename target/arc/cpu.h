@@ -229,6 +229,9 @@ typedef struct CPUARCState {
   uint32_t timer_build; /* Timer configuration AUX register.  */
   uint32_t irq_build; /* Interrupt Build Configuration Register.  */
 
+  /* Fake register to keep track of the next pc. */
+  uint32_t        npc_helper;
+
 } CPUARCState;
 
 /**
