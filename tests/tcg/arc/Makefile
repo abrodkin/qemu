@@ -4,7 +4,7 @@ CROSS = arc-elf32-
 #CROSS = arc-snps-linux-uclibc-
 
 SIM = ../../../arc-softmmu/qemu-system-arc
-SIM_FLAGS = -M arc-sim -m 128M -nographic -no-reboot -monitor none \
+SIM_FLAGS = -M arc-sim -m 3G -nographic -no-reboot -monitor none \
 	-serial stdio -kernel
 #SIM_FLAGS=-cpu archs
 TST_PATH = $(SRC_PATH)/tests/tcg/arc
