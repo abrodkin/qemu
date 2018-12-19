@@ -145,11 +145,11 @@ static void arc_sim_init(MachineState *machine)
         main_cpu_reset(cpu);
     }
 
-    ram = g_malloc(sizeof(*ram));
+    ram = g_new(MemoryRegion, 1);
     memory_region_init_ram(ram, NULL, "arc.ram", ram_size, &error_fatal);
     memory_region_add_subregion(get_system_memory(), 0, ram);
 
-    system_io = g_malloc (sizeof (*system_io));
+    system_io = g_new(MemoryRegion, 1);
     memory_region_init_io (system_io, NULL, &arc_io_ops, NULL, "arc.io",
                            1024);
     memory_region_add_subregion (get_system_memory(), 0xf0000000, system_io);
