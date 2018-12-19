@@ -181,7 +181,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 						 matching_mask | PD0_V,
 						 &env->mmu, &num_finds, &index);
 
-      if(num_finds == 0)
+      if(tlb == NULL)
         {
           mmu->tlbindex = 0x80000000; /* No entry to delete */
         }
@@ -217,7 +217,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  tlb->pfn = PFN(pd1);
 
 	  /* Set index for latest inserted element. */
-	  mmu->tlbindex |= index;
+	  mmu->tlbindex = index;
 
 	  /* TODO: More verifications needed. */
 	}
@@ -263,13 +263,7 @@ arc_mmu_translate(struct CPUARCState *env,
 {
   struct arc_mmu *mmu = &env->mmu;
   int num_matching_tlb = 0;
-
-  /* Check that we are not addressing an address above 0x80000000.
-   * Return the same address in that case. */
-  if((vaddr & 0x80000000) != 0 || mmu->enabled == false)
-    return vaddr;
-
-  uint32_t match_pd0 = ((vaddr & PD0_VPN) | PD0_V);
+  uint32_t match_pd0 = ((vaddr & PD0_VPN) | PD0_VPN);
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
 					     (PD0_VPN | PD0_V),
 					     mmu,
@@ -285,6 +279,11 @@ arc_mmu_translate(struct CPUARCState *env,
 
 
   bool match = true;
+
+  /* Check that we are not addressing an address above 0x80000000.
+   * Return the same address in that case. */
+  if((vaddr & 0x80000000) != 0 || mmu->enabled == false)
+    return vaddr;
 
   if(tlb == NULL)
     {
