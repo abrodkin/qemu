@@ -48,18 +48,24 @@ TESTCASES += check_basic2.tst
 TESTCASES += check_norm.tst
 TESTCASES += check_excp.tst
 TESTCASES += check_mmu.tst
+TESTCASES += check_excp_mmu.tst
 TESTCASES += check_timer0.tst
 TESTCASES += check_swirq.tst
 
 all: $(TESTCASES)
 
+MMU_OBJECTS=set_excp.o
+
 %.o: $(SRC_PATH)/tests/tcg/arc/%.S
+	echo "Running: $(CC) $(ASFLAGS) -c $< -o $@ -I$(TST_PATH)"; \
 	$(CC) $(ASFLAGS) -c $< -o $@ -I$(TST_PATH)
 
-%_mmu.tst: %_mmu.o $(SRC_PATH)/tests/tcg/arc/macros.inc $(SRC_PATH)/tests/tcg/arc/mmu.inc
-	$(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld $< -o $@
+%_mmu.tst: %_mmu.o ${MMU_OBJECTS} $(SRC_PATH)/tests/tcg/arc/macros.inc $(SRC_PATH)/tests/tcg/arc/mmu.inc
+	echo "Running: $(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld ${MMU_OBJECTS} $< -o $@"; \
+	$(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld ${MMU_OBJECTS} $< -o $@
 
 %.tst: %.o ivt.o $(SRC_PATH)/tests/tcg/arc/macros.inc
+	echo "Running: $(LD) -T $(TST_PATH)/tarc.ld ivt.o $< -o $@"; \
 	$(LD) -T $(TST_PATH)/tarc.ld ivt.o $< -o $@
 
 check: $(TESTCASES)
