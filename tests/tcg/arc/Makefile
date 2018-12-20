@@ -12,7 +12,7 @@ TST_PATH = $(SRC_PATH)/tests/tcg/arc
 CC = $(CROSS)gcc
 LD = $(CROSS)ld
 AS = $(CROSS)as
-CFLAGS  = -mcpu=archs -O1
+CFLAGS  = -mcpu=archs -O2 --specs=qemu.specs
 ASFLAGS = -mcpu=archs
 LDPHYSFLAGS = --section-start=.text=0x80000000
 
@@ -47,6 +47,7 @@ TESTCASES += check_basic1.tst
 TESTCASES += check_basic2.tst
 TESTCASES += check_norm.tst
 TESTCASES += check_excp.tst
+TESTCASES += check_excp_1.ctst
 TESTCASES += check_mmu.tst
 TESTCASES += check_excp_mmu.tst
 TESTCASES += check_timer0.tst
@@ -66,6 +67,9 @@ OBJECTS = ivt.o
 %.tst: %.o ${OBJECTS} $(SRC_PATH)/tests/tcg/arc/macros.inc
 	echo "Running: $(LD) -T $(TST_PATH)/tarc.ld ${OBJECTS} $< -o $@"; \
 	$(LD) -T $(TST_PATH)/tarc.ld ${OBJECTS} $< -o $@
+
+%.ctst: $(SRC_PATH)/tests/tcg/arc/%.c
+	$(CC) $(CFLAGS) -Wl,-marcv2elfx -L $(SRC_PATH)/tests/tcg/arc/ $< -o $@
 
 check: $(TESTCASES)
 	@for case in $(TESTCASES); do \
