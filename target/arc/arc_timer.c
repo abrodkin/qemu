@@ -25,9 +25,7 @@
 #include "cpu.h"
 #include "hw/arc/cpudevs.h"
 
-//#define TIMER_PERIOD(hz) (1000000000LL/(hz))
-#define TIMER_PERIOD(A) 10
-
+#define TIMER_PERIOD(hz) (1000000000LL/(hz))
 /* ARC timer update function.  */
 
 static void cpu_arc_count_update (CPUARCState *env)
@@ -38,16 +36,16 @@ static void cpu_arc_count_update (CPUARCState *env)
 
   if ((env->timer_build & TB_T0) && env->cpu_timer0)
     env->timer[0].T_Count += (uint32_t)((now - env->last_clk) /
-                                        TIMER_PERIOD (env->freq_hz));
+					TIMER_PERIOD (env->freq_hz));
   if ((env->timer_build & TB_T1) && env->cpu_timer1)
     env->timer[1].T_Count += (uint32_t)((now - env->last_clk) /
-                                        TIMER_PERIOD (env->freq_hz));
+					TIMER_PERIOD (env->freq_hz));
 
   env->last_clk = now;
 }
 
 /* Update the next timeout time as difference between Count and Limit */
-static void cpu_arc_timer_update (CPUARCState *env)
+static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
 {
   uint32_t wait;
   uint64_t now, next;
@@ -55,14 +53,12 @@ static void cpu_arc_timer_update (CPUARCState *env)
   cpu_arc_count_update (env);
   now = env->last_clk;
 
-  if (env->cpu_timer0)
+  if (timer ? env->cpu_timer1 : env->cpu_timer0)
     {
-      wait = env->timer[0].T_Limit - env->timer[0].T_Count;
+      wait = env->timer[timer].T_Limit - env->timer[timer].T_Count;
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
-      timer_mod (env->cpu_timer0, next);
+      timer_mod (timer ? env->cpu_timer1 : env->cpu_timer0, next);
     }
-
-  /* FIXME! add timer1*/
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
@@ -92,7 +88,20 @@ static void arc_timer0_cb (void *opaque)
   if (timer_expired(env->cpu_timer0, qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL)))
     cpu_arc_timer_expire (env, 0);
 
-  cpu_arc_timer_update (env);
+  cpu_arc_timer_update (env, 0);
+}
+
+static void arc_timer1_cb (void *opaque)
+{
+  CPUARCState *env = (CPUARCState *) opaque;
+
+  if (!(env->timer_build & TB_T1))
+    return;
+
+  if (timer_expired(env->cpu_timer1, qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL)))
+    cpu_arc_timer_expire (env, 1);
+
+  cpu_arc_timer_update (env, 1);
 }
 
 static void cpu_arc_count_reset (CPUARCState *env, uint32_t timer)
@@ -112,16 +121,26 @@ uint32_t cpu_arc_count_get (CPUARCState *env, uint32_t timer)
 void cpu_arc_count_set (CPUARCState *env, uint32_t timer, uint32_t val)
 {
   env->timer[timer & 0x01].T_Count = val;
-  cpu_arc_timer_update (env);
+  cpu_arc_timer_update (env, timer);
 }
 
 void cpu_arc_store_limit (CPUARCState *env, uint32_t timer, uint32_t value)
 {
-  if (!(env->timer_build & TB_T0))
-    return;
-
-  env->timer[0].T_Limit = value;
-  cpu_arc_timer_update (env);
+  switch (timer)
+    {
+    case 0:
+      if (!(env->timer_build & TB_T0))
+        return;
+      break;
+    case 1:
+      if (!(env->timer_build & TB_T1))
+        return;
+      break;
+    default:
+      break;
+    }
+  env->timer[timer].T_Limit = value;
+  cpu_arc_timer_update (env, timer);
 }
 
 void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
@@ -136,8 +155,15 @@ void cpu_arc_clock_init (ARCCPU *cpu)
 {
   CPUARCState *env = &cpu->env;
 
-  cpu_arc_count_reset (env, 0);
-  env->cpu_timer0 = timer_new_ns(QEMU_CLOCK_VIRTUAL, &arc_timer0_cb, env);
+  if (env->timer_build & TB_T0)
+    {
+      cpu_arc_count_reset (env, 0);
+      env->cpu_timer0 = timer_new_ns(QEMU_CLOCK_VIRTUAL, &arc_timer0_cb, env);
+    }
 
-  env->cpu_timer1 = NULL;
+  if (env->timer_build & TB_T1)
+    {
+      cpu_arc_count_reset (env, 1);
+      env->cpu_timer1 = timer_new_ns(QEMU_CLOCK_VIRTUAL, &arc_timer1_cb, env);
+    }
 }

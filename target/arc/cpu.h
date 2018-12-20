@@ -324,6 +324,7 @@ struct ARCCPU {
     bool slc_data_halfcycle_steal;
     bool slc_data_add_pre_pipeline;
     bool uaux_option;
+    uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
   } cfg;
 
   CPUARCState env;
