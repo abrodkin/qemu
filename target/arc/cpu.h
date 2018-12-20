@@ -101,7 +101,6 @@ enum exception_code_list {
     EXCP_DIVZERO,
     EXCP_DCERROR,
     EXCP_MALIGNED,
-    EXCP_FIRQ,
     EXCP_IRQ
 };
 
@@ -223,9 +222,13 @@ typedef struct CPUARCState {
   QEMUTimer *cpu_timer1; /* Internal timer.  */
 
   /* Build AUX regs.  */
+#define TIMER0_IRQ 16
+#define TIMER1_IRQ 17
 #define TB_T0  (1<<8)
 #define TB_T1  (1<<9)
 #define TB_RTC (1<<10)
+#define TB_P0_MSK (0x0f0000)
+#define TB_P1_MSK (0xf00000)
   uint32_t timer_build; /* Timer configuration AUX register.  */
   uint32_t irq_build; /* Interrupt Build Configuration Register.  */
 

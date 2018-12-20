@@ -27,8 +27,6 @@
 
 //#define TIMER_PERIOD(hz) (1000000000LL/(hz))
 #define TIMER_PERIOD(A) 10
-#define TIMER0_IRQ 16
-#define TIMER1_IRQ 17
 
 /* ARC timer update function.  */
 
@@ -67,7 +65,7 @@ static void cpu_arc_timer_update (CPUARCState *env)
   /* FIXME! add timer1*/
 }
 
-/* Expier the timer function.  Rise an interrupt if required.  */
+/* Expire the timer function.  Rise an interrupt if required.  */
 
 static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 {

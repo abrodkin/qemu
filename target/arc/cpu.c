@@ -84,7 +84,7 @@ static Property arc_properties[] =
  DEFINE_PROP_UINT32 ("ntlb-numentries", ARCCPU, cfg.ntlb_num_entries, -1),
  DEFINE_PROP_UINT32 ("num-actionpoints", ARCCPU, cfg.num_actionpoints, -1),
  DEFINE_PROP_UINT32 ("num-irq", ARCCPU, cfg.number_of_interrupts, 240),
- DEFINE_PROP_UINT32 ("num-irqlevels", ARCCPU, cfg.number_of_levels, -1),
+ DEFINE_PROP_UINT32 ("num-irqlevels", ARCCPU, cfg.number_of_levels, 16),
  DEFINE_PROP_UINT32 ("pct-counters", ARCCPU, cfg.pct_counters, -1),
  DEFINE_PROP_UINT32 ("pct-irq", ARCCPU, cfg.pct_interrupt, -1),
  DEFINE_PROP_UINT32 ("pc-size", ARCCPU, cfg.pc_size, 32),
@@ -277,19 +277,21 @@ static bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
   CPUARCState *env = &cpu->env;
 
   /* Regular interrupts.  */
-  if ((interrupt_request & CPU_INTERRUPT_HARD)
-      && (env->stat.Hf == 0)
+  if ((env->stat.Hf == 0)
       && (env->stat.IEf == 1)
-      && (env->stat.AEf == 0)
-      /* The following condition is required to avoid successive
-       * triggering of the same ISR between acknowledge the interrupt
-       * and executing it.  FIXME! we may need to change it to
-       * accomodate nesting ISR.  */
-      && (env->irq_priority_pending))
+      && (env->stat.AEf == 0))
     {
-      cs->exception_index = EXCP_IRQ;
-      arc_cpu_do_interrupt (cs);
-      return true;
+      if ((interrupt_request & CPU_INTERRUPT_HARD)
+          /* The following condition is required to avoid successive
+           * triggering of the same ISR between acknowledge the
+           * interrupt and executing it.  FIXME! we may need to change
+           * it to accomodate nesting ISR.  */
+          && (env->irq_priority_pending))
+        {
+          cs->exception_index = EXCP_IRQ;
+          arc_cpu_do_interrupt (cs);
+          return true;
+        }
     }
   return false;
 }

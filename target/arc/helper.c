@@ -48,7 +48,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
   CPUARCState *env = &cpu->env;
   uint32_t offset = 0;
   uint32_t vectno;
-  int i, j;
+  uint32_t priority;
 
   /* FIXME! we cannot do interrupts in delay slots.  */
 
@@ -106,7 +106,6 @@ void arc_cpu_do_interrupt (CPUState *cs)
       /* 9. The active exception flag is set.  */
       env->stat.AEf = 1;
       break;
-    case EXCP_FIRQ:
     case EXCP_IRQ:
       {
 	bool found = false;
@@ -115,23 +114,45 @@ void arc_cpu_do_interrupt (CPUState *cs)
 	env->stat_l1 = env->stat;
 
 	/* Find the first IRQ to serve.  */
-	for (j = 0; j < cpu->cfg.number_of_levels && !found; j++)
-	  for (i = 0; i < cpu->cfg.number_of_interrupts; i++)
-	    if (env->irq_bank[16 + i].priority == j
-		&& env->irq_bank[16 + i].pending)
+	priority = 0;
+	do
+	  {
+	    if ((env->timer[0].T_Cntrl & TMR_IP)
+		&& (((env->timer_build & TB_P0_MSK) >> 16) == priority))
 	      {
+		vectno = 0;
 		found = true;
-		break;
 	      }
-	offset = (i + 16) << 2;
+	    else if ((env->timer[1].T_Cntrl & TMR_IP)
+		     && (((env->timer_build & TB_P1_MSK) >> 20) == priority))
+	      {
+		vectno = 1;
+		found  = true;
+	      }
+	    else
+	      {
+		for (vectno = 0;
+		     vectno < cpu->cfg.number_of_interrupts; vectno++)
+		  if (env->irq_bank[16 + vectno].priority == priority
+		      && env->irq_bank[16 + vectno].pending)
+		    {
+		      found = true;
+		      break;
+		    }
+	      }
+	  }
+	while (!found && ((++priority) < cpu->cfg.number_of_levels));
+
+	vectno += 16;
+	offset = vectno << 2;
 
 	/* Set the AUX_IRQ_ACT.  */
 	if ((env->aux_irq_act & 0xff) == 0)
 	  env->aux_irq_act = env->stat.Uf << 31;
-	env->aux_irq_act |= 1 << (--j);
+	env->aux_irq_act |= 1 << priority;
 
 	/* Set ICAUSE register.  */
-	env->icause[j] = i;
+	env->icause[priority] = vectno;
 
 	/* Switch SP with AUX_SP.  */
 	if (env->stat.Uf)
@@ -144,8 +165,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
 	/* CPU is switched to kernel mode.  */
 	env->stat.Uf = 0;
 
-        /* Cleanup pending bit.  */
-        env->irq_priority_pending &= ~(1 << j);
+	/* Cleanup pending bit.  */
+	env->irq_priority_pending &= ~(1 << priority);
       }
       break;
     default:

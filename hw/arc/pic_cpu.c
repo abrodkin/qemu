@@ -35,11 +35,22 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
   if (irq < 16 || irq >= (cpu->cfg.number_of_interrupts + 15))
     return;
 
-  env->irq_bank[irq].pending = 0;
+  if (((env->timer_build & TB_T0) && irq == TIMER0_IRQ)
+      || ((env->timer_build & TB_T1) && irq == TIMER1_IRQ))
+    {
+      uint32_t priority =
+        (irq == TIMER0_IRQ) ? ((env->timer_build & TB_P0_MSK) >> 16) :
+        ((env->timer_build & TB_P1_MSK) >> 20);
 
-  if ((env->irq_bank[irq].priority <= env->stat.Ef)
-      && env->irq_bank[irq].enable
-      && level)
+      if (priority <= env->stat.Ef && level)
+        cpu_interrupt (cs, CPU_INTERRUPT_HARD);
+      else
+        cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
+      env->irq_priority_pending |= (level << priority);
+    }
+  else if ((env->irq_bank[irq].priority <= env->stat.Ef)
+           && env->irq_bank[irq].enable
+           && level)
     {
       cpu_interrupt (cs, CPU_INTERRUPT_HARD);
       env->irq_bank[irq].pending = 1;
@@ -49,6 +60,7 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
     {
       cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
       env->irq_priority_pending &= ~(1 << env->irq_bank[irq].priority);
+      env->irq_bank[irq].pending = 0;
     }
 }
 
