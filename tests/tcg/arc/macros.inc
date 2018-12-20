@@ -47,6 +47,33 @@ tn_\name:
   print     "\n"
 .endm
 
+
+; macro:     assert_eq
+; input:     a, b - two values/registers to be compared
+; regs used: r11, r12
+; example:   assert_eq 12, r2
+;            assert_eq r1, 8
+;            assert_eq r3, r4
+;            assert_eq 8 , 9     (although useless for tests)
+;
+; description:
+;   compares  the  two inputs. if they are equal, nothing happens.
+;   but if not, then it is going to print "Ret:1" and exit.
+;
+; caveat emptor:
+;   this macro uses a relative lable. if the code using this macro
+;   happens to use the  same  relative lable, then  the  assembler
+;   will get confused. this label is: '3333'
+.macro assert_eq a, b
+  mov   r11, \a
+  mov   r12, \b
+  breq  r11, r12, @3333f
+  print "Ret:1"
+  end
+3333:
+.endm
+
+
 .macro start
   .text
     .global main
