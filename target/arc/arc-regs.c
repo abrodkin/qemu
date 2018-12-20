@@ -50,7 +50,9 @@ struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST] = {
 
 void arc_aux_regs_init(void)
 {
-  for(int i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++)
+  int i;
+
+  for(i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++)
   {
     enum arc_aux_reg_enum id = arc_aux_regs_detail[i].id;
     struct arc_aux_reg_detail *next = arc_aux_regs[id].first;
@@ -77,8 +79,10 @@ arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def,
 struct arc_aux_reg_detail *
 arc_aux_reg_struct_for_address(int address, int isa_mask)
 {
+  int i;
+
   /* TODO: Make this a binary search or something faster. */
-  for(int i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++) {
+  for(i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++) {
     if ((arc_aux_regs_detail[i].cpu & isa_mask) != 0
 	&& arc_aux_regs_detail[i].address == address)
     {
