@@ -50,6 +50,8 @@ tn_\name:
 
 ; macro:     assert_eq
 ; input:     a, b - two values/registers to be compared
+;            num  - optional: printed error number, default is 1.
+;                   valid range is: [0 ... 9]
 ; regs used: r11, r12
 ; example:   assert_eq 12, r2
 ;            assert_eq r1, 8
@@ -64,11 +66,14 @@ tn_\name:
 ;   this macro uses a relative lable. if the code using this macro
 ;   happens to use the  same  relative lable, then  the  assembler
 ;   will get confused. this label is: '3333'
-.macro assert_eq a, b
+.macro assert_eq a, b, num=1
   mov   r11, \a
   mov   r12, \b
   breq  r11, r12, @3333f
-  print "Ret:1"
+  print "Ret:"
+  mov   r11, \num
+  add   r11, r11, 0x30
+  st    r11, [OUTPUT_DEVICE]
   end
 3333:
 .endm
