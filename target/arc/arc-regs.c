@@ -18,6 +18,8 @@
  * http://www.gnu.org/licenses/lgpl-2.1.html
  */
 
+#include "qemu/osdep.h"
+#include "qemu/error-report.h"
 #include "arc-regs.h"
 #include "mmu.h"
 
@@ -89,5 +91,6 @@ arc_aux_reg_struct_for_address(int address, int isa_mask)
       return &(arc_aux_regs_detail[i]);
     }
   }
-  assert(0);
+  error_report("Undefined AUX register 0x%03x, aborting\n", address);
+  exit(EXIT_FAILURE);
 }
