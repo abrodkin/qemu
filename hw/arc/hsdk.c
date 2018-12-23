@@ -65,13 +65,13 @@ static void hsdk_init(MachineState *machine)
     }
 
     /* Init system DDR */
-    system_ram = g_malloc(sizeof(*system_ram));
+    system_ram = g_new(MemoryRegion, 1);
     memory_region_init_ram(system_ram, NULL, "arc.ram", HSDK_RAM_SIZE,
                            &error_fatal);
     memory_region_add_subregion(system_memory, HSDK_RAM_BASE, system_ram);
 
     /* Init IO area */
-    system_io = g_malloc(sizeof(*system_io));
+    system_io = g_new(MemoryRegion, 1);
     memory_region_init_io(system_io, NULL, NULL, NULL, "arc.io", HSDK_IO_SIZE);
     memory_region_add_subregion(system_memory, HSDK_IO_BASE, system_io);
 
