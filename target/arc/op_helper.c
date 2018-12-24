@@ -493,12 +493,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = env->irq_build;
       break;
 
-    case AUX_ID_i_cache_build:
-    case AUX_ID_d_cache_build:
-    case AUX_ID_slc_build:
-      result = 0;
-      break;
-
     default:
       if(aux_reg_detail->aux_reg->get_func != NULL)
 	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
