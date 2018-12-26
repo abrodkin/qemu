@@ -382,6 +382,10 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = get_identity(env);
       break;
 
+    case AUX_ID_exec_ctrl:
+      result = 0;
+      break;
+
     case AUX_ID_debug:
       result = get_debug(env);
       break;
