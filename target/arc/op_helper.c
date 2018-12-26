@@ -370,6 +370,10 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = get_status(env);
       break;
 
+    case AUX_ID_aux_volatile:
+      result = 0xc0000000;
+      break;
+
     case AUX_ID_lp_start:
       result = env->lps;
       break;
