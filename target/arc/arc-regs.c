@@ -19,6 +19,7 @@
  */
 
 #include "qemu/osdep.h"
+#include "qemu/log.h"
 #include "qemu/error-report.h"
 #include "arc-regs.h"
 #include "mmu.h"
@@ -91,6 +92,13 @@ arc_aux_reg_struct_for_address(int address, int isa_mask)
       return &(arc_aux_regs_detail[i]);
     }
   }
-  error_report("Undefined AUX register 0x%03x, aborting\n", address);
+
+  if (((address >= ARC_BCR1_START) && (address <= ARC_BCR1_END)) ||
+      ((address >= ARC_BCR2_START) && (address <= ARC_BCR2_END))) {
+      qemu_log_mask(LOG_UNIMP, "Undefined BCR 0x%03x\n", address);
+      return &(arc_aux_regs_detail[0xffff]);
+  }
+
+  error_report("Undefined AUX register 0x%03x, aborting", address);
   exit(EXIT_FAILURE);
 }

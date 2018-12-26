@@ -20,6 +20,7 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  */
 
+AUX_REG (unimp_bcr, NULL, NULL)
 AUX_REG (acg_ctrl, NULL, NULL)
 AUX_REG (acr, NULL, NULL)
 AUX_REG (adcr, NULL, NULL)

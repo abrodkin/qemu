@@ -23,6 +23,20 @@
 
 #include "arc-decoder.h"
 
+/* BCRs (Build configuration registers) are very special AUX regs
+   as they are always readable even if corresponding HW module is absent.
+   Thus we may always safely read them and learn what HW we have.
+   All other AUX regs outside of 2 BCR areas are only readable if their
+   HW is really implemented, otherwise "Instruction error" exception
+   is raised by the CPU.  */
+
+/* First BCR region.  */
+#define ARC_BCR1_START		0x60
+#define ARC_BCR1_END		0x7f
+/* Second BCR region.  */
+#define ARC_BCR2_START		0xc0
+#define ARC_BCR2_END		0xff
+
 #ifndef ARC
 enum arc_aux_reg_enum
 {
