@@ -17,7 +17,6 @@
    MA 02110-1301, USA.  */
 
 #include "arc-decoder.h"
-#include "exec/cpu_ldst.h"
 #include "qemu/osdep.h"
 #include "qemu/bswap.h"
 #include "cpu.h"

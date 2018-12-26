@@ -85,18 +85,13 @@ static void arc_sim_init(MachineState *machine)
 {
     ram_addr_t ram_base = 0;
     ram_addr_t ram_size = machine->ram_size;
-    const char *cpu_model = machine->cpu_model;
     const char *kernel_filename = machine->kernel_filename;
     ARCCPU *cpu = NULL;
     MemoryRegion *ram, *system_io;
     int n;
 
-    if (!cpu_model) {
-        cpu_model = "archs";
-    }
-
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (cpu_generic_init (TYPE_ARC_CPU, cpu_model));
+	cpu = ARC_CPU (object_new (TYPE_ARC_CPU));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
@@ -120,7 +115,7 @@ static void arc_sim_init(MachineState *machine)
     memory_region_add_subregion (get_system_memory(), 0xf0000000, system_io);
 
     serial_mm_init(get_system_memory(), 0x90000000, 0, cpu->env.irq[2],
-                   115200, serial_hds[0], DEVICE_NATIVE_ENDIAN);
+                   115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
 
     if (nd_table[0].used) {
         arc_sim_net_init(get_system_memory(), 0x92000000,

@@ -136,33 +136,30 @@ void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
     tcg_gen_goto_tb(n);
     tcg_gen_mov_tl(cpu_pc, dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
-    tcg_gen_exit_tb((uintptr_t)tb + n);
+    tcg_gen_exit_tb(ctx->tb, n);
 #else
     tcg_gen_mov_tl(cpu_pc,  dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
     if(ctx->singlestep)
       gen_helper_debug(cpu_env);
-    tcg_gen_exit_tb(0);
+    tcg_gen_exit_tb(NULL, 0);
 #endif
 }
 static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
 {
-    TranslationBlock   *tb;
-    tb = ctx->tb;
-
     if (use_goto_tb(ctx, dest)) {
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
 	if(ctx->singlestep)
 	  gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb((uintptr_t)tb + n);
+        tcg_gen_exit_tb(ctx->tb, n);
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
 	if(ctx->singlestep)
 	  gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(0);
+        tcg_gen_exit_tb(NULL, 0);
     }
 }
 
@@ -373,7 +370,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	}
 
         gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(0);
+        tcg_gen_exit_tb(NULL, 0);
     } else {
         switch (ctx.bstate) {
         case BS_STOP:
@@ -390,13 +387,13 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
 	    //  tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
 	    //  //tcg_gen_movi_tl (cpu_pc, ctx.npc);
 	      gen_gotoi_tb(&ctx, 0, ctx.npc);
-	    //tcg_gen_exit_tb(0);
+	    //tcg_gen_exit_tb(NULL, 0);
 	    //  gen_set_label (skip_fallthrough);
 	    }
 	    break;
         case BS_EXCP:
 	case BS_BRANCH_HW_LOOP:
-            tcg_gen_exit_tb(0);
+            tcg_gen_exit_tb(NULL, 0);
             break;
         default:
             break;

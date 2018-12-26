@@ -39,6 +39,8 @@
 #define TARGET_VIRT_ADDR_SPACE_BITS 32
 #define NB_MMU_MODES                1
 
+#define CPU_RESOLVING_TYPE TYPE_ARC_CPU
+
 #define MMU_IDX                     0
 
 #define PHYS_BASE_RAM               0x00000000

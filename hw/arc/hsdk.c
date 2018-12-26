@@ -44,13 +44,8 @@ static void hsdk_init(MachineState *machine)
     ARCCPU *cpu = NULL;
     int n;
 
-    if (strncmp(machine->cpu_model, "archs", 8)) {
-        fprintf(stderr, "Expected archs got %s!\n", machine->cpu_model);
-        exit(1);
-    }
-
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (cpu_generic_init (TYPE_ARC_CPU, machine->cpu_model));
+        cpu = ARC_CPU (object_new (TYPE_ARC_CPU));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
@@ -76,7 +71,7 @@ static void hsdk_init(MachineState *machine)
     memory_region_add_subregion(system_memory, HSDK_IO_BASE, system_io);
 
     serial_mm_init(system_io, HSDK_UART0_OFFSET, 2, cpu->env.irq[46],
-                   115200, serial_hds[0], DEVICE_NATIVE_ENDIAN);
+                   115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
 
     arc_load_kernel(cpu, HSDK_RAM_BASE, HSDK_RAM_SIZE, kernel_filename);
 }
