@@ -19,6 +19,7 @@
  */
 
 #include "qemu/osdep.h"
+#include "qemu/error-report.h"
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "exec/ioport.h"
@@ -275,7 +276,11 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
     default:
       if(aux_reg_detail->aux_reg->set_func != NULL)
         aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
-      cpu_outl(aux, val);
+      else {
+        error_report("Attempt to write defined but not really implemented AUX register 0x%03x, aborting",
+        aux);
+        exit(1);
+      }
       break;
     }
     cpu_outl(aux, val);
@@ -504,8 +509,11 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
     default:
       if(aux_reg_detail->aux_reg->get_func != NULL)
 	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
-      else
-	result = cpu_inl(aux);
+      else {
+        error_report("Attempt to read defined but not really implemented AUX register 0x%03x, aborting",
+        aux);
+        exit(1);
+      }
       break;
     }
 
