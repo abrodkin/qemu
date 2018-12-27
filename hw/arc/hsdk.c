@@ -21,12 +21,30 @@
 #include "exec/address-spaces.h"
 #include "hw/arc/cpudevs.h"
 #include "hw/sysbus.h"
+#include "bcr.h"
 
 #define HSDK_RAM_BASE		0x80000000
 #define HSDK_RAM_SIZE		0x80000000
 #define HSDK_IO_BASE		0xf0000000
 #define HSDK_IO_SIZE		0x10000000
 #define HSDK_UART0_OFFSET	0x5000
+
+
+#define BCR(A, VALUE) \
+      case A: \
+	return VALUE; \
+	break;
+static uint32_t
+arc_hsdk_get_bcr_value(uint32_t value)
+{
+  switch(value)
+    {
+#include "hsdk_bcr_table.def"
+      default:
+	return 0;
+    }
+}
+#undef BCR
 
 static void main_cpu_reset(void *opaque)
 {
@@ -51,11 +69,15 @@ static void hsdk_init(MachineState *machine)
             exit(1);
         }
 
+	/* Set callback to get BCR values for platform. */
+	default_get_bcr = arc_hsdk_get_bcr_value;
+
        /* Initialize internal devices.  */
         cpu_arc_pic_init (cpu);
         cpu_arc_clock_init (cpu);
 
         qemu_register_reset(main_cpu_reset, cpu);
+
         main_cpu_reset(cpu);
     }
 

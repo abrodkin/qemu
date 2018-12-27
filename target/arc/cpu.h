@@ -237,6 +237,9 @@ typedef struct CPUARCState {
   /* Fake register to keep track of the next pc. */
   uint32_t        npc_helper;
 
+  /* Keep a reference to BCR aux_reg for machine type. */
+  uint32_t (*get_bcr_value)(uint32_t aux_reg);
+
 } CPUARCState;
 
 /**
