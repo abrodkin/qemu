@@ -45,7 +45,7 @@ static void hsdk_init(MachineState *machine)
     int n;
 
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (object_new (TYPE_ARC_CPU));
+	cpu = ARC_CPU (cpu_create ("archs-" TYPE_ARC_CPU));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
