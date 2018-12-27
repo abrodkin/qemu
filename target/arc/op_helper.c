@@ -133,11 +133,26 @@ target_ulong helper_fls(CPUARCState *env, uint32_t src)
   return i;
 }
 
+static void
+report_aux_reg_error(uint32_t aux)
+{
+  if (((aux >= ARC_BCR1_START) && (aux <= ARC_BCR1_END)) ||
+      ((aux >= ARC_BCR2_START) && (aux <= ARC_BCR2_END)))
+    {
+      qemu_log_mask(LOG_UNIMP, "Undefined BCR 0x%03x\n", aux);
+    }
+
+  error_report("Undefined AUX register 0x%03x, aborting", aux);
+  exit(EXIT_FAILURE);
+}
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
   struct arc_aux_reg_detail *aux_reg_detail =
     arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+
+  if(aux_reg_detail == NULL)
+    report_aux_reg_error(aux);
 
   switch (aux_reg_detail->id)
     {
@@ -368,6 +383,9 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
   struct arc_aux_reg_detail *aux_reg_detail =
     arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+
+  if(aux_reg_detail == NULL)
+    report_aux_reg_error(aux);
 
   switch (aux_reg_detail->id)
     {
