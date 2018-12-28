@@ -292,9 +292,8 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       if(aux_reg_detail->aux_reg->set_func != NULL)
         aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
       else {
-        error_report("Attempt to write defined but not really implemented AUX register 0x%03x, aborting",
-        aux);
-        exit(1);
+	/* TODO: are lr and sr possible delayslot instructions ? */
+        do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
       }
       break;
     }
@@ -524,17 +523,12 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = env->irq_build;
       break;
 
-    case AUX_ID_unimp_bcr:
-      result = 0;
-      break;
-
     default:
       if(aux_reg_detail->aux_reg->get_func != NULL)
 	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
       else {
-        error_report("Attempt to read defined but not really implemented AUX register 0x%03x, aborting",
-        aux);
-        exit(1);
+	/* TODO: is lr and sr possible delayslot instructions ? */
+        do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
       }
       break;
     }
