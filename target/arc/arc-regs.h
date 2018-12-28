@@ -50,8 +50,7 @@ enum arc_aux_reg_enum
 enum arc_aux_reg_detail_enum
 {
   ARC_AUX_REGS_DETAIL_INVALID = -1,
-#define DEF(NUM, CPU, SUB, NAME) CPU##_##NUM,
-
+#define DEF(NUM, CPU, SUB, NAME) CPU##_##NAME,
 #include "arc-regs-detail.def"
 #undef DEF
   ARC_AUX_REGS_DETAIL_LAST
