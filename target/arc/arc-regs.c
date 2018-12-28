@@ -83,15 +83,33 @@ struct arc_aux_reg_detail *
 arc_aux_reg_struct_for_address(int address, int isa_mask)
 {
   int i;
+  bool has_default = false;
+  struct arc_aux_reg_detail *default_ret;
 
   /* TODO: Make this a binary search or something faster. */
   for(i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++) {
-    if ((arc_aux_regs_detail[i].cpu & isa_mask) != 0
-	&& arc_aux_regs_detail[i].address == address)
-    {
-      return &(arc_aux_regs_detail[i]);
-    }
+    if(arc_aux_regs_detail[i].address == address)
+      {
+	if (arc_aux_regs_detail[i].cpu == ARC_OPCODE_DEFAULT)
+	  {
+	    has_default = true;
+	    default_ret = &(arc_aux_regs_detail[i]);
+	  }
+	else if ((arc_aux_regs_detail[i].cpu & isa_mask) != 0)
+	  {
+	    return &(arc_aux_regs_detail[i]);
+	  }
+      }
   }
 
+  if(has_default == true)
+    return default_ret;
+
   return NULL;
+}
+
+uint32_t
+arc_regs_bcr_detault_impl (struct arc_aux_reg_detail *aux_reg, void *data)
+{
+  return 0;
 }

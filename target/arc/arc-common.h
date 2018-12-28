@@ -22,10 +22,11 @@
 
 enum arc_cpu_family {
   ARC_OPCODE_NONE    = 0,
-  ARC_OPCODE_ARC600  = 1 << 0,
-  ARC_OPCODE_ARC700  = 1 << 1,
-  ARC_OPCODE_ARCv2EM = 1 << 2,
-  ARC_OPCODE_ARCv2HS = 1 << 3
+  ARC_OPCODE_DEFAULT = 1 << 0,
+  ARC_OPCODE_ARC600  = 1 << 1,
+  ARC_OPCODE_ARC700  = 1 << 2,
+  ARC_OPCODE_ARCv2EM = 1 << 3,
+  ARC_OPCODE_ARCv2HS = 1 << 4
 };
 
 typedef struct {
