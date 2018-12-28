@@ -26,7 +26,7 @@
 
 /* FLAG
  *    Variables: @src
- *    Functions: getCCFlag, getRegister, getBit, Halt, targetHasOption, setRegister
+ *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, targetHasOption, setRegister
 --- code ---
 {
   cc_flag = getCCFlag ();
@@ -35,29 +35,32 @@
       status32 = getRegister (R_STATUS32);
       if(((getBit (@src, 0) == 1) && (getBit (status32, 7) == 0)))
         {
-          status32 = (status32 | 1);
-          Halt ();
+          if((hasInterrupts () > 0))
+            {
+              status32 = (status32 | 1);
+              Halt ();
+            };
         }
       else
         {
           status32 = (status32 | (@src & 3840));
-          if((getBit (status32, 7) == 0))
+          if(((getBit (status32, 7) == 0) && (hasInterrupts () > 0)))
             {
               status32 = (status32 | (@src & 30));
+              if(targetHasOption (DIV_REM_OPTION))
+                {
+                  status32 = (status32 | (@src & 8192));
+                };
+              if(targetHasOption (STACK_CHECKING))
+                {
+                  status32 = (status32 | (@src & 16384));
+                };
+              if(targetHasOption (LL64_OPTION))
+                {
+                  status32 = (status32 | (@src & 524288));
+                };
+              status32 = (status32 | (@src & 1048576));
             };
-          if(targetHasOption (DIV_REM_OPTION))
-            {
-              status32 = (status32 | (@src & 8192));
-            };
-          if(targetHasOption (STACK_CHECKING))
-            {
-              status32 = (status32 | (@src & 16384));
-            };
-          if(targetHasOption (LL64_OPTION))
-            {
-              status32 = (status32 | (@src & 524288));
-            };
-          status32 = (status32 | (@src & 1048576));
         };
       setRegister (R_STATUS32, status32);
     };
@@ -68,68 +71,78 @@ int
 arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
-  TCGv temp_9 = NULL /* REFERENCE */;
+  TCGv temp_13 = NULL /* REFERENCE */;
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_10 = NULL /* REFERENCE */;
+  TCGv temp_14 = NULL /* REFERENCE */;
   TCGv status32 = tcg_temp_local_new_i32();
-  TCGv temp_12 = tcg_temp_local_new_i32();
-  TCGv temp_11 = NULL /* REFERENCE */;
+  TCGv temp_16 = tcg_temp_local_new_i32();
+  TCGv temp_15 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
-  TCGv temp_14 = tcg_temp_local_new_i32();
-  TCGv temp_13 = NULL /* REFERENCE */;
+  TCGv temp_18 = tcg_temp_local_new_i32();
+  TCGv temp_17 = NULL /* REFERENCE */;
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_15 = tcg_temp_local_new_i32();
-  TCGv temp_17 = tcg_temp_local_new_i32();
-  TCGv temp_16 = NULL /* REFERENCE */;
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_18 = tcg_temp_local_new_i32();
   TCGv temp_19 = tcg_temp_local_new_i32();
-  TCGv temp_20 = tcg_temp_local_new_i32();
   TCGv temp_21 = tcg_temp_local_new_i32();
+  TCGv temp_20 = NULL /* REFERENCE */;
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_11 = tcg_temp_local_new_i32();
+  TCGv temp_12 = tcg_temp_local_new_i32();
   TCGv temp_22 = tcg_temp_local_new_i32();
-  temp_9 = getCCFlag();
-  tcg_gen_mov_i32(cc_flag, temp_9);
+  TCGv temp_23 = tcg_temp_local_new_i32();
+  TCGv temp_24 = tcg_temp_local_new_i32();
+  TCGv temp_25 = tcg_temp_local_new_i32();
+  TCGv temp_26 = tcg_temp_local_new_i32();
+  temp_13 = getCCFlag();
+  tcg_gen_mov_i32(cc_flag, temp_13);
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  temp_10 = getRegister(R_STATUS32);
-  tcg_gen_mov_i32(status32, temp_10);
+  temp_14 = getRegister(R_STATUS32);
+  tcg_gen_mov_i32(status32, temp_14);
   TCGLabel *else_2 = gen_new_label();
   TCGLabel *done_2 = gen_new_label();
-  tcg_gen_movi_i32(temp_12, 0);
-  temp_11 = getBit(src, temp_12);
-  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_3, temp_11, 1);
-  tcg_gen_movi_i32(temp_14, 7);
-  temp_13 = getBit(status32, temp_14);
-  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_4, temp_13, 0);
+  tcg_gen_movi_i32(temp_16, 0);
+  temp_15 = getBit(src, temp_16);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_3, temp_15, 1);
+  tcg_gen_movi_i32(temp_18, 7);
+  temp_17 = getBit(status32, temp_18);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_4, temp_17, 0);
   tcg_gen_and_i32(temp_5, temp_3, temp_4);
   tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, else_2);;
-  tcg_gen_ori_i32(status32, status32, 1);
-  Halt();
-  tcg_gen_br(done_2);
-  gen_set_label(else_2);
-  tcg_gen_andi_i32(temp_15, src, 3840);
-  tcg_gen_or_i32(status32, status32, temp_15);
   TCGLabel *done_3 = gen_new_label();
-  tcg_gen_movi_i32(temp_17, 7);
-  temp_16 = getBit(status32, temp_17);
-  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_7, temp_16, 0);
+  tcg_gen_setcondi_i32(TCG_COND_GT, temp_7, hasInterrupts(), 0);
   tcg_gen_xori_i32(temp_8, temp_7, 1); tcg_gen_andi_i32(temp_8, temp_8, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_8, arc_true, done_3);;
-  tcg_gen_andi_i32(temp_18, src, 30);
-  tcg_gen_or_i32(status32, status32, temp_18);
+  tcg_gen_ori_i32(status32, status32, 1);
+  Halt();
   gen_set_label(done_3);
+  tcg_gen_br(done_2);
+  gen_set_label(else_2);
+  tcg_gen_andi_i32(temp_19, src, 3840);
+  tcg_gen_or_i32(status32, status32, temp_19);
+  TCGLabel *done_4 = gen_new_label();
+  tcg_gen_movi_i32(temp_21, 7);
+  temp_20 = getBit(status32, temp_21);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_9, temp_20, 0);
+  tcg_gen_setcondi_i32(TCG_COND_GT, temp_10, hasInterrupts(), 0);
+  tcg_gen_and_i32(temp_11, temp_9, temp_10);
+  tcg_gen_xori_i32(temp_12, temp_11, 1); tcg_gen_andi_i32(temp_12, temp_12, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_12, arc_true, done_4);;
+  tcg_gen_andi_i32(temp_22, src, 30);
+  tcg_gen_or_i32(status32, status32, temp_22);
   if (targetHasOption (DIV_REM_OPTION))
     {
-    tcg_gen_andi_i32(temp_19, src, 8192);
-  tcg_gen_or_i32(status32, status32, temp_19);
+    tcg_gen_andi_i32(temp_23, src, 8192);
+  tcg_gen_or_i32(status32, status32, temp_23);
 ;
     }
   else
@@ -138,8 +151,8 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
     }
   if (targetHasOption (STACK_CHECKING))
     {
-    tcg_gen_andi_i32(temp_20, src, 16384);
-  tcg_gen_or_i32(status32, status32, temp_20);
+    tcg_gen_andi_i32(temp_24, src, 16384);
+  tcg_gen_or_i32(status32, status32, temp_24);
 ;
     }
   else
@@ -148,43 +161,245 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
     }
   if (targetHasOption (LL64_OPTION))
     {
-    tcg_gen_andi_i32(temp_21, src, 524288);
-  tcg_gen_or_i32(status32, status32, temp_21);
+    tcg_gen_andi_i32(temp_25, src, 524288);
+  tcg_gen_or_i32(status32, status32, temp_25);
 ;
     }
   else
     {
   ;
     }
-  tcg_gen_andi_i32(temp_22, src, 1048576);
-  tcg_gen_or_i32(status32, status32, temp_22);
+  tcg_gen_andi_i32(temp_26, src, 1048576);
+  tcg_gen_or_i32(status32, status32, temp_26);
+  gen_set_label(done_4);
   gen_set_label(done_2);
   setRegister(R_STATUS32, status32);
   gen_set_label(done_1);
-  if(temp_9 != NULL) tcg_temp_free(temp_9);
+  if(temp_13 != NULL) tcg_temp_free(temp_13);
   tcg_temp_free(cc_flag);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  if(temp_10 != NULL) tcg_temp_free(temp_10);
+  if(temp_14 != NULL) tcg_temp_free(temp_14);
   tcg_temp_free(status32);
-  tcg_temp_free(temp_12);
-  if(temp_11 != NULL) tcg_temp_free(temp_11);
+  tcg_temp_free(temp_16);
+  if(temp_15 != NULL) tcg_temp_free(temp_15);
   tcg_temp_free(temp_3);
-  tcg_temp_free(temp_14);
-  if(temp_13 != NULL) tcg_temp_free(temp_13);
+  tcg_temp_free(temp_18);
+  if(temp_17 != NULL) tcg_temp_free(temp_17);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_15);
-  tcg_temp_free(temp_17);
-  if(temp_16 != NULL) tcg_temp_free(temp_16);
   tcg_temp_free(temp_7);
   tcg_temp_free(temp_8);
-  tcg_temp_free(temp_18);
   tcg_temp_free(temp_19);
-  tcg_temp_free(temp_20);
   tcg_temp_free(temp_21);
+  if(temp_20 != NULL) tcg_temp_free(temp_20);
+  tcg_temp_free(temp_9);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_11);
+  tcg_temp_free(temp_12);
   tcg_temp_free(temp_22);
+  tcg_temp_free(temp_23);
+  tcg_temp_free(temp_24);
+  tcg_temp_free(temp_25);
+  tcg_temp_free(temp_26);
+
+  return ret;
+}
+
+
+
+
+
+/* KFLAG
+ *    Variables: @src
+ *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, targetHasOption, setRegister
+--- code ---
+{
+  cc_flag = getCCFlag ();
+  if((cc_flag == true))
+    {
+      status32 = getRegister (R_STATUS32);
+      if(((getBit (@src, 0) == 1) && (getBit (status32, 7) == 0)))
+        {
+          if((hasInterrupts () > 0))
+            {
+              status32 = (status32 | 1);
+              Halt ();
+            };
+        }
+      else
+        {
+          status32 = (status32 | (@src & 3840));
+          if(((getBit (status32, 7) == 0) && (hasInterrupts () > 0)))
+            {
+              status32 = (status32 | (@src & 62));
+              if(targetHasOption (DIV_REM_OPTION))
+                {
+                  status32 = (status32 | (@src & 8192));
+                };
+              if(targetHasOption (STACK_CHECKING))
+                {
+                  status32 = (status32 | (@src & 16384));
+                };
+              status32 = (status32 | (@src & 65536));
+              if(targetHasOption (LL64_OPTION))
+                {
+                  status32 = (status32 | (@src & 524288));
+                };
+              status32 = (status32 | (@src & 1048576));
+              status32 = (status32 | (@src & 2147483648));
+            };
+        };
+      setRegister (R_STATUS32, status32);
+    };
+}
+ */
+
+int
+arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
+{
+  int ret = BS_NONE;
+  TCGv temp_13 = NULL /* REFERENCE */;
+  TCGv cc_flag = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_14 = NULL /* REFERENCE */;
+  TCGv status32 = tcg_temp_local_new_i32();
+  TCGv temp_16 = tcg_temp_local_new_i32();
+  TCGv temp_15 = NULL /* REFERENCE */;
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_18 = tcg_temp_local_new_i32();
+  TCGv temp_17 = NULL /* REFERENCE */;
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_19 = tcg_temp_local_new_i32();
+  TCGv temp_21 = tcg_temp_local_new_i32();
+  TCGv temp_20 = NULL /* REFERENCE */;
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  TCGv temp_11 = tcg_temp_local_new_i32();
+  TCGv temp_12 = tcg_temp_local_new_i32();
+  TCGv temp_22 = tcg_temp_local_new_i32();
+  TCGv temp_23 = tcg_temp_local_new_i32();
+  TCGv temp_24 = tcg_temp_local_new_i32();
+  TCGv temp_25 = tcg_temp_local_new_i32();
+  TCGv temp_26 = tcg_temp_local_new_i32();
+  TCGv temp_27 = tcg_temp_local_new_i32();
+  TCGv temp_28 = tcg_temp_local_new_i32();
+  temp_13 = getCCFlag();
+  tcg_gen_mov_i32(cc_flag, temp_13);
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  temp_14 = getRegister(R_STATUS32);
+  tcg_gen_mov_i32(status32, temp_14);
+  TCGLabel *else_2 = gen_new_label();
+  TCGLabel *done_2 = gen_new_label();
+  tcg_gen_movi_i32(temp_16, 0);
+  temp_15 = getBit(src, temp_16);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_3, temp_15, 1);
+  tcg_gen_movi_i32(temp_18, 7);
+  temp_17 = getBit(status32, temp_18);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_4, temp_17, 0);
+  tcg_gen_and_i32(temp_5, temp_3, temp_4);
+  tcg_gen_xori_i32(temp_6, temp_5, 1); tcg_gen_andi_i32(temp_6, temp_6, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_6, arc_true, else_2);;
+  TCGLabel *done_3 = gen_new_label();
+  tcg_gen_setcondi_i32(TCG_COND_GT, temp_7, hasInterrupts(), 0);
+  tcg_gen_xori_i32(temp_8, temp_7, 1); tcg_gen_andi_i32(temp_8, temp_8, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_8, arc_true, done_3);;
+  tcg_gen_ori_i32(status32, status32, 1);
+  Halt();
+  gen_set_label(done_3);
+  tcg_gen_br(done_2);
+  gen_set_label(else_2);
+  tcg_gen_andi_i32(temp_19, src, 3840);
+  tcg_gen_or_i32(status32, status32, temp_19);
+  TCGLabel *done_4 = gen_new_label();
+  tcg_gen_movi_i32(temp_21, 7);
+  temp_20 = getBit(status32, temp_21);
+  tcg_gen_setcondi_i32(TCG_COND_EQ, temp_9, temp_20, 0);
+  tcg_gen_setcondi_i32(TCG_COND_GT, temp_10, hasInterrupts(), 0);
+  tcg_gen_and_i32(temp_11, temp_9, temp_10);
+  tcg_gen_xori_i32(temp_12, temp_11, 1); tcg_gen_andi_i32(temp_12, temp_12, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_12, arc_true, done_4);;
+  tcg_gen_andi_i32(temp_22, src, 62);
+  tcg_gen_or_i32(status32, status32, temp_22);
+  if (targetHasOption (DIV_REM_OPTION))
+    {
+    tcg_gen_andi_i32(temp_23, src, 8192);
+  tcg_gen_or_i32(status32, status32, temp_23);
+;
+    }
+  else
+    {
+  ;
+    }
+  if (targetHasOption (STACK_CHECKING))
+    {
+    tcg_gen_andi_i32(temp_24, src, 16384);
+  tcg_gen_or_i32(status32, status32, temp_24);
+;
+    }
+  else
+    {
+  ;
+    }
+  tcg_gen_andi_i32(temp_25, src, 65536);
+  tcg_gen_or_i32(status32, status32, temp_25);
+  if (targetHasOption (LL64_OPTION))
+    {
+    tcg_gen_andi_i32(temp_26, src, 524288);
+  tcg_gen_or_i32(status32, status32, temp_26);
+;
+    }
+  else
+    {
+  ;
+    }
+  tcg_gen_andi_i32(temp_27, src, 1048576);
+  tcg_gen_or_i32(status32, status32, temp_27);
+  tcg_gen_andi_i32(temp_28, src, 2147483648);
+  tcg_gen_or_i32(status32, status32, temp_28);
+  gen_set_label(done_4);
+  gen_set_label(done_2);
+  setRegister(R_STATUS32, status32);
+  gen_set_label(done_1);
+  if(temp_13 != NULL) tcg_temp_free(temp_13);
+  tcg_temp_free(cc_flag);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+  if(temp_14 != NULL) tcg_temp_free(temp_14);
+  tcg_temp_free(status32);
+  tcg_temp_free(temp_16);
+  if(temp_15 != NULL) tcg_temp_free(temp_15);
+  tcg_temp_free(temp_3);
+  tcg_temp_free(temp_18);
+  if(temp_17 != NULL) tcg_temp_free(temp_17);
+  tcg_temp_free(temp_4);
+  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_6);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_19);
+  tcg_temp_free(temp_21);
+  if(temp_20 != NULL) tcg_temp_free(temp_20);
+  tcg_temp_free(temp_9);
+  tcg_temp_free(temp_10);
+  tcg_temp_free(temp_11);
+  tcg_temp_free(temp_12);
+  tcg_temp_free(temp_22);
+  tcg_temp_free(temp_23);
+  tcg_temp_free(temp_24);
+  tcg_temp_free(temp_25);
+  tcg_temp_free(temp_26);
+  tcg_temp_free(temp_27);
+  tcg_temp_free(temp_28);
 
   return ret;
 }
@@ -4174,18 +4389,18 @@ arc2_gen_MPYUW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 
 /* MPYW
  *    Variables: @a, @b, @c
- *    Functions: getCCFlag, arithmeticShiftRight, getFFlag, setZFlag, setNFlag, setVFlag
+ *    Functions: getCCFlag, getFFlag, setZFlag, setNFlag, setVFlag
 --- code ---
 {
   cc_flag = getCCFlag ();
   if((cc_flag == true))
     {
-      @a = (arithmeticShiftRight ((@b << 16), 16) * arithmeticShiftRight ((@c << 16), 16));
+      @a = ((@b * @c) & 4294967295);
       if((getFFlag () == true))
         {
           setZFlag (@a);
-          setNFlag (@a);
-          setVFlag (@a);
+          setNFlag (0);
+          setVFlag (0);
         };
     };
 }
@@ -4199,57 +4414,42 @@ arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_13 = tcg_temp_local_new_i32();
-  TCGv temp_12 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_11 = NULL /* REFERENCE */;
-  TCGv temp_10 = tcg_temp_local_new_i32();
-  TCGv temp_14 = NULL /* REFERENCE */;
+  TCGv temp_7 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
   temp_5 = getCCFlag();
   tcg_gen_mov_i32(cc_flag, temp_5);
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  tcg_gen_movi_i32(temp_13, 16);
-  tcg_gen_shli_i32(temp_12, c, 16);
-  tcg_gen_movi_i32(temp_9, 16);
-  tcg_gen_shli_i32(temp_8, b, 16);
-  temp_7 = arithmeticShiftRight(temp_8, temp_9);
-  tcg_gen_mov_i32(temp_6, temp_7);
-  temp_11 = arithmeticShiftRight(temp_12, temp_13);
-  tcg_gen_mov_i32(temp_10, temp_11);
-  tcg_gen_mul_i32(a, temp_6, temp_10);
+  tcg_gen_mul_i32(temp_6, b, c);
+  tcg_gen_andi_i32(a, temp_6, 4294967295);
   TCGLabel *done_2 = gen_new_label();
-  temp_14 = getFFlag();
-  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_14, arc_true);
+  temp_7 = getFFlag();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_3, temp_7, arc_true);
   tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
-  setNFlag(a);
-  setVFlag(a);
+  tcg_gen_movi_i32(temp_8, 0);
+  setNFlag(temp_8);
+  tcg_gen_movi_i32(temp_9, 0);
+  setVFlag(temp_9);
   gen_set_label(done_2);
   gen_set_label(done_1);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(cc_flag);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
-  tcg_temp_free(temp_13);
-  tcg_temp_free(temp_12);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
-  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  if(temp_11 != NULL) tcg_temp_free(temp_11);
-  tcg_temp_free(temp_10);
-  if(temp_14 != NULL) tcg_temp_free(temp_14);
+  if(temp_7 != NULL) tcg_temp_free(temp_7);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_9);
 
   return ret;
 }
