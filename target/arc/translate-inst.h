@@ -329,6 +329,8 @@ TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2);
 #define hasInterrupts() \
   to_implement_wo_abort(ctx)
 
+#define doNothing()
+
 bool arc2_target_has_option(enum target_options option);
 #define targetHasOption(OPTION) \
   arc2_target_has_option(OPTION)

@@ -1737,6 +1737,8 @@ int arc_decode (DisasCtxt *ctx)
       switch(mapping)
         {
 
+#define SEMANTIC_FUNCTION_CALL_0(NAME, A) \
+  arc2_gen_##NAME (ctx);
 #define SEMANTIC_FUNCTION_CALL_1(NAME, A) \
   arc2_gen_##NAME (ctx, ops[A]);
 #define SEMANTIC_FUNCTION_CALL_2(NAME, A, B) \
@@ -1752,6 +1754,10 @@ int arc_decode (DisasCtxt *ctx)
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
+#undef SEMANTIC_FUNCTION_CALL_0
+#undef SEMANTIC_FUNCTION_CALL_1
+#undef SEMANTIC_FUNCTION_CALL_2
+#undef SEMANTIC_FUNCTION_CALL_3
 
         case MAP_swi_SWI:
         case MAP_swi_s_SWI:

@@ -4009,6 +4009,27 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 
 
 
+/* NOP
+ *    Variables:
+ *    Functions: doNothing
+--- code ---
+{
+  doNothing ();
+}
+ */
+
+int
+arc2_gen_NOP (DisasCtxt *ctx)
+{
+  int ret = BS_NONE;
+
+  return ret;
+}
+
+
+
+
+
 /* MPY
  *    Variables: @b, @c, @a
  *    Functions: getCCFlag, getFFlag, HELPER, setZFlag, setNFlag, setVFlag

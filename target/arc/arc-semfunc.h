@@ -31,6 +31,8 @@
 #define BYTE 1
 #define WORD 2
 
+#define SEMANTIC_FUNCTION_PROTOTYPE_0(NAME) \
+  int arc2_gen_##NAME (DisasCtxt *);
 #define SEMANTIC_FUNCTION_PROTOTYPE_1(NAME) \
   int arc2_gen_##NAME (DisasCtxt *, TCGv);
 #define SEMANTIC_FUNCTION_PROTOTYPE_2(NAME) \
@@ -45,6 +47,7 @@
 #include "arc-semfunc_mapping.h"
 
 #undef MAPPING
+#undef SEMANTIC_FUNCTION_PROTOTYPE_0
 #undef SEMANTIC_FUNCTION_PROTOTYPE_1
 #undef SEMANTIC_FUNCTION_PROTOTYPE_2
 #undef SEMANTIC_FUNCTION_PROTOTYPE_3
