@@ -113,3 +113,13 @@ arc_regs_bcr_detault_impl (struct arc_aux_reg_detail *aux_reg, void *data)
 {
   return 0;
 }
+
+/* TODO: Implement any non implemented auxs regs. */
+void TO_IMPLEMENT_SET(struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data)
+{
+  return;
+}
+uint32_t TO_IMPLEMENT_GET(struct arc_aux_reg_detail *aux_reg, void *data)
+{
+  return 0;
+}
