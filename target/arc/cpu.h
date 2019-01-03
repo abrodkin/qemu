@@ -39,6 +39,8 @@
 #define TARGET_VIRT_ADDR_SPACE_BITS 32
 #define NB_MMU_MODES                1
 
+#define ARC_CPU_TYPE_SUFFIX "-" TYPE_ARC_CPU
+#define ARC_CPU_TYPE_NAME(model) model ARC_CPU_TYPE_SUFFIX
 #define CPU_RESOLVING_TYPE TYPE_ARC_CPU
 
 #define MMU_IDX                     0

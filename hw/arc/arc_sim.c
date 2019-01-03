@@ -91,7 +91,7 @@ static void arc_sim_init(MachineState *machine)
     int n;
 
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (cpu_create ("archs-" TYPE_ARC_CPU));
+        cpu = ARC_CPU (cpu_create (machine->cpu_type));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
@@ -131,6 +131,7 @@ static void arc_sim_machine_init(MachineClass *mc)
     mc->init = arc_sim_init;
     mc->max_cpus = 1;
     mc->is_default = 1;
+    mc->default_cpu_type = ARC_CPU_TYPE_NAME("archs");
 }
 
 DEFINE_MACHINE("arc-sim", arc_sim_machine_init)
