@@ -4421,7 +4421,7 @@ arc2_gen_MPYUW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
         {
           setZFlag (@a);
           setNFlag (@a);
-          setVFlag (@a);
+          setVFlag (0);
         };
     };
 }
@@ -4446,6 +4446,7 @@ arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv temp_14 = NULL /* REFERENCE */;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_15 = tcg_temp_local_new_i32();
   temp_5 = getCCFlag();
   tcg_gen_mov_i32(cc_flag, temp_5);
   TCGLabel *done_1 = gen_new_label();
@@ -4468,7 +4469,8 @@ arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
   setZFlag(a);
   setNFlag(a);
-  setVFlag(a);
+  tcg_gen_movi_i32(temp_15, 0);
+  setVFlag(temp_15);
   gen_set_label(done_2);
   gen_set_label(done_1);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
@@ -4486,6 +4488,7 @@ arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   if(temp_14 != NULL) tcg_temp_free(temp_14);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
+  tcg_temp_free(temp_15);
 
   return ret;
 }

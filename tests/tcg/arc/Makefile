@@ -52,7 +52,7 @@ TESTCASES += check_mmu.tst
 TESTCASES += check_excp_mmu.tst
 TESTCASES += check_timer0.tst
 TESTCASES += check_swirq.tst
-TESTCASES += check_mpy.tst
+TESTCASES += check_mpyw.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o
