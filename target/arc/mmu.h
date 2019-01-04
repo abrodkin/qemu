@@ -33,6 +33,8 @@
 #define PD0_S   0x80000000      /* Shared Library ASID */
 #define PD0_FLG (PD0_G | PD0_V | PD0_SZ | PD0_L)
 
+#define PD0_ASID_MATCH 0x0000001f
+
 /* PD1 permission bits */
 #define PD1_PPN 0xfffff000      /* Cached */
 #define PD1_FC  0x00000001      /* Cached */
@@ -70,7 +72,9 @@ enum mmu_access_type {
 struct arc_tlb_e {
   // TLB entry is {PD0,PD1} tuple, kept "unpacked" to avoid bit fiddling
   // flags includes both PD0 flags and PD1 permissions
-  uint32_t flags, asid, vpn, pfn;
+  // NOTE: Do not touch this without talking to me. Cupertino
+  //uint32_t flags, asid;
+  uint32_t pd0, pd1;
 };
 
 #define RAISE_MMU_EXCEPTION(ENV) { \
