@@ -190,12 +190,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
     case AUX_ID_aux_macmode:
       break;
 
-    case AUX_ID_aux_irq_lv12:
-      break;
-
-    case AUX_ID_aux_irq_lev:
-      break;
-
     case AUX_ID_eret:
       env->eret = val;
       break;
@@ -215,18 +209,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       env->efa = val;
       break;
 
-    case AUX_ID_icause1:
-      break;
-
-    case AUX_ID_icause2:
-      break;
-
-    case AUX_ID_aux_ienable:
-      break;
-
-    case AUX_ID_aux_itrigger:
-      break;
-
     case AUX_ID_bta:
       break;
 
@@ -234,12 +216,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       break;
 
     case AUX_ID_bta_l2:
-      break;
-
-    case AUX_ID_aux_irq_pulse_cancel:
-      break;
-
-    case AUX_ID_aux_irq_pending:
       break;
 
     case AUX_ID_control0:
@@ -276,16 +252,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       break;
 
     case AUX_ID_irq_build:
-      break;
-
-    case AUX_ID_aux_irq_hint:
-      qemu_mutex_lock_iothread ();
-      if (val == 0)
-        qemu_irq_lower (env->irq[env->aux_irq_hint]);
-      else
-        qemu_irq_raise (env->irq[val]);
-      env->aux_irq_hint = val;
-      qemu_mutex_unlock_iothread ();
       break;
 
     default:
@@ -438,9 +404,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
     case AUX_ID_aux_irq_lev:
       break;
 
-    case AUX_ID_aux_irq_hint:
-      break;
-
     case AUX_ID_eret:
       result = env->eret;
       break;
@@ -461,18 +424,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = env->efa;
       break;
 
-    case AUX_ID_icause1:
-      break;
-
-    case AUX_ID_icause2:
-      break;
-
-    case AUX_ID_aux_ienable:
-      break;
-
-    case AUX_ID_aux_itrigger:
-      break;
-
     case AUX_ID_bta:
       result = env->bta;
       break;
@@ -483,12 +434,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
     case AUX_ID_bta_l2:
       result = env->bta_l2;
-      break;
-
-    case AUX_ID_aux_irq_pulse_cancel:
-      break;
-
-    case AUX_ID_aux_irq_pending:
       break;
 
     case AUX_ID_control0:
