@@ -33,15 +33,22 @@ static uint32_t get_status32_internal (status_t *status_r)
 {
   uint32_t res = 0x00000000;
 
-  res |= (status_r->Lf) ? BIT(12) : 0;
-  res |= (status_r->Zf) ? BIT(11) : 0;
-  res |= (status_r->Nf) ? BIT(10) : 0;
-  res |= (status_r->Cf) ? BIT(9)  : 0;
-  res |= (status_r->Vf) ? BIT(8)  : 0;
-  res |= (status_r->Uf) ? BIT(7)  : 0;
-  res |= (status_r->DEf) ? BIT(6)  : 0;
-  res |= (status_r->AEf) ? BIT(5)  : 0;
-  res |= (status_r->Ef) << 1;
+  res |= (status_r->IEf & 0x1) << 31;
+  res |= (status_r->USf & 0x1) << 20;
+  res |= (status_r->ADf & 0x1) << 19;
+  res |= (status_r->RBf & 0x7) << 16;
+  res |= (status_r->ESf & 0x1) << 15;
+  res |= (status_r->SCf & 0x1) << 14;
+  res |= (status_r->DZf & 0x1) << 13;
+  res |= (status_r->Lf  & 0x1) << 12;
+  res |= (status_r->Zf  & 0x1) << 11;
+  res |= (status_r->Nf  & 0x1) << 10;
+  res |= (status_r->Cf  & 0x1) << 9;
+  res |= (status_r->Vf  & 0x1) << 8;
+  res |= (status_r->Uf  & 0x1) << 7;
+  res |= (status_r->DEf & 0x1) << 6;
+  res |= (status_r->AEf & 0x1) << 5;
+  res |= (status_r->Ef  & 0xf) << 1;
 
   return res;
 }
@@ -57,6 +64,28 @@ static uint32_t get_status32 (CPUARCState *env)
 
   return res;
 }
+
+static void set_status32(CPUARCState *env, target_ulong value)
+{
+  env->stat.IEf = ((value >> 31) & 0x1);
+  env->stat.USf = ((value >> 20) & 0x1);
+  env->stat.ADf = ((value >> 19) & 0x1);
+  env->stat.RBf = ((value >> 16) & 0x7);
+  env->stat.ESf = ((value >> 15) & 0x1);
+  env->stat.SCf = ((value >> 14) & 0x1);
+  env->stat.DZf = ((value >> 13) & 0x1);
+  env->stat.Lf  = ((value >> 12) & 0x1);
+  env->stat.Zf  = ((value >> 11) & 0x1);
+  env->stat.Nf  = ((value >> 10) & 0x1);
+  env->stat.Cf  = ((value >> 9)  & 0x1);
+  env->stat.Vf  = ((value >> 8)  & 0x1);
+  env->stat.Uf  = ((value >> 7)  & 0x1);
+  env->stat.DEf = ((value >> 6)  & 0x1);
+  env->stat.AEf = ((value >> 5)  & 0x1);
+  env->stat.Ef  = ((value >> 1)  & 0xf);
+  //env->stat.Hf  = ((value >> 0)  & 0x1);
+}
+
 
 static uint32_t get_status32_l1 (CPUARCState *env)
 {
@@ -76,7 +105,10 @@ uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
 {
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);
   if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+  {
+    env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
+  }
   return ret;
 }
 
@@ -84,7 +116,10 @@ uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
 {
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
   if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+  {
+    env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
+  }
   return ret;
 }
 
@@ -175,6 +210,7 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       break;
 
     case AUX_ID_status32:
+      set_status32(env, val);
       break;
 
     case AUX_ID_status32_l1:
@@ -205,9 +241,9 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       env->ecr = val;
       break;
 
-    case AUX_ID_efa:
-      env->efa = val;
-      break;
+    //case AUX_ID_efa:
+    //  env->efa = val;
+    //  break;
 
     case AUX_ID_bta:
       break;
@@ -284,35 +320,21 @@ static target_ulong get_status(CPUARCState *env)
     return res;
 }
 
-static void set_status32(CPUARCState *env, target_ulong value)
-{
-  env->stat.Lf = ((value >> 12) & 1);
-  env->stat.Zf = ((value >> 11) & 1);
-  env->stat.Nf = ((value >> 10) & 1);
-  env->stat.Cf = ((value >> 9)  & 1);
-  env->stat.Vf = ((value >> 8)  & 1);
-  env->stat.Uf = ((value >> 7)  & 1);
-  env->stat.DEf = ((value >> 6) & 1);
-  env->stat.AEf = ((value >> 5) & 1);
-  env->stat.Ef = (value >> 1) & 0x0f;
-}
-
-
 static target_ulong get_debug(CPUARCState *env)
 {
-    target_ulong res = 0x00000000;
+  target_ulong res = 0x00000000;
 
-    res |= (env->debug.LD) ? BIT(31) : 0;
-    res |= (env->debug.SH) ? BIT(30) : 0;
-    res |= (env->debug.BH) ? BIT(29) : 0;
-    res |= (env->debug.UB) ? BIT(28) : 0;
-    res |= (env->debug.ZZ) ? BIT(27) : 0;
-    res |= (env->debug.RA) ? BIT(22) : 0;
-    res |= (env->debug.IS) ? BIT(11) : 0;
-    res |= (env->debug.FH) ? BIT(1)  : 0;
-    res |= (env->debug.SS) ? BIT(0)  : 0;
+  res |= (env->debug.LD) ? BIT(31) : 0;
+  res |= (env->debug.SH) ? BIT(30) : 0;
+  res |= (env->debug.BH) ? BIT(29) : 0;
+  res |= (env->debug.UB) ? BIT(28) : 0;
+  res |= (env->debug.ZZ) ? BIT(27) : 0;
+  res |= (env->debug.RA) ? BIT(22) : 0;
+  res |= (env->debug.IS) ? BIT(11) : 0;
+  res |= (env->debug.FH) ? BIT(1)  : 0;
+  res |= (env->debug.SS) ? BIT(0)  : 0;
 
-    return res;
+  return res;
 }
 
 static target_ulong get_identity(CPUARCState *env)

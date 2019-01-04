@@ -129,6 +129,8 @@ uint32_t
 arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t vaddr, enum mmu_access_type rwe);
 
+uint32_t arc_mmu_page_address_for(uint32_t vaddr);
+
 void arc_mmu_init(struct arc_mmu *mmu);
 
 #endif /* ARC_MMU_H */

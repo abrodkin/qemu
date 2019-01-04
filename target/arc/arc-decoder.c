@@ -1477,6 +1477,11 @@ read_and_decode_context (DisasCtxt *ctx,
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
   uint32_t cpc_phy_addr = arc_mmu_translate(ctx->env, ctx->cpc, MMU_MEM_FETCH);
+  //if((enum exception_code_list) ctx->env->mmu.exception.number != EXCP_NO_EXCEPTION)
+  //{
+  //  ctx->env->efa = arc_mmu_page_address_for(ctx->cpc);
+  //  RAISE_MMU_EXCEPTION(ctx->env);
+  //}
   buffer[0] = cpu_lduw_code(ctx->env, cpc_phy_addr);
   length = arc_insn_length (buffer[0], ctx->env->family);
 

@@ -338,6 +338,11 @@ tlb_miss_exception:
     }
 }
 
+uint32_t arc_mmu_page_address_for(uint32_t vaddr)
+{
+  return VPN(vaddr);
+}
+
 void arc_mmu_init(struct arc_mmu *mmu)
 {
   mmu->enabled = 0;
