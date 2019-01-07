@@ -16,8 +16,8 @@ start
 ;  0xa0a87000    - 0x58000000<<1  = 0xf0a87000
 ;sub1_flags_test 0xa0a87000, 0x58000000, 0xf0a87000, z=0, n=1, c=1, v=0
 
-;  0xa0a87000    - 0xb0000000     = 0xf0a87000
-sub1_flags_test 0xa0000000, 0x58000000, 0xf0000000, z=0, n=1, c=1, v=0
+;  0xa0a87000 - 0x58000000  = 0xf0000000
+sub1_flags_test 0xa0000000, 0x58000000, 0xf0000000, z=0, n=1, c=0, v=0
 
 
 print "Ret:0"        ; we have survived all the asserts
