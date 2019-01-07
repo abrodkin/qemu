@@ -28,6 +28,7 @@
 #include "mmu.h"
 #include "hw/arc/cpudevs.h"
 #include "qemu/main-loop.h"
+#include "irq.h"
 
 static uint32_t get_status32_internal (status_t *status_r)
 {
@@ -508,7 +509,7 @@ void helper_halt(CPUARCState *env)
     /* TODO: implement */
 }
 
-void helper_rtie(CPUARCState *env)
+void helper_rtie (CPUARCState *env)
 {
   if (env->stat.AEf)
     {
@@ -517,14 +518,9 @@ void helper_rtie(CPUARCState *env)
       env->bta = env->erbta;
     }
   else
-    {
-      /* clear the currently active irq env->aux_irq_act[p] = 0; */
-      /* restore SP when user land. */
-      CPU_PCL(env) = CPU_ILINK(env);
-      env->stat = env->stat_l1;
-    }
+    arc_rtie_interrupts (env);
 
-  qemu_log_mask(CPU_LOG_INT, "RTIE:0x%08x\n", env->r[63]);
+  qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE:0x%08x\n", env->r[63]);
 }
 
 void helper_flush(CPUARCState *env)

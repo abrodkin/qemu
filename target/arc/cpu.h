@@ -199,6 +199,7 @@ typedef struct CPUARCState {
   uint32_t icause[16]; /* Banked cause register.  */
   uint32_t aux_irq_hint; /* AUX register, used to trigger soft irq.  */
   uint32_t aux_user_sp;
+  uint32_t aux_irq_ctrl;
 
   /* Fields required by exception handling.  */
   uint32_t causecode;

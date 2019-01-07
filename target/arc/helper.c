@@ -107,68 +107,6 @@ void arc_cpu_do_interrupt (CPUState *cs)
       env->stat.AEf = 1;
       break;
     case EXCP_IRQ:
-      {
-	bool found = false;
-	qemu_log_mask (CPU_LOG_INT, "interrupt at pc=0x%08x\n", env->pc);
-	CPU_ILINK (env) = env->pc & 0xfffffffe;
-	env->stat_l1 = env->stat;
-
-	/* Find the first IRQ to serve.  */
-	priority = 0;
-	do
-	  {
-	    if ((env->timer[0].T_Cntrl & TMR_IP)
-		&& (((env->timer_build & TB_P0_MSK) >> 16) == priority))
-	      {
-		vectno = 0;
-		found = true;
-	      }
-	    else if ((env->timer[1].T_Cntrl & TMR_IP)
-		     && (((env->timer_build & TB_P1_MSK) >> 20) == priority))
-	      {
-		vectno = 1;
-		found  = true;
-	      }
-	    else
-	      {
-		for (vectno = 0;
-		     vectno < cpu->cfg.number_of_interrupts; vectno++)
-		  if (env->irq_bank[16 + vectno].priority == priority
-		      && env->irq_bank[16 + vectno].pending)
-		    {
-		      found = true;
-		      break;
-		    }
-	      }
-	  }
-	while (!found && ((++priority) < cpu->cfg.number_of_levels));
-
-	vectno += 16;
-	offset = vectno << 2;
-
-	/* Set the AUX_IRQ_ACT.  */
-	if ((env->aux_irq_act & 0xff) == 0)
-	  env->aux_irq_act = env->stat.Uf << 31;
-	env->aux_irq_act |= 1 << priority;
-
-	/* Set ICAUSE register.  */
-	env->icause[priority] = vectno;
-
-	/* Switch SP with AUX_SP.  */
-	if (env->stat.Uf)
-	{
-	    uint32_t tmp = env->aux_user_sp;
-	    env->aux_user_sp = env->r[28];
-	    env->r[28] = tmp;
-	}
-
-	/* CPU is switched to kernel mode.  */
-	env->stat.Uf = 0;
-
-	/* Cleanup pending bit.  */
-	env->irq_priority_pending &= ~(1 << priority);
-      }
-      break;
     default:
       cpu_abort(cs, "unhandled exception/irq type=%d\n",
 		cs->exception_index);

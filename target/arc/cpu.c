@@ -26,6 +26,7 @@
 #include "exec/log.h"
 #include "mmu.h"
 #include "hw/qdev-properties.h"
+#include "irq.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -60,7 +61,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("ecc-excp", ARCCPU, cfg.ecc_exception, false),
  DEFINE_PROP_UINT32 ("ext-irq", ARCCPU, cfg.external_interrupts, 128),
  DEFINE_PROP_UINT8 ("ecc-option", ARCCPU, cfg.ecc_option, -1),
- DEFINE_PROP_BOOL ("firq", ARCCPU, cfg.firq_option, false),
+ DEFINE_PROP_BOOL ("firq", ARCCPU, cfg.firq_option, true),
  DEFINE_PROP_BOOL ("fpu-dp", ARCCPU, cfg.fpu_dp_option, false),
  DEFINE_PROP_BOOL ("fpu-fma", ARCCPU, cfg.fpu_fma_option, false),
  DEFINE_PROP_BOOL ("fpu-div", ARCCPU, cfg.fpu_div_option, false),
@@ -90,7 +91,7 @@ static Property arc_properties[] =
  DEFINE_PROP_UINT32 ("pc-size", ARCCPU, cfg.pc_size, 32),
  DEFINE_PROP_UINT32 ("num-regs", ARCCPU, cfg.rgf_num_regs, 32),
  DEFINE_PROP_UINT32 ("banked-regs", ARCCPU, cfg.rgf_banked_regs, -1),
- DEFINE_PROP_UINT32 ("num-banks", ARCCPU, cfg.rgf_num_banks, -1),
+ DEFINE_PROP_UINT32 ("num-banks", ARCCPU, cfg.rgf_num_banks, 0),
  DEFINE_PROP_BOOL ("rtc-opt", ARCCPU, cfg.rtc_option, false),
  DEFINE_PROP_UINT32 ("rtt-featurelevel", ARCCPU, cfg.rtt_feature_level, -1),
  DEFINE_PROP_BOOL ("stack-check", ARCCPU, cfg.stack_checking, false),
@@ -269,33 +270,6 @@ static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
 static gchar *arc_gdb_arch_name(CPUState *cs)
 {
     return g_strdup("arc");
-}
-
-/* Check if we can interrupt the cpu.  */
-
-static bool arc_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
-{
-  ARCCPU *cpu = ARC_CPU (cs);
-  CPUARCState *env = &cpu->env;
-
-  /* Regular interrupts.  */
-  if ((env->stat.Hf == 0)
-      && (env->stat.IEf == 1)
-      && (env->stat.AEf == 0))
-    {
-      if ((interrupt_request & CPU_INTERRUPT_HARD)
-          /* The following condition is required to avoid successive
-           * triggering of the same ISR between acknowledge the
-           * interrupt and executing it.  FIXME! we may need to change
-           * it to accomodate nesting ISR.  */
-          && (env->irq_priority_pending))
-        {
-          cs->exception_index = EXCP_IRQ;
-          arc_cpu_do_interrupt (cs);
-          return true;
-        }
-    }
-  return false;
 }
 
 static void arc_cpu_class_init(ObjectClass *oc, void *data)
