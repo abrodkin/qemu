@@ -69,10 +69,9 @@ void arc_cpu_do_interrupt (CPUState *cs)
     case EXCP_DIVZERO:
     case EXCP_DCERROR:
     case EXCP_MALIGNED:
-      qemu_log_mask (CPU_LOG_INT, "exception %d at pc=0x%08x\n",
+      qemu_log_mask (CPU_LOG_INT, "[EXCP] exception %d at pc=0x%08x\n",
 		     cs->exception_index, env->pc);
 
-      env->stat_er = env->stat;
       /* If we take an exception within an exception => fatal Machine
 	 Check.  */
       if (env->stat.AEf == 1)
@@ -98,13 +97,21 @@ void arc_cpu_do_interrupt (CPUState *cs)
       env->ecr |= (env->param & 0xFF);
 
       /* 7. CPU is switched to kernel mode.  */
-      env->stat.Uf = 0;
+      env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
 
       /* 8. Interrupts are disabled.  */
       env->stat.IEf = 0;
 
       /* 9. The active exception flag is set.  */
       env->stat.AEf = 1;
+
+      /* 10-14. Other flags sets.  */
+      env->stat.Lf  = 1;
+      env->stat.Df  = 0;
+      env->stat.ESf = 0;
+      env->stat.DZf = 0;
+      env->stat.SCf = 0;
+
       break;
     case EXCP_IRQ:
     default:
@@ -113,11 +120,11 @@ void arc_cpu_do_interrupt (CPUState *cs)
       break;
     }
 
-  /* XX. The PC is set with the appropriate exception vector. */
+  /* 15. The PC is set with the appropriate exception vector. */
   env->pc = cpu_ldl_code (env, env->intvec + offset);
   CPU_PCL (env) = env->pc & 0xfffffffe;
 
-  qemu_log_mask(CPU_LOG_INT, "%s isr=%x vec=%x ecr=0x%08x\n",
+  qemu_log_mask(CPU_LOG_INT, "[EXCP] %s isr=%x vec=%x ecr=0x%08x\n",
 		__func__, env->pc, offset, env->ecr);
 
   cs->exception_index = -1;

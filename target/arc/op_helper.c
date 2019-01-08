@@ -513,9 +513,11 @@ void helper_rtie (CPUARCState *env)
 {
   if (env->stat.AEf)
     {
+      assert (env->stat.Uf == 0);
       CPU_PCL(env) = env->eret;
       env->stat = env->stat_er;
       env->bta = env->erbta;
+      /*FXME! banck selection if needed.  */
     }
   else
     arc_rtie_interrupts (env);

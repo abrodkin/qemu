@@ -1,7 +1,7 @@
  /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2016 Michael Rolnik
+ * Copyright (c) 2019
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
