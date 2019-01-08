@@ -107,7 +107,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
       /* 10-14. Other flags sets.  */
       env->stat.Lf  = 1;
-      env->stat.Df  = 0;
+      env->stat.DEf  = 0;
       env->stat.ESf = 0;
       env->stat.DZf = 0;
       env->stat.SCf = 0;
