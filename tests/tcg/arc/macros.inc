@@ -18,6 +18,8 @@ tn_\name:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+.equ   OUTPUT_DEVICE, 0x90000000      ; output device address in QEMU
+
 ; macro:     print
 ; input:     message - the string to be printed
 ; regs used: r11, r12
@@ -30,7 +32,6 @@ tn_\name:
 ;   last  but  not  least, this  macro   assumes   the   following
 ;   instructions already work: 'ldb.ab', 'breq', 'stb', 'j'
 .macro  print message
-  .equ   OUTPUT_DEVICE, 0x90000000      ; output device address in QEMU
 
   .data
   0000:
@@ -47,6 +48,83 @@ tn_\name:
   2222:
 .endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; macro:     swap_nibbles_32
+; input:     any positive number
+; result:    r12
+; regs used: r11, r12
+; example:   swap_nibbles_32 0x12345678  --> r12 = 0x87654321
+;
+; description:
+;   swaps all the nibles (4-bit digits) in a 32-bit long number
+;
+; caveat emptor:
+;   this  macro assumes the following instructions already work:
+;   'asl', 'lsr, 'breq', 'bnz', 'j'
+.macro  swap_nibbles_32  number
+  asl   r12, \number, 28
+  asl   r11, \number, 20
+  and   r11, r11, 0x0F000000
+  or    r12, r12, r11
+
+  asl   r11, \number, 12
+  and   r11, r11, 0x00F00000
+  or    r12, r12, r11
+  asl   r11, \number, 4
+  and   r11, r11, 0x000F0000
+  or    r12, r12, r11
+
+  lsr   r11, \number, 4
+  and   r11, r11, 0x0000F000
+  or    r12, r12, r11
+  lsr   r11, \number, 12
+  and   r11, r11, 0x00000F00
+  or    r12, r12, r11
+
+  lsr   r11, \number, 20
+  and   r11, r11, 0x000000F0
+  or    r12, r12, r11
+  lsr   r11, \number, 28
+  and   r11, r11, 0x0000000F
+  or    r12, r12, r11
+.endm
+
+; macro:     print_number
+; input:     BCD (Binary Coded Decimal) number
+; regs used: r11, r12
+; example:   print 0x123
+;            print 0x11       --> to print "11", DO NOT USE print 0xB
+;
+; description:
+;   given a number in BCD form (hexadecimal digits representing a
+;   decimal number), prints it to the output.
+;
+; caveat emptor:
+;   this macro uses relative lables. if the  code using this macro
+;   happens to use the same  relative lables, then  the  assembler
+;   will get confused. these labels are: '4444', '5555'
+;   last  but  not  least, this  macro   assumes   the   following
+;   instructions already work: 'asl', 'lsr, 'breq', 'bnz', 'j'
+.macro print_number  num
+
+  swap_nibbles_32 \num     ; i.e. mov r12, nible_swap(num)
+  ; if the input is 0, just go for printing (will print only one byte)
+  breq  r12, 0, @5555f
+  ; getting rid of trailing 0's
+  4444:
+  and.f 0, r12, 0x0F
+  bnz   @5555f
+  lsr   r12, r12, 4
+  j     @4444b
+
+  5555:
+  and   r11, r12, 0x0F
+  add   r11, r11, '0'
+  st    r11, [OUTPUT_DEVICE]
+  lsr.f r12, r12, 4
+  bnz   @5555b
+.endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -73,9 +151,7 @@ tn_\name:
   mov   r12, \b
   breq  r11, r12, @3333f
   print "Ret:"
-  mov   r11, \num
-  add   r11, r11, 0x30
-  st    r11, [OUTPUT_DEVICE]
+  print_number \num
   end
 3333:
 .endm
