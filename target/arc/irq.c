@@ -130,11 +130,16 @@ static uint32_t irq_pop (CPUARCState *env)
 
 static void arc_rtie_irq (CPUARCState *env)
 {
+  uint32_t tmp;
+
   assert ((env->aux_irq_act & 0xFFFF) != 0);
   assert (env->stat.AEf == 0);
 
   /* Clear currently active interrupt.  */
-  /* env->aux_irq_act &= ~(1 << P); */
+  tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
+  /* FIXME! I assume the current active interrupt is the one which is
+     the highest in the aux_irq_act register.  */
+  env->aux_irq_act &= ~(1 << tmp);
 
   qemu_log_mask (CPU_LOG_INT,
 		 "[IRQ] exit irq:%d U:%d AE:%d IE:%d E:%d\n",
@@ -356,6 +361,7 @@ uint32_t
 aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
+  uint32_t tmp;
 
   /* extract selected IRQ.  */
   const uint32_t irq = env->irq_select;
@@ -380,6 +386,18 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
 	      | irq_bank->enable << 4
 	      | irq_bank->trigger << 5
 	      | (irq_bank->pending | (env->aux_irq_hint == irq)) << 31);
+
+    case AUX_ID_aux_irq_act:
+      return env->aux_irq_act;
+
+    case AUX_ID_aux_irq_ctrl:
+      return env->aux_irq_ctrl;
+
+    case AUX_ID_icause:
+      if ((env->aux_irq_act & 0xffff) == 0)
+	return 0;
+      tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
+      return env->icause[tmp];
 
     default:
       break;
@@ -424,7 +442,7 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data)
       break;
 
     case AUX_ID_aux_irq_ctrl:
-      env->aux_irq_ctrl = val;
+      env->aux_irq_ctrl = val & 0x2e1f;
       break;
 
     case AUX_ID_irq_enable:
