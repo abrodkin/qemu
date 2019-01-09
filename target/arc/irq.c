@@ -104,13 +104,13 @@ static void arc_rtie_firq (CPUARCState *env)
   env->pc = CPU_ILINK (env);
 }
 
-static uint32_t irq_pop (CPUARCState *env)
+static uint32_t irq_pop (CPUARCState *env, const char *str)
 {
   uint32_t rval;
   rval = cpu_ldl_data (env, CPU_SP (env));
 
-  qemu_log_mask (CPU_LOG_INT, "[IRQ] Pop [SP:0x%08x] => 0x%08x\n",
-		 CPU_SP (env), rval);
+  qemu_log_mask (CPU_LOG_INT, "[IRQ] Pop [SP:0x%08x] => 0x%08x (%s)\n",
+		 CPU_SP (env), rval, str ? str : "unk");
   CPU_SP (env) += 4;
   return rval;
 }
@@ -132,7 +132,7 @@ static void arc_rtie_irq (CPUARCState *env)
 
   qemu_log_mask (CPU_LOG_INT,
 		 "[IRQ] exit irq:%d U:%d AE:%d IE:%d E:%d\n",
-		 -1, env->stat.Uf, env->stat.AEf, env->stat.IEf,
+		 env->icause[tmp], env->stat.Uf, env->stat.AEf, env->stat.IEf,
 		 env->stat.Ef);
 
   if (((env->aux_irq_act & 0xffff) == 0)
@@ -141,22 +141,25 @@ static void arc_rtie_irq (CPUARCState *env)
 
   /* Pop requested number of registers.  */
   uint32_t *save_reg_pair = save_reg_pair_32; /* FIXME! select rf16 when needed.  */
+  char regname[6];
   for (uint32_t i = 0; i < (env->aux_irq_ctrl & 0x1F); ++i)
     {
-      env->r[save_reg_pair[i]] = irq_pop (env);
-      env->r[save_reg_pair[i] + 1] = irq_pop (env);
+      sprintf (regname,"r%d",save_reg_pair[i]);
+      env->r[save_reg_pair[i]] = irq_pop (env, (const char *) regname);
+      sprintf (regname,"r%d",save_reg_pair[i] + 1);
+      env->r[save_reg_pair[i] + 1] = irq_pop (env, (const char *) regname);
     }
 
   /* Pop BLINK */
   if (env->aux_irq_ctrl & (1 << 9) && ((env->aux_irq_ctrl & 0x1F) != 16))
-    CPU_BLINK (env) = irq_pop (env);
+    CPU_BLINK (env) = irq_pop (env, "blink");
 
   /* Pop lp_end, lp_start, lp_count if aux_irq_ctrl.l bit is set.  */
   if (env->aux_irq_ctrl & (1 << 10))
     {
-      env->lpe = irq_pop (env);
-      env->lps = irq_pop (env);
-      CPU_LP (env) = irq_pop (env);
+      env->lpe = irq_pop (env, "LP_END");
+      env->lps = irq_pop (env, "LP_START");
+      CPU_LP (env) = irq_pop (env, "lp");
     }
 
   /* Pop EI_BASE, JLI_BASE, LDI_BASE if LP bit is set and Code Density
@@ -170,8 +173,8 @@ static void arc_rtie_irq (CPUARCState *env)
     }
 #endif
 
-  CPU_ILINK (env) = irq_pop (env); /* CPU PC*/
-  uint32_t tmp_stat = irq_pop (env); /* status. */
+  CPU_ILINK (env) = irq_pop (env, "PC"); /* CPU PC*/
+  uint32_t tmp_stat = irq_pop (env, "STATUS32"); /* status. */
 
   /* Late switch to Kernel SP if previously in User thread.  */
   if (((env->aux_irq_act & 0xffff) == 0)
@@ -218,11 +221,11 @@ static void arc_enter_firq (ARCCPU *cpu, uint32_t vector)
     }
 }
 
-static void irq_push (CPUARCState *env, uint32_t regval)
+static void irq_push (CPUARCState *env, uint32_t regval, const char *str)
 {
   CPU_SP (env) -= 4;
-  qemu_log_mask (CPU_LOG_INT, "[IRQ] Push [SP:0x%08x] <= 0x%08x\n",
-		 CPU_SP (env), regval);
+  qemu_log_mask (CPU_LOG_INT, "[IRQ] Push [SP:0x%08x] <= 0x%08x (%s)\n",
+		 CPU_SP (env), regval, str ? str : "unk");
   cpu_stl_data (env, CPU_SP (env), regval);
 }
 
@@ -243,38 +246,46 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
   CPU_ILINK (env) = env->pc & 0xfffffffe;
 
   /* Start pushing regs and stat.  */
-  irq_push (env, pack_status32 (&env->stat));
-  irq_push (env, env->pc);
+  irq_push (env, pack_status32 (&env->stat), "STATUS32");
+  irq_push (env, env->pc, "PC");
 
 
   /* Push EI_BASE, JLI_BASE, LDI_BASE if LP bit is set and Code Density
      feature is enabled */
   if (cpu->cfg.code_density && (env->aux_irq_ctrl & (1 << 13)))
     {
-      /* FIXME! irq_push (env, env->aux_jli_base); */
-      /* FIXME! irq_push (env, env->aux_ldi_base); */
-      /* FIXME! irq_push (env, env->aux_ei_base); */
+      /* FIXME! irq_push (env, env->aux_jli_base, "JLI_BASE"); */
+      /* FIXME! irq_push (env, env->aux_ldi_base, "LDI_BASE""); */
+      /* FIXME! irq_push (env, env->aux_ei_base, "EI_BASE"); */
     }
 
   /* Push LP_COUNT, LP_START, LP_END registers if required.  */
   if (env->aux_irq_ctrl & (1 << 10))
     {
-      irq_push (env, CPU_LP (env));
-      irq_push (env, env->lps);
-      irq_push (env, env->lpe);
+      irq_push (env, CPU_LP (env), "lp");
+      irq_push (env, env->lps, "LP_START");
+      irq_push (env, env->lpe, "LP_END");
     }
 
   /* Push BLINK register if required */
   if (env->aux_irq_ctrl & (1 << 9) && ((env->aux_irq_ctrl & 0x1F) != 16))
-    irq_push (env, CPU_BLINK (env));
+    irq_push (env, CPU_BLINK (env), "blink");
 
   /* Push selected AUX_IRQ_CTRL.NR of registers onto stack.  */
   uint32_t *save_reg_pair = cpu->cfg.rgf_num_regs == 32 ?
     save_reg_pair_32 : save_reg_pair_16;
-  for (uint32_t i = (env->aux_irq_ctrl & 0x1F); i > 0; --i)
+  const uint32_t regspair =(cpu->cfg.rgf_num_regs == 32 ? 16 : 8);
+  uint32_t upperlimit = (env->aux_irq_ctrl & 0x1F) / regspair;
+  upperlimit = upperlimit >= 1 ?
+    regspair : (env->aux_irq_ctrl & 0x1F);
+
+  char regname[6];
+  for (uint32_t i = upperlimit; i > 0; --i)
     {
-      irq_push (env, env->r[save_reg_pair[i-1] + 1]);
-      irq_push (env, env->r[save_reg_pair[i-1]]);
+      sprintf (regname,"r%d",save_reg_pair[i-1] + 1);
+      irq_push (env, env->r[save_reg_pair[i-1] + 1], (const char*) regname);
+      sprintf (regname,"r%d",save_reg_pair[i-1]);
+      irq_push (env, env->r[save_reg_pair[i-1]], (const char*) regname);
     }
 
   /* Late switch to Kernel SP if previously in User thread.  */
@@ -372,7 +383,7 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data)
       break;
 
     case AUX_ID_irq_priority:
-      irq_bank->priority = val; /* FIXME! check the irq priority ranges.  */
+      irq_bank->priority = val & 0x0f; /* FIXME! check the irq priority ranges.  */
       break;
 
     case AUX_ID_aux_irq_ctrl:
@@ -446,7 +457,7 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
 	      }
 	}
     }
-  while (!found && ((++priority) < cpu->cfg.number_of_levels));
+  while (!found && ((++priority) <= env->stat.Ef));
 
   /* No valid interrupt has been found. */
   if (!found)
