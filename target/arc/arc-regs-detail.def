@@ -409,7 +409,6 @@ DEF (0x6b, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0x6c, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0x6d, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0x6e, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
-DEF (0x6f, ARC_OPCODE_ARCv2HS,  NONE, mmu_build)
 DEF (0x6f, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0x70, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0x71, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
@@ -492,6 +491,12 @@ DEF (0xfd, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0xfe, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 DEF (0xff, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 
+/* Actual BCR implementations */
+
+DEF (0x6f, ARC_OPCODE_ARCv2HS,  NONE, mmu_build)
+DEF (0x75,  ARC_OPCODE_ARCALL,  NONE, timer_build)
+DEF (0xf3,  ARC_OPCODE_ARCV2,   NONE, irq_build)
+
 /* OLD BCR definitions */
 /*
 DEF (0x61,  ARC_OPCODE_ARCALL,  NONE, dccm_base_build)
@@ -511,11 +516,9 @@ DEF (0x6f,  ARC_OPCODE_ARCALL,  NONE, mmu_build)
 DEF (0x70,  ARC_OPCODE_ARCv2EM, NONE, sec_vecbase_build)
 DEF (0x71,  ARC_OPCODE_ARCALL,  NONE, vecbase_build)
 DEF (0x73,  ARC_OPCODE_ARCALL,  NONE, madi_build)
-DEF (0x75,  ARC_OPCODE_ARCALL,  NONE, timer_build)
 
 DEF (0xc1,  ARC_OPCODE_ARC600,  NONE, arc600_build_config)
 DEF (0xc2,  ARC_OPCODE_ARCALL,  NONE, isa_config)
-DEF (0xf3,  ARC_OPCODE_ARCV2,   NONE, irq_build)
 DEF (0xf4,  ARC_OPCODE_ARCALL,  NONE, hwp_build)
 DEF (0xf5,  ARC_OPCODE_ARCALL,  NONE, pct_build)
 DEF (0xf6,  ARC_OPCODE_ARCALL,  NONE, cc_build)

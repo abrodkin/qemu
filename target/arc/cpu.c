@@ -71,7 +71,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("has-mmu", ARCCPU, cfg.has_mmu, true),
  DEFINE_PROP_BOOL ("has-mpu", ARCCPU, cfg.has_mpu, false),
  DEFINE_PROP_BOOL ("timer0", ARCCPU, cfg.has_timer_0, true),
- DEFINE_PROP_BOOL ("timer1", ARCCPU, cfg.has_timer_1, false),
+ DEFINE_PROP_BOOL ("timer1", ARCCPU, cfg.has_timer_1, true),
  DEFINE_PROP_BOOL ("has-pct", ARCCPU, cfg.has_pct, false),
  DEFINE_PROP_BOOL ("has-rtt", ARCCPU, cfg.has_rtt, false),
  DEFINE_PROP_BOOL ("has-smart", ARCCPU, cfg.has_smart, false),

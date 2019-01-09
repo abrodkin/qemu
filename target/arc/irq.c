@@ -303,7 +303,7 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
 
 /* Function implementation for reading/writing aux regs.  */
 uint32_t
-aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
+aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
   uint32_t tmp;
@@ -312,7 +312,7 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
   const uint32_t irq = env->irq_select;
   const arc_irq_t *irq_bank = &env->irq_bank[irq];
 
-  switch (aux_reg->id)
+  switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_pending:
       return irq_bank->pending | (env->aux_irq_hint == irq);
@@ -344,6 +344,12 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
       tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
       return env->icause[tmp];
 
+    case AUX_ID_irq_build:
+      return env->irq_build;
+
+    case AUX_ID_timer_build:
+      return env->timer_build;
+
     default:
       break;
     }
@@ -351,13 +357,13 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg, void *data)
 }
 
 void
-aux_irq_set (struct arc_aux_reg_detail *aux_reg, uint32_t val, void *data)
+aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
   const uint32_t irq = env->irq_select;
   arc_irq_t *irq_bank = &env->irq_bank[irq];
 
-  switch (aux_reg->id)
+  switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_select:
       env->irq_select = val; /* FIXME! check against the IRQ configured range.	*/
