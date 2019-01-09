@@ -3988,6 +3988,155 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 
 
 
+/* CLRI
+ *    Variables: @c
+ *    Functions: getRegister, setRegister
+--- code ---
+{
+  status32 = getRegister (R_STATUS32);
+  @c = (status32 & 2147483678);
+  mask = 2147483678;
+  mask = ~mask;
+  status32 = (status32 & mask);
+  setRegister (R_STATUS32, status32);
+}
+ */
+
+int
+arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
+{
+  int ret = BS_NONE;
+  TCGv temp_1 = NULL /* REFERENCE */;
+  TCGv status32 = tcg_temp_local_new_i32();
+  TCGv mask = tcg_temp_local_new_i32();
+  temp_1 = getRegister(R_STATUS32);
+  tcg_gen_mov_i32(status32, temp_1);
+  tcg_gen_andi_i32(c, status32, 2147483678);
+  tcg_gen_movi_i32(mask, 2147483678);
+  tcg_gen_not_i32(mask, mask);
+  tcg_gen_and_i32(status32, status32, mask);
+  setRegister(R_STATUS32, status32);
+  if(temp_1 != NULL) tcg_temp_free(temp_1);
+  tcg_temp_free(status32);
+  tcg_temp_free(mask);
+
+  return ret;
+}
+
+
+
+
+
+/* SETI
+ *    Variables: @c
+ *    Functions: getRegister, setRegister
+--- code ---
+{
+  status32 = getRegister (R_STATUS32);
+  e_mask = 30;
+  e_mask = ~e_mask;
+  e_value = ((@c & 15) << 1);
+  temp1 = (@c & 32);
+  if((temp1 != 0))
+    {
+      status32 = ((status32 & e_mask) | e_value);
+      ie_mask = 2147483648;
+      ie_mask = ~ie_mask;
+      ie_value = ((@c & 16) << 27);
+      status32 = ((status32 & ie_mask) | ie_value);
+    }
+  else
+    {
+      status32 = (status32 | 2147483648);
+      temp2 = (@c & 16);
+      if((temp2 != 0))
+        {
+          status32 = ((status32 & e_mask) | e_value);
+        };
+    };
+  setRegister (R_STATUS32, status32);
+}
+ */
+
+int
+arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
+{
+  int ret = BS_NONE;
+  TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv status32 = tcg_temp_local_new_i32();
+  TCGv e_mask = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  TCGv e_value = tcg_temp_local_new_i32();
+  TCGv temp1 = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv ie_mask = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv ie_value = tcg_temp_local_new_i32();
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp2 = tcg_temp_local_new_i32();
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_10 = tcg_temp_local_new_i32();
+  temp_5 = getRegister(R_STATUS32);
+  tcg_gen_mov_i32(status32, temp_5);
+  tcg_gen_movi_i32(e_mask, 30);
+  tcg_gen_not_i32(e_mask, e_mask);
+  tcg_gen_andi_i32(temp_6, c, 15);
+  tcg_gen_shli_i32(e_value, temp_6, 1);
+  tcg_gen_andi_i32(temp1, c, 32);
+  TCGLabel *else_1 = gen_new_label();
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcondi_i32(TCG_COND_NE, temp_1, temp1, 0);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
+  tcg_gen_and_i32(temp_7, status32, e_mask);
+  tcg_gen_or_i32(status32, temp_7, e_value);
+  tcg_gen_movi_i32(ie_mask, 2147483648);
+  tcg_gen_not_i32(ie_mask, ie_mask);
+  tcg_gen_andi_i32(temp_8, c, 16);
+  tcg_gen_shli_i32(ie_value, temp_8, 27);
+  tcg_gen_and_i32(temp_9, status32, ie_mask);
+  tcg_gen_or_i32(status32, temp_9, ie_value);
+  tcg_gen_br(done_1);
+  gen_set_label(else_1);
+  tcg_gen_ori_i32(status32, status32, 2147483648);
+  tcg_gen_andi_i32(temp2, c, 16);
+  TCGLabel *done_2 = gen_new_label();
+  tcg_gen_setcondi_i32(TCG_COND_NE, temp_3, temp2, 0);
+  tcg_gen_xori_i32(temp_4, temp_3, 1); tcg_gen_andi_i32(temp_4, temp_4, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_4, arc_true, done_2);;
+  tcg_gen_and_i32(temp_10, status32, e_mask);
+  tcg_gen_or_i32(status32, temp_10, e_value);
+  gen_set_label(done_2);
+  gen_set_label(done_1);
+  setRegister(R_STATUS32, status32);
+  if(temp_5 != NULL) tcg_temp_free(temp_5);
+  tcg_temp_free(status32);
+  tcg_temp_free(e_mask);
+  tcg_temp_free(temp_6);
+  tcg_temp_free(e_value);
+  tcg_temp_free(temp1);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(ie_mask);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(ie_value);
+  tcg_temp_free(temp_9);
+  tcg_temp_free(temp2);
+  tcg_temp_free(temp_3);
+  tcg_temp_free(temp_4);
+  tcg_temp_free(temp_10);
+
+  return ret;
+}
+
+
+
+
+
 /* NOP
  *    Variables:
  *    Functions: doNothing

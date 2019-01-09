@@ -1692,18 +1692,6 @@ static void gen_rtie (DisasCtxt *ctx)
   gen_goto_tb (ctx, 1, cpu_pc);
 }
 
-/* Helper for CLRI instruction.  */
-static void gen_clri (DisasCtxt *ctx)
-{
-  tcg_gen_movi_tl (cpu_IEf, 0);
-}
-
-/* Helper for SETI, FIXME! implement exactly the seti semantics.  */
-static void gen_seti (DisasCtxt *ctx)
-{
-  tcg_gen_movi_tl (cpu_IEf, 1);
-}
-
 int arc_decode (DisasCtxt *ctx)
 {
   const struct arc_opcode *opcode = NULL;
@@ -1777,16 +1765,6 @@ int arc_decode (DisasCtxt *ctx)
 
         case MAP_rtie_RTIE:
           gen_rtie (ctx);
-          ret = BS_BRANCH;
-          break;
-
-        case MAP_clri_CLRI:
-          gen_clri (ctx);
-          ret = BS_BRANCH;
-          break;
-
-        case MAP_seti_SETI:
-          gen_seti (ctx);
           ret = BS_BRANCH;
           break;
 
