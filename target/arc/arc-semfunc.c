@@ -4009,6 +4009,47 @@ arc2_gen_NOP (DisasCtxt *ctx)
 
 
 
+/* PREFETCH
+ *    Variables: @src1, @src2
+ *    Functions: getAAFlag, doNothing
+--- code ---
+{
+  AA = getAAFlag ();
+  if((AA == 3))
+    {
+      @src1 = (@src1 + @src2);
+    }
+  else
+    {
+      doNothing ();
+    };
+}
+ */
+
+int
+arc2_gen_PREFETCH (DisasCtxt *ctx, TCGv src1, TCGv src2)
+{
+  int ret = BS_NONE;
+  int AA;
+  AA = getAAFlag ();
+  if ((AA == 3))
+    {
+    tcg_gen_add_i32(src1, src1, src2);
+;
+    }
+  else
+    {
+    doNothing();
+;
+    }
+
+  return ret;
+}
+
+
+
+
+
 /* MPY
  *    Variables: @b, @c, @a
  *    Functions: getCCFlag, getFFlag, HELPER, setZFlag, setNFlag, setVFlag
