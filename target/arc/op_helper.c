@@ -517,7 +517,12 @@ void helper_rtie (CPUARCState *env)
       CPU_PCL(env) = env->eret;
       env->stat = env->stat_er;
       env->bta = env->erbta;
-      /*FXME! banck selection if needed.  */
+
+      /* If returning to userland, restore SP.  */
+      if (env->stat.Uf)
+        switchSP (env);
+
+      /*FXME! bank selection if needed.  */
     }
   else
     arc_rtie_interrupts (env);

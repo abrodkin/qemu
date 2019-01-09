@@ -28,6 +28,7 @@
 #include "exec/cpu_ldst.h"
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
+#include "irq.h"
 
 #if defined (CONFIG_USER_ONLY)
 
@@ -48,7 +49,6 @@ void arc_cpu_do_interrupt (CPUState *cs)
   CPUARCState *env = &cpu->env;
   uint32_t offset = 0;
   uint32_t vectno;
-  uint32_t priority;
 
   /* FIXME! we cannot do interrupts in delay slots.  */
 
@@ -98,6 +98,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
       /* 7. CPU is switched to kernel mode.  */
       env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
+      if (env->stat_er.Uf)
+        switchSP (env);
 
       /* 8. Interrupts are disabled.  */
       env->stat.IEf = 0;

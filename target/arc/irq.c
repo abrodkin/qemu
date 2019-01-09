@@ -91,20 +91,9 @@ static void arc_rtie_firq (CPUARCState *env)
   /* Clear currently active interrupt.  */
   env->aux_irq_act &= 0xfffffffe;
 
-  /* First, check if we need to restore userland SP. */
+  /* Check if we need to restore userland SP. */
   if (((env->aux_irq_act & 0xFFFF) == 0) && (env->aux_irq_act & 0x80000000))
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   env->stat = env->stat_l1; /* FIXME use status32_p0 reg.  */
   env->aux_irq_act &= ~(env->stat.Uf << 31); /* Keep U-bit in sync.  */
@@ -148,18 +137,7 @@ static void arc_rtie_irq (CPUARCState *env)
 
   if (((env->aux_irq_act & 0xffff) == 0)
       && (env->aux_irq_act & 0x80000000) && (env->aux_irq_ctrl & (1 << 11)))
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   /* Pop requested number of registers.  */
   uint32_t *save_reg_pair = save_reg_pair_32; /* FIXME! select rf16 when needed.  */
@@ -198,18 +176,7 @@ static void arc_rtie_irq (CPUARCState *env)
   /* Late switch to Kernel SP if previously in User thread.  */
   if (((env->aux_irq_act & 0xffff) == 0)
       && env->stat.Uf && !(env->aux_irq_ctrl & (1 << 11)))
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap : r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   unpack_status32 (env, tmp_stat);
   env->aux_irq_act &= ~(env->stat.Uf << 31); /* Keep U-bit in sync.  */
@@ -229,18 +196,7 @@ static void arc_enter_firq (ARCCPU *cpu, uint32_t vector)
 
   /* Switch SP with AUX_SP.  */
   if (env->stat.Uf)
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   /* Clobber ILINK with address of interrupting instruction.  */
   CPU_ILINK (env) = env->pc & 0xfffffffe;
@@ -281,18 +237,7 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
 
   /* Early switch to kernel sp if previously in user thread */
   if (env->stat.Uf && !(env->aux_irq_ctrl & (1 << 11)))
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap : r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   /* Clobber ILINK with address of interrupting instruction.  */
   CPU_ILINK (env) = env->pc & 0xfffffffe;
@@ -334,18 +279,7 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
 
   /* Late switch to Kernel SP if previously in User thread.  */
   if (env->stat.Uf && (env->aux_irq_ctrl & (1 << 11)))
-    {
-      uint32_t tmp;
-      qemu_log_mask (CPU_LOG_INT,
-		     "[IRQ] swap : r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		     env->aux_user_sp, CPU_SP (env));
-
-      tmp = env->aux_user_sp;
-      env->aux_user_sp = CPU_SP (env);
-      CPU_SP (env) = tmp;
-      /* TODO: maybe we need to flush the tcg buffer to switch into
-	 kernel mode.  */
-    }
+    switchSP (env);
 
   /* Set STATUS bits */
   env->stat.Zf = env->stat.Uf; /* Old User/Kernel mode.	 */
@@ -565,4 +499,18 @@ bool arc_rtie_interrupts (CPUARCState *env)
   else
     arc_rtie_irq (env);
   return true;
+}
+
+void switchSP (CPUARCState *env)
+{
+  uint32_t tmp;
+  qemu_log_mask (CPU_LOG_INT,
+                 "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
+                 env->aux_user_sp, CPU_SP (env));
+
+  tmp = env->aux_user_sp;
+  env->aux_user_sp = CPU_SP (env);
+  CPU_SP (env) = tmp;
+  /* TODO: maybe we need to flush the tcg buffer to switch into
+     kernel mode.  */
 }
