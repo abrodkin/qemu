@@ -29,5 +29,7 @@ void aux_irq_set (struct arc_aux_reg_detail *, uint32_t, void *);
 bool arc_cpu_exec_interrupt (CPUState *, int);
 bool arc_rtie_interrupts (CPUARCState *);
 void switchSP (CPUARCState *);
+void arc_initializeIRQ (ARCCPU *);
+void arc_resetIRQ (ARCCPU *);
 
 #endif

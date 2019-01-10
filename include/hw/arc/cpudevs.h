@@ -9,5 +9,6 @@ extern void cpu_arc_store_limit (CPUARCState *, uint32_t , uint32_t);
 extern void cpu_arc_control_set (CPUARCState *, uint32_t , uint32_t);
 
 extern void cpu_arc_pic_init (ARCCPU *);
+extern void arc_initializeTIMER (ARCCPU *);
 
 #endif /* !HW_ARC_CPUDEVS_H */

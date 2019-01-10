@@ -27,6 +27,7 @@
 #include "mmu.h"
 #include "hw/qdev-properties.h"
 #include "irq.h"
+#include "hw/arc/cpudevs.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -152,6 +153,9 @@ static void arc_cpu_reset(CPUState *s)
   /* Initialize mmu/reset it. */
   arc_mmu_init(&env->mmu);
 
+  arc_resetTIMER (cpu);
+  arc_resetIRQ (cpu);
+
   arcc->parent_reset(s);
 
   memset(env->r, 0, sizeof(env->r));
@@ -192,7 +196,6 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
   ARCCPUClass *arcc = ARC_CPU_GET_CLASS (dev);
   Error *local_err = NULL;
   CPUARCState *env = &cpu->env;
-  uint32_t i;
 
   cpu_exec_realizefn (cs, &local_err);
   if (local_err != NULL) {
@@ -206,24 +209,10 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 
   /* Initialize build registers depending on the simulation
      parameters.  */
-  env->timer_build = 0x04 | (cpu->cfg.has_timer_0 ? TB_T0 : 0) |
-    (cpu->cfg.has_timer_1 ? TB_T1 : 0);
   env->freq_hz = cpu->cfg.freq_hz;
-  if (cpu->cfg.has_interrupts)
-    {
-      env->irq_build = 0x01 | ((cpu->cfg.number_of_interrupts & 0xff) << 8) |
-        ((cpu->cfg.external_interrupts & 0xff) << 16) |
-        ((cpu->cfg.number_of_levels & 0x0f) << 24) |
-        (cpu->cfg.firq_option ? (1 << 28) : 0); /* FIXME! add N (NMI) bit.  */
 
-      for (i = 0; i < (cpu->cfg.number_of_interrupts & 0xff); i++)
-        {
-          env->irq_bank[16 + i].enable = 1; /*FIXME! check if this bit is
-                                              keept over reset cycle.  */
-        }
-    }
-  else
-    env->irq_build = 0;
+  arc_initializeTIMER (cpu);
+  arc_initializeIRQ (cpu);
 
   cpu_reset(cs);
 

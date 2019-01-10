@@ -441,29 +441,14 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
   priority = 0;
   do
     {
-      if ((env->timer[0].T_Cntrl & TMR_IP)
-	  && (((env->timer_build & TB_P0_MSK) >> 16) == priority))
-	{
-	  vectno = 0;
-	  found = true;
-	}
-      else if ((env->timer[1].T_Cntrl & TMR_IP)
-	       && (((env->timer_build & TB_P1_MSK) >> 20) == priority))
-	{
-	  vectno = 1;
-	  found	 = true;
-	}
-      else
-	{
-	  for (vectno = 0;
-	       vectno < cpu->cfg.number_of_interrupts; vectno++)
-	    if (env->irq_bank[16 + vectno].priority == priority
-		&& env->irq_bank[16 + vectno].pending)
-	      {
-		found = true;
-		break;
-	      }
-	}
+      for (vectno = 0;
+           vectno < cpu->cfg.number_of_interrupts; vectno++)
+        if (env->irq_bank[16 + vectno].priority == priority
+            && env->irq_bank[16 + vectno].pending)
+          {
+            found = true;
+            break;
+          }
     }
   while (!found && ((++priority) <= env->stat.Ef));
 
@@ -524,12 +509,51 @@ void switchSP (CPUARCState *env)
 {
   uint32_t tmp;
   qemu_log_mask (CPU_LOG_INT,
-                 "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-                 env->aux_user_sp, CPU_SP (env));
+		 "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
+		 env->aux_user_sp, CPU_SP (env));
 
   tmp = env->aux_user_sp;
   env->aux_user_sp = CPU_SP (env);
   CPU_SP (env) = tmp;
   /* TODO: maybe we need to flush the tcg buffer to switch into
      kernel mode.  */
+}
+
+void arc_resetIRQ (ARCCPU *cpu)
+{
+  CPUARCState *env = &cpu->env;
+  uint32_t i;
+
+  if (!cpu->cfg.has_interrupts)
+    return;
+
+  for (i = 0; i < (cpu->cfg.number_of_interrupts & 0xff); i++)
+    env->irq_bank[16 + i].enable = 1;
+
+  if (cpu->cfg.has_timer_0)
+    env->irq_bank[16].priority = 0; /* FIXME! add build default timer0 priority.  */
+
+  if (cpu->cfg.has_timer_1)
+    env->irq_bank[17].priority = 0; /* FIXME! add build default timer1 priority.  */
+
+  qemu_log_mask (CPU_LOG_RESET, "[IRQ] Reset the IRQ subsystem.");
+}
+
+void arc_initializeIRQ (ARCCPU *cpu)
+{
+  CPUARCState *env = &cpu->env;
+  uint32_t i;
+
+  if (cpu->cfg.has_interrupts)
+    {
+      env->irq_build = 0x01 | ((cpu->cfg.number_of_interrupts & 0xff) << 8) |
+	((cpu->cfg.external_interrupts & 0xff) << 16) |
+	((cpu->cfg.number_of_levels & 0x0f) << 24) |
+	(cpu->cfg.firq_option ? (1 << 28) : 0); /* FIXME! add N (NMI) bit.  */
+
+      for (i = 0; i < (cpu->cfg.number_of_interrupts & 0xff); i++)
+	env->irq_bank[16 + i].enable = 1;
+    }
+  else
+    env->irq_build = 0;
 }

@@ -25,6 +25,8 @@
 #include "cpu.h"
 #include "hw/arc/cpudevs.h"
 
+void arc_resetTIMER (ARCCPU *cpu);
+
 #define TIMER_PERIOD(hz) (1000000000LL/(hz))
 /* ARC timer update function.  */
 
@@ -42,6 +44,7 @@ static void cpu_arc_count_update (CPUARCState *env)
 					TIMER_PERIOD (env->freq_hz));
 
   env->last_clk = now;
+  qemu_log_mask(CPU_LOG_EXEC, "[TMRx] Timer count update\n");
 }
 
 /* Update the next timeout time as difference between Count and Limit */
@@ -59,23 +62,28 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
       timer_mod (timer ? env->cpu_timer1 : env->cpu_timer0, next);
     }
+  qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Timer update in 0x08%x\n", timer, wait);
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
 
 static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 {
+  qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Timer expired\n", timer);
+
   /* Raise an interrupt if enabled.  */
-  if (env->timer[timer & 0x01].T_Cntrl & TMR_IE
-      && (!(env->timer[timer & 0x01].T_Cntrl & TMR_IP)))
-    qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
+  if (env->timer[timer & 0x01].T_Cntrl & TMR_IE)
+    {
+      qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Rising IRQ\n", timer);
+      qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
+    }
 
   /* Set the IP bit.  */
   env->timer[timer & 0x01].T_Cntrl |= TMR_IP;
 }
 
 /* This callback should occur when the counter is exactly equal to the
-   limit value.  Offset the count by one to avoid immediately
+   limit value.	 Offset the count by one to avoid immediately
    retriggering the callback before any virtual time has passed.  */
 
 static void arc_timer0_cb (void *opaque)
@@ -130,11 +138,11 @@ void cpu_arc_store_limit (CPUARCState *env, uint32_t timer, uint32_t value)
     {
     case 0:
       if (!(env->timer_build & TB_T0))
-        return;
+	return;
       break;
     case 1:
       if (!(env->timer_build & TB_T1))
-        return;
+	return;
       break;
     default:
       break;
@@ -145,11 +153,13 @@ void cpu_arc_store_limit (CPUARCState *env, uint32_t timer, uint32_t value)
 
 void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
 {
-  env->timer[timer & 0x01].T_Cntrl = value;
-  qemu_irq_lower (env->irq[TIMER0_IRQ + (timer & 0x01)]);
+  timer &= 0x1;
+  if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
+      qemu_irq_lower (env->irq[TIMER0_IRQ + (timer)]);
+  env->timer[timer].T_Cntrl = value;
 }
 
-/* Init procedure, called in platform.  */
+/* Init procedure, called in platform.	*/
 
 void cpu_arc_clock_init (ARCCPU *cpu)
 {
@@ -166,4 +176,24 @@ void cpu_arc_clock_init (ARCCPU *cpu)
       cpu_arc_count_reset (env, 1);
       env->cpu_timer1 = timer_new_ns(QEMU_CLOCK_VIRTUAL, &arc_timer1_cb, env);
     }
+}
+
+void arc_initializeTIMER (ARCCPU *cpu)
+{
+  CPUARCState *env = &cpu->env;
+
+  /* FIXME! add default timer priorities.  */
+  env->timer_build = 0x04 | (cpu->cfg.has_timer_0 ? TB_T0 : 0) |
+    (cpu->cfg.has_timer_1 ? TB_T1 : 0);
+}
+
+void arc_resetTIMER (ARCCPU *cpu)
+{
+  CPUARCState *env = &cpu->env;
+
+  if (env->timer_build & TB_T0)
+    cpu_arc_count_reset (env, 0);
+
+  if (env->timer_build & TB_T1)
+    cpu_arc_count_reset (env, 1);
 }
