@@ -200,6 +200,9 @@ typedef struct CPUARCState {
   uint32_t aux_irq_hint; /* AUX register, used to trigger soft irq.  */
   uint32_t aux_user_sp;
   uint32_t aux_irq_ctrl;
+  uint32_t aux_rtc_ctrl;
+  uint32_t aux_rtc_low;
+  uint32_t aux_rtc_high;
 
   /* Fields required by exception handling.  */
   uint32_t causecode;
@@ -225,6 +228,7 @@ typedef struct CPUARCState {
   void *irq[256];
   QEMUTimer *cpu_timer0; /* Internal timer.  */
   QEMUTimer *cpu_timer1; /* Internal timer.  */
+  QEMUTimer *cpu_rtc; /* Internal timer.  */
 
   /* Build AUX regs.  */
 #define TIMER0_IRQ 16

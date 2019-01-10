@@ -25,7 +25,6 @@
 #include "cpu.h"
 #include "hw/arc/cpudevs.h"
 
-void arc_resetTIMER (ARCCPU *cpu);
 
 #define TIMER_PERIOD(hz) (1000000000LL/(hz))
 /* ARC timer update function.  */
@@ -112,6 +111,63 @@ static void arc_timer1_cb (void *opaque)
   cpu_arc_timer_update (env, 1);
 }
 
+static void cpu_arc_rtc_hl_update (CPUARCState *env)
+{
+  uint64_t now;
+  union
+  {
+    uint64_t llreg;
+    uint32_t reg[2];
+  } rtc_regs;
+
+  now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
+
+  if ((env->timer_build & TB_RTC) && env->cpu_rtc
+      && (env->aux_irq_ctrl & 0x01))
+    {
+      rtc_regs.llreg = ((now - env->last_clk) / TIMER_PERIOD (env->freq_hz));
+      env->aux_rtc_low += rtc_regs.reg[1];
+      env->aux_rtc_high += rtc_regs.reg[0];
+    }
+
+  env->last_clk = now;
+  qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC count-regs update\n");
+}
+
+/* Update the next timeout time as difference between Count and Limit */
+static void cpu_arc_rtc_update (CPUARCState *env)
+{
+  uint64_t wait = 0;
+  uint64_t now, next;
+
+  cpu_arc_rtc_hl_update (env);
+  now = env->last_clk;
+
+  if (env->cpu_rtc)
+    {
+      wait = -1ULL - ((((uint64_t) env->aux_rtc_high) << 32) + env->aux_rtc_low);
+      next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
+      timer_mod (env->cpu_rtc, next);
+    }
+  qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC update\n");
+}
+
+static void arc_rtc_cb (void *opaque)
+{
+  CPUARCState *env = (CPUARCState *) opaque;
+
+  if (!(env->timer_build & TB_RTC))
+    return;
+
+  if (timer_expired(env->cpu_rtc, qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL)))
+    {
+      qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC expired\n");
+    }
+
+  /* Update the RTC registers.  */
+  cpu_arc_rtc_update (env);
+}
+
 static void cpu_arc_count_reset (CPUARCState *env, uint32_t timer)
 {
   timer &= 0x01;
@@ -156,10 +212,10 @@ void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
   timer &= 0x1;
   if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
       qemu_irq_lower (env->irq[TIMER0_IRQ + (timer)]);
-  env->timer[timer].T_Cntrl = value;
+  env->timer[timer].T_Cntrl = value & 0x1f;
 }
 
-/* Init procedure, called in platform.	*/
+/* Init procedure, called in platform.  */
 
 void cpu_arc_clock_init (ARCCPU *cpu)
 {
@@ -176,6 +232,9 @@ void cpu_arc_clock_init (ARCCPU *cpu)
       cpu_arc_count_reset (env, 1);
       env->cpu_timer1 = timer_new_ns(QEMU_CLOCK_VIRTUAL, &arc_timer1_cb, env);
     }
+
+  if (env->timer_build & TB_RTC)
+    env->cpu_rtc = timer_new_ns (QEMU_CLOCK_VIRTUAL, &arc_rtc_cb, env);
 }
 
 void arc_initializeTIMER (ARCCPU *cpu)
@@ -184,7 +243,8 @@ void arc_initializeTIMER (ARCCPU *cpu)
 
   /* FIXME! add default timer priorities.  */
   env->timer_build = 0x04 | (cpu->cfg.has_timer_0 ? TB_T0 : 0) |
-    (cpu->cfg.has_timer_1 ? TB_T1 : 0);
+    (cpu->cfg.has_timer_1 ? TB_T1 : 0) |
+    (cpu->cfg.rtc_option ? TB_RTC : 0);
 }
 
 void arc_resetTIMER (ARCCPU *cpu)
@@ -196,4 +256,22 @@ void arc_resetTIMER (ARCCPU *cpu)
 
   if (env->timer_build & TB_T1)
     cpu_arc_count_reset (env, 1);
+}
+
+uint32_t arc_rtc_count_get (CPUARCState *env, bool lower)
+{
+  cpu_arc_rtc_hl_update (env);
+  return lower ? env->aux_rtc_low : env->aux_rtc_high;
+}
+
+void arc_rtc_ctrl_set (CPUARCState *env, uint32_t val)
+{
+  assert (env->stat.Uf == 0);
+
+  env->aux_irq_ctrl = 0xc0000000 | (val & 0x01);
+  if (val & 0x02)
+    {
+      env->aux_rtc_low = 0;
+      env->aux_rtc_high = 0;
+    }
 }

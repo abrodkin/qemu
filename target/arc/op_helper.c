@@ -250,10 +250,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       env->ecr = val;
       break;
 
-    //case AUX_ID_efa:
-    //  env->efa = val;
-    //  break;
-
     case AUX_ID_bta:
       break;
 
@@ -265,12 +261,12 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 
     case AUX_ID_control0:
       if (env->timer_build & TB_T0)
-        env->timer[0].T_Cntrl = val & 0x1f;
+        cpu_arc_control_set (env, 0, val);
       break;
 
     case AUX_ID_control1:
       if (env->timer_build & TB_T1)
-        env->timer[1].T_Cntrl = val & 0x1f; /* Fixme! need a way to lower the irq */
+        cpu_arc_control_set (env, 1, val);
       break;
 
     case AUX_ID_count0:
@@ -280,23 +276,22 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 
     case AUX_ID_count1:
       if (env->timer_build & TB_T1)
-        env->timer[1].T_Count = val;
+        cpu_arc_count_set (env, 1, val);
       break;
 
     case AUX_ID_limit0:
-      if (env->timer_build & TB_T0)
-        env->timer[0].T_Limit = val;
+      cpu_arc_store_limit (env, 0, val);
       break;
 
     case AUX_ID_limit1:
-      if (env->timer_build & TB_T1)
-        env->timer[1].T_Limit = val;
-      break;
-
-    case AUX_ID_timer_build:
+      cpu_arc_store_limit (env, 1, val);
       break;
 
     case AUX_ID_irq_build:
+      break;
+
+    case AUX_ID_aux_rtc_ctrl:
+      arc_rtc_ctrl_set (env, val);
       break;
 
     default:
@@ -480,7 +475,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       break;
 
     case AUX_ID_count1:
-      result = env->timer[1].T_Count;
+      result = cpu_arc_count_get (env, 1);
       break;
 
     case AUX_ID_limit0:
@@ -497,6 +492,18 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
     case AUX_ID_irq_build:
       result = env->irq_build;
+      break;
+
+    case AUX_ID_aux_rtc_low:
+      result = arc_rtc_count_get (env, true);
+      break;
+
+    case AUX_ID_aux_rtc_high:
+      result = arc_rtc_count_get (env, false);
+      break;
+
+    case AUX_ID_aux_rtc_ctrl:
+      result = env->aux_rtc_ctrl;
       break;
 
     default:
