@@ -51,6 +51,7 @@ TESTCASES += check_excp_1.ctst
 TESTCASES += check_mmu.tst
 TESTCASES += check_excp_mmu.tst
 TESTCASES += check_timer0.tst
+TESTCASES += check_timer0_loop.tst
 TESTCASES += check_swirq.tst
 TESTCASES += check_swirq1.tst
 TESTCASES += check_mpyw.tst
