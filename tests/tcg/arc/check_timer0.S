@@ -12,7 +12,9 @@
 	breq	r0,r2,@.lfail
 	print	"Pass\n"
 	sr	0x01,[0x22]
-	sr	0xff,[0x23]
+	mov	r0, 0xffff
+	sr	r0,[0x23]
+	sr	0,[0x21]
 	mov	r3, 0
 	seti
 .loop0:

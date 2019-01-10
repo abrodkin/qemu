@@ -43,7 +43,7 @@ static void cpu_arc_count_update (CPUARCState *env)
 					TIMER_PERIOD (env->freq_hz));
 
   env->last_clk = now;
-  qemu_log_mask(CPU_LOG_EXEC, "[TMRx] Timer count update\n");
+  qemu_log_mask(LOG_UNIMP, "[TMRx] Timer count update\n");
 }
 
 /* Update the next timeout time as difference between Count and Limit */
@@ -61,19 +61,22 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
       timer_mod (timer ? env->cpu_timer1 : env->cpu_timer0, next);
     }
-  qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Timer update in 0x08%x\n", timer, wait);
+  qemu_log_mask(LOG_UNIMP,
+                "[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
+                timer, env->timer[timer].T_Limit,
+                env->timer[timer].T_Count, wait);
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
 
 static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 {
-  qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Timer expired\n", timer);
+  qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer expired\n", timer);
 
   /* Raise an interrupt if enabled.  */
   if (env->timer[timer & 0x01].T_Cntrl & TMR_IE)
     {
-      qemu_log_mask(CPU_LOG_EXEC, "[TMR%d] Rising IRQ\n", timer);
+      qemu_log_mask(LOG_UNIMP, "[TMR%d] Rising IRQ\n", timer);
       qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
     }
 
@@ -131,7 +134,7 @@ static void cpu_arc_rtc_hl_update (CPUARCState *env)
     }
 
   env->last_clk = now;
-  qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC count-regs update\n");
+  qemu_log_mask(LOG_UNIMP, "[RTC] RTC count-regs update\n");
 }
 
 /* Update the next timeout time as difference between Count and Limit */
@@ -149,7 +152,7 @@ static void cpu_arc_rtc_update (CPUARCState *env)
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
       timer_mod (env->cpu_rtc, next);
     }
-  qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC update\n");
+  qemu_log_mask(LOG_UNIMP, "[RTC] RTC update\n");
 }
 
 static void arc_rtc_cb (void *opaque)
@@ -161,7 +164,7 @@ static void arc_rtc_cb (void *opaque)
 
   if (timer_expired(env->cpu_rtc, qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL)))
     {
-      qemu_log_mask(CPU_LOG_EXEC, "[RTC] RTC expired\n");
+      qemu_log_mask(LOG_UNIMP, "[RTC] RTC expired\n");
     }
 
   /* Update the RTC registers.  */
