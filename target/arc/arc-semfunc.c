@@ -3994,8 +3994,9 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 --- code ---
 {
   status32 = getRegister (R_STATUS32);
-  @c = (status32 & 2147483678);
-  mask = 2147483678;
+  @c = (status32 & 2147483694);
+  @c = (@c | 32);
+  mask = 2147483694;
   mask = ~mask;
   status32 = (status32 & mask);
   setRegister (R_STATUS32, status32);
@@ -4011,8 +4012,9 @@ arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
   TCGv mask = tcg_temp_local_new_i32();
   temp_1 = getRegister(R_STATUS32);
   tcg_gen_mov_i32(status32, temp_1);
-  tcg_gen_andi_i32(c, status32, 2147483678);
-  tcg_gen_movi_i32(mask, 2147483678);
+  tcg_gen_andi_i32(c, status32, 2147483694);
+  tcg_gen_ori_i32(c, c, 32);
+  tcg_gen_movi_i32(mask, 2147483694);
   tcg_gen_not_i32(mask, mask);
   tcg_gen_and_i32(status32, status32, mask);
   setRegister(R_STATUS32, status32);

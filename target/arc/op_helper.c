@@ -66,8 +66,14 @@ static uint32_t get_status32 (CPUARCState *env)
   return res;
 }
 
+void helper_print_value(target_ulong value)
+{
+  //printf("Argument is %08x\n", value);
+}
+
 static void set_status32(CPUARCState *env, target_ulong value)
 {
+  //printf("Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
   env->stat.IEf = ((value >> 31) & 0x1);
   env->stat.USf = ((value >> 20) & 0x1);
   env->stat.ADf = ((value >> 19) & 0x1);
@@ -85,6 +91,8 @@ static void set_status32(CPUARCState *env, target_ulong value)
   env->stat.AEf = ((value >> 5)  & 0x1);
   env->stat.Ef  = ((value >> 1)  & 0xf);
   //env->stat.Hf  = ((value >> 0)  & 0x1);
+
+  //printf("%08x) register was (%08x)\n", get_status32_internal(&(env->stat)), value);
 }
 
 
