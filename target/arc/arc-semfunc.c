@@ -3994,9 +3994,12 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 --- code ---
 {
   status32 = getRegister (R_STATUS32);
-  @c = (status32 & 2147483694);
-  @c = (@c | 32);
-  mask = 2147483694;
+  ie = (status32 & 2147483648);
+  ie = (ie >> 27);
+  e = ((status32 & 30) >> 1);
+  a = 32;
+  @c = ((ie | e) | a);
+  mask = 2147483648;
   mask = ~mask;
   status32 = (status32 & mask);
   setRegister (R_STATUS32, status32);
@@ -4009,17 +4012,32 @@ arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
   int ret = BS_NONE;
   TCGv temp_1 = NULL /* REFERENCE */;
   TCGv status32 = tcg_temp_local_new_i32();
+  TCGv ie = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv e = tcg_temp_local_new_i32();
+  TCGv a = tcg_temp_local_new_i32();
+  TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv mask = tcg_temp_local_new_i32();
   temp_1 = getRegister(R_STATUS32);
   tcg_gen_mov_i32(status32, temp_1);
-  tcg_gen_andi_i32(c, status32, 2147483694);
-  tcg_gen_ori_i32(c, c, 32);
-  tcg_gen_movi_i32(mask, 2147483694);
+  tcg_gen_andi_i32(ie, status32, 2147483648);
+  tcg_gen_shri_i32(ie, ie, 27);
+  tcg_gen_andi_i32(temp_2, status32, 30);
+  tcg_gen_shri_i32(e, temp_2, 1);
+  tcg_gen_movi_i32(a, 32);
+  tcg_gen_or_i32(temp_3, ie, e);
+  tcg_gen_or_i32(c, temp_3, a);
+  tcg_gen_movi_i32(mask, 2147483648);
   tcg_gen_not_i32(mask, mask);
   tcg_gen_and_i32(status32, status32, mask);
   setRegister(R_STATUS32, status32);
   if(temp_1 != NULL) tcg_temp_free(temp_1);
   tcg_temp_free(status32);
+  tcg_temp_free(ie);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(e);
+  tcg_temp_free(a);
+  tcg_temp_free(temp_3);
   tcg_temp_free(mask);
 
   return ret;

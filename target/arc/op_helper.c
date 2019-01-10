@@ -66,14 +66,15 @@ static uint32_t get_status32 (CPUARCState *env)
   return res;
 }
 
-void helper_print_value(target_ulong value)
+void helper_print_value(CPUARCState *env, target_ulong value)
 {
-  //printf("Argument is %08x\n", value);
+  //printf("        Argument is %08x at address %08x\n", value, env->pc);
 }
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
-  //printf("Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
+  //printf("        Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
+
   env->stat.IEf = ((value >> 31) & 0x1);
   env->stat.USf = ((value >> 20) & 0x1);
   env->stat.ADf = ((value >> 19) & 0x1);
@@ -219,6 +220,7 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       break;
 
     case AUX_ID_status32:
+      //printf("Status 32 changed by aux_reg\n");
       set_status32(env, val);
       break;
 
