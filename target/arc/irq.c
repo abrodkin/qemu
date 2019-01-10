@@ -142,7 +142,8 @@ static void arc_rtie_irq (CPUARCState *env)
   /* Pop requested number of registers.  */
   uint32_t *save_reg_pair = save_reg_pair_32; /* FIXME! select rf16 when needed.  */
   char regname[6];
-  for (uint32_t i = 0; i < (env->aux_irq_ctrl & 0x1F); ++i)
+  uint32_t i;
+  for (i = 0; i < (env->aux_irq_ctrl & 0x1F); ++i)
     {
       sprintf (regname,"r%d",save_reg_pair[i]);
       env->r[save_reg_pair[i]] = irq_pop (env, (const char *) regname);
@@ -280,7 +281,8 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
     regspair : (env->aux_irq_ctrl & 0x1F);
 
   char regname[6];
-  for (uint32_t i = upperlimit; i > 0; --i)
+  uint32_t i;
+  for (i = upperlimit; i > 0; --i)
     {
       sprintf (regname,"r%d",save_reg_pair[i-1] + 1);
       irq_push (env, env->r[save_reg_pair[i-1] + 1], (const char*) regname);
