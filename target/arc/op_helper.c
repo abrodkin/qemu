@@ -171,7 +171,7 @@ target_ulong helper_ffs(CPUARCState *env, uint32_t src)
 target_ulong helper_fls(CPUARCState *env, uint32_t src)
 {
   int i;
-  for(i = 31; i >= 0; i++)
+  for(i = 31; i >= 0; i--)
     if(((src >> i) & 1) != 0)
       break;
   return i;
