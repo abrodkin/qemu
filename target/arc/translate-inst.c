@@ -776,6 +776,13 @@ TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2)
   return ret;
 }
 
+/* TODO: Get this from props ... */
+TCGv arc2_has_interrupts(DisasCtxt *ctx) {
+  TCGv ret = tcg_temp_local_new_i32();
+  tcg_gen_movi_i32(ret, 1);
+  return ret;
+}
+
 TCGv arc2_gen_get_lf(void)
 {
   TCGv ret = tcg_temp_local_new_i32();
