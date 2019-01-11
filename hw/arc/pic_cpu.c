@@ -35,7 +35,7 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
   if (irq < 16 || irq >= (cpu->cfg.number_of_interrupts + 15))
     return;
 
-  if ((env->irq_bank[irq].priority <= env->stat.Ef)
+  if (true /*(env->irq_bank[irq].priority <= env->stat.Ef) */
            && env->irq_bank[irq].enable
            && level)
     {

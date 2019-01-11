@@ -1,3 +1,4 @@
+//#define DEBUG
 /*
  * QEMU ARC CPU
  *
@@ -68,12 +69,18 @@ static uint32_t get_status32 (CPUARCState *env)
 
 void helper_print_value(CPUARCState *env, target_ulong value)
 {
-  //printf("        Argument is %08x at address %08x\n", value, env->pc);
+#ifdef DEBUG
+  printf("        Argument is %08x at address %08x\n", value, env->pc);
+  fflush(stdout);
+  fflush(stderr);
+#endif
 }
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
-  //printf("        Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
+#ifdef DEBUG
+  printf("        Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
+#endif
 
   env->stat.IEf = ((value >> 31) & 0x1);
   env->stat.USf = ((value >> 20) & 0x1);
@@ -91,9 +98,13 @@ static void set_status32(CPUARCState *env, target_ulong value)
   env->stat.DEf = ((value >> 6)  & 0x1);
   env->stat.AEf = ((value >> 5)  & 0x1);
   env->stat.Ef  = ((value >> 1)  & 0xf);
-  //env->stat.Hf  = ((value >> 0)  & 0x1);
+  env->stat.Hf  = ((value >> 0)  & 0x1);
 
-  //printf("%08x) register was (%08x)\n", get_status32_internal(&(env->stat)), value);
+#ifdef DEBUG
+  printf("%08x) register was (%08x)\n", get_status32_internal(&(env->stat)), value);
+  fflush(stdout);
+  fflush(stderr);
+#endif
 }
 
 

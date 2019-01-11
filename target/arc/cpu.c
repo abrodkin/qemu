@@ -113,7 +113,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("slc-datahalf", ARCCPU, cfg.slc_data_halfcycle_steal, false),
  DEFINE_PROP_BOOL ("slc-dataadd", ARCCPU, cfg.slc_data_add_pre_pipeline, false),
  DEFINE_PROP_BOOL ("uaux", ARCCPU, cfg.uaux_option, false),
- DEFINE_PROP_UINT32 ("freq_hz", ARCCPU, cfg.freq_hz, 100000000),
+ DEFINE_PROP_UINT32 ("freq_hz", ARCCPU, cfg.freq_hz, 1000000),
  DEFINE_PROP_END_OF_LIST(),
 };
 
