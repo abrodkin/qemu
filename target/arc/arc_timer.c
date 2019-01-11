@@ -52,19 +52,19 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
   uint32_t wait;
   uint64_t now, next;
 
-  cpu_arc_count_update (env);
-  now = env->last_clk;
+  now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
 
   if (timer ? env->cpu_timer1 : env->cpu_timer0)
     {
       wait = env->timer[timer].T_Limit - env->timer[timer].T_Count;
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
       timer_mod (timer ? env->cpu_timer1 : env->cpu_timer0, next);
+      qemu_log_mask(LOG_UNIMP,
+                    "[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
+                    timer, env->timer[timer].T_Limit,
+                    env->timer[timer].T_Count, wait);
     }
-  qemu_log_mask(LOG_UNIMP,
-                "[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
-                timer, env->timer[timer].T_Limit,
-                env->timer[timer].T_Count, wait);
+  cpu_arc_count_update (env);
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
@@ -216,6 +216,7 @@ void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
   if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
       qemu_irq_lower (env->irq[TIMER0_IRQ + (timer)]);
   env->timer[timer].T_Cntrl = value & 0x1f;
+  cpu_arc_timer_update (env, timer);
 }
 
 /* Init procedure, called in platform.  */
