@@ -528,7 +528,7 @@ void helper_halt(CPUARCState *env)
 
 void helper_rtie (CPUARCState *env)
 {
-  if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) != 0))
+  if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) != 0)
     {
       assert (env->stat.Uf == 0);
       CPU_PCL(env) = env->eret;
@@ -540,7 +540,7 @@ void helper_rtie (CPUARCState *env)
         switchSP (env);
 
       /*FXME! bank selection if needed.  */
-      qemu_log_mask(CPU_LOG_INT, "[IRQ] return from exception\n", env->r[63]);
+      qemu_log_mask(CPU_LOG_INT, "[IRQ] return from exception 0x%08x\n", env->r[63]);
     }
   else
     arc_rtie_interrupts (env);
