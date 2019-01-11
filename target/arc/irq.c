@@ -403,7 +403,7 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
       break;
 
     case AUX_ID_aux_irq_act:
-//      env->aux_irq_act = val & 0xffff;
+      env->aux_irq_act = val & 0xffff;
       break;
 
     default:
@@ -493,7 +493,7 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
 
 bool arc_rtie_interrupts (CPUARCState *env)
 {
-  if (env->stat.AEf) // || ((env->aux_irq_act & 0xffff) == 0))
+  if (env->stat.AEf || ((env->aux_irq_act & 0xffff) == 0))
     return false;
 
   /* FIXME! Reset RTC state.  */

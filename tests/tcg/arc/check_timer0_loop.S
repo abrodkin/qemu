@@ -16,10 +16,6 @@
 	;; to kick in.
 	mov	r3, 0
 	seti
-	j	@.loop0
-.lfail:
-	print	"Fail\n"
-	end
 .loop0:
 	breq	r3, 0, @.loop0
 	print	"The end\n"

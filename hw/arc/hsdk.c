@@ -22,7 +22,7 @@
 #include "hw/arc/cpudevs.h"
 #include "hw/sysbus.h"
 
-#define HSDK_RAM_BASE		0x40000000
+#define HSDK_RAM_BASE		0x80000000
 #define HSDK_RAM_SIZE		0x80000000
 #define HSDK_IO_BASE		0xf0000000
 #define HSDK_IO_SIZE		0x10000000

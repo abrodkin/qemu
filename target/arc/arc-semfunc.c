@@ -259,7 +259,7 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_BRANCH;
+  int ret = BS_NONE;
   TCGv temp_13 = NULL /* REFERENCE */;
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -330,7 +330,6 @@ arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_12, arc_true, done_4);;
   tcg_gen_andi_i32(temp_22, src, 62);
   tcg_gen_or_i32(status32, status32, temp_22);
-  gen_helper_print_value(cpu_env, status32);
   if (targetHasOption (DIV_REM_OPTION))
     {
     tcg_gen_andi_i32(temp_23, src, 8192);
@@ -4010,8 +4009,7 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 int
 arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_BRANCH;
-  gen_helper_print_value(cpu_env, c);
+  int ret = BS_NONE;
   TCGv temp_1 = NULL /* REFERENCE */;
   TCGv status32 = tcg_temp_local_new_i32();
   TCGv ie = tcg_temp_local_new_i32();
@@ -4041,7 +4039,6 @@ arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
   tcg_temp_free(a);
   tcg_temp_free(temp_3);
   tcg_temp_free(mask);
-  gen_helper_print_value(cpu_env, c);
 
   return ret;
 }
@@ -4084,8 +4081,7 @@ arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
 int
 arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_BRANCH;
-  gen_helper_print_value(cpu_env, c);
+  int ret = BS_NONE;
   TCGv temp_5 = NULL /* REFERENCE */;
   TCGv status32 = tcg_temp_local_new_i32();
   TCGv e_mask = tcg_temp_local_new_i32();
@@ -4153,7 +4149,6 @@ arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_10);
-  gen_helper_print_value(cpu_env, c);
 
   return ret;
 }
