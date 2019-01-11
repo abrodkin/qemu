@@ -395,7 +395,7 @@ static inline void cpu_get_tb_cpu_state(CPUARCState *env, target_ulong *pc,
 
 static inline int cpu_interrupts_enabled(CPUARCState *env1)
 {
-    return  0;
+  return env1->stat.IEf;
 }
 
 #include "exec/exec-all.h"
