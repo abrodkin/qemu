@@ -325,9 +325,9 @@ TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2);
 #define Halt() \
   to_implement_wo_abort(ctx)
 
-/* TODO: Claus please implement this. */
+TCGv arc2_has_interrupts();
 #define hasInterrupts() \
-  to_implement_wo_abort(ctx)
+  arc2_has_interrupts(ctx)
 
 #define doNothing()
 
