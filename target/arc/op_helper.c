@@ -528,7 +528,7 @@ void helper_halt(CPUARCState *env)
 
 void helper_rtie (CPUARCState *env)
 {
-  if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) != 0)
+  if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) == 0)
     {
       assert (env->stat.Uf == 0);
       CPU_PCL(env) = env->eret;
