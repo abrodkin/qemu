@@ -110,7 +110,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 }
 
 // vaddr can't have top bit
-#define VPN(addr) ((addr & PAGE_MASK) & ~0x10000000)
+#define VPN(addr) (addr & (PAGE_MASK & (~0x80000000)))
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
@@ -220,6 +220,8 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  /* TODO: More verifications needed. */
 	}
   }
+
+  assert(val == TLB_CMD_INSERT || val == TLB_CMD_DELETE);
 }
 
 /* Function to verify if we have permission to use MMU TLB entry. */
@@ -322,10 +324,11 @@ arc_mmu_translate(struct CPUARCState *env,
     }
 
   if(match == true)
-    return tlb->pd1 | (vaddr & (~PAGE_MASK));
+    return (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK));
   else
     {
 tlb_miss_exception:
+      mmu->tlbpd0 = vaddr & (VPN(PD0_VPN) | PD0_ASID);
       if(rwe == MMU_MEM_FETCH)
 	{
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
