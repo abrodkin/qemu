@@ -74,7 +74,8 @@ static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
   qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer expired\n", timer);
 
   /* Raise an interrupt if enabled.  */
-  if (env->timer[timer & 0x01].T_Cntrl & TMR_IE)
+  if ((env->timer[timer & 0x01].T_Cntrl & TMR_IE)
+      && !(env->timer[timer & 0x01].T_Cntrl & TMR_IP))
     {
       qemu_log_mask(LOG_UNIMP, "[TMR%d] Rising IRQ\n", timer);
       qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
