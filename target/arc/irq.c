@@ -433,7 +433,10 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
     return false;
 
   /* Check if any interrupts are pending. */
-  if (!env->irq_priority_pending)
+  if (!env->irq_priority_pending
+      /* Or we are serving at the same priority level.  */
+      || (__builtin_ctz (env->irq_priority_pending)
+          >= __builtin_ctz (env->aux_irq_act)))
     return false;
 
   /* Find the first IRQ to serve.  */
@@ -467,9 +470,6 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
 
   /* Set ICAUSE register.  */
   env->icause[priority] = vectno;
-
-  /* Cleanup pending bit.  */
-  env->irq_priority_pending &= ~(1 << priority);
 
   /* Do FIRQ if possible.  */
   if (cpu->cfg.firq_option && priority == 0)

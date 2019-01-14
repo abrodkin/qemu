@@ -548,7 +548,8 @@ void helper_rtie (CPUARCState *env)
   else
     arc_rtie_interrupts (env);
 
-  qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE:0x%08x\n", env->r[63]);
+  qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n", env->r[63],
+                get_status32_internal (&env->stat));
 }
 
 void helper_flush(CPUARCState *env)
