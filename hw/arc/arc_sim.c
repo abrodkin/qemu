@@ -91,11 +91,16 @@ static void arc_sim_init(MachineState *machine)
     int n;
 
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (cpu_create (machine->cpu_type));
+        cpu = ARC_CPU (object_new (machine->cpu_type));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
         }
+
+        /* Set the initial CPU properties.  */
+        object_property_set_uint (OBJECT (cpu), 100000000, "freq_hz",
+                                  &error_fatal);
+        object_property_set_bool(OBJECT (cpu), true, "realized", &error_fatal);
 
         /* Initialize internal devices.  */
         cpu_arc_pic_init (cpu);
