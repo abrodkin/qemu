@@ -6,11 +6,9 @@
 	mov	sp, 0x1000
 	;; Use IRQ18 for the test, change to a level 1, irq so we can
 	;; avoid firq.
-	sr	18,[0x40b]
+	sr	18,[REG_IRQ_SELECT]
 	sr	1,[irq_priority]
-	lr	r0,[status32]
-	or	r0,r0,2
-	sr	r0,[status32]
+  set_interrupt_prio_level 1
 	sr	16,[aux_irq_ctrl]
 	;; Enable the interrupt system, and trigger the IRQ 18.
 	seti

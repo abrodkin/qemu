@@ -57,7 +57,7 @@ tn_\name:
 ; example:   swap_nibbles_32 0x12345678  --> r12 = 0x87654321
 ;
 ; description:
-;   swaps all the nibles (4-bit digits) in a 32-bit long number
+;   reverses all the nibles (4-bit digits) in a 32-bit long number
 ;
 ; caveat emptor:
 ;   this  macro assumes the following instructions already work:
@@ -154,6 +154,28 @@ tn_\name:
   print_number \num
   end
 3333:
+.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Auxilary registers
+.equ REG_IRQ_SELECT, 0x40B
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; macro:     set_interrupt_prio_level
+; input:     prio - number in range 0..7
+; regs used: r11
+; example:   set_interrupt_prio_level 1
+;
+; description:
+;   sets the bits 1 to 3 of "status" register to the given priority.
+.macro set_interrupt_prio_level  prio
+  lr  r11, [status32]
+  asl r12, \prio
+  and r12, r12, 0xE
+  or  r11, r11, r12
+  sr  r11, [status32]
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

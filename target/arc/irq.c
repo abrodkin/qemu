@@ -275,10 +275,9 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
   /* Push selected AUX_IRQ_CTRL.NR of registers onto stack.  */
   uint32_t *save_reg_pair = cpu->cfg.rgf_num_regs == 32 ?
     save_reg_pair_32 : save_reg_pair_16;
-  const uint32_t regspair =(cpu->cfg.rgf_num_regs == 32 ? 16 : 8);
-  uint32_t upperlimit = (env->aux_irq_ctrl & 0x1F) / regspair;
-  upperlimit = upperlimit >= 1 ?
-    regspair : (env->aux_irq_ctrl & 0x1F);
+  const uint32_t regspair = (cpu->cfg.rgf_num_regs == 32 ? 16 : 8);
+  const uint32_t upperlimit = (env->aux_irq_ctrl & 0x1F) < regspair?
+    env->aux_irq_ctrl & 0x1F : regspair;
 
   char regname[6];
   uint32_t i;

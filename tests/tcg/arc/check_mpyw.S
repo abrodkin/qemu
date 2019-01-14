@@ -38,6 +38,6 @@ mul_flags_test 1337  , 0     , res=0         , z=1, test_num=4
 mul_flags_test 0x7FFF, 0x7FFF, res=0x3FFF0001, v=0, test_num=5
 mul_flags_test 0xFFFF, 0x0C  , res=0xFFFFFFF4, n=1, test_num=6
 
-print "Ret:0"        ; we have survived all the asserts
+print "Ret:0\n"        ; we have survived all the asserts
 
 end
