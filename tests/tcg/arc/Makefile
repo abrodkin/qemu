@@ -19,6 +19,7 @@ LDPHYSFLAGS = --section-start=.text=0x80000000
 TESTCASES = check_add.tst
 TESTCASES += check_lp.tst
 TESTCASES += check_lp02.tst
+TESTCASES += check_lp03.tst
 TESTCASES += check_addx.tst
 TESTCASES += check_andx.tst
 TESTCASES += check_aslx.tst
