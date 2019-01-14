@@ -328,7 +328,7 @@ arc_mmu_translate(struct CPUARCState *env,
   else
     {
 tlb_miss_exception:
-      mmu->tlbpd0 = vaddr & (VPN(PD0_VPN) | PD0_ASID);
+      mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
       if(rwe == MMU_MEM_FETCH)
 	{
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
