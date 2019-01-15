@@ -1,7 +1,7 @@
 /*
  * QEMU ARC CPU
  *
- * Copyright (c) 2016 Michael Rolnik
+ * Copyright (c) 2019
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@ DEF_HELPER_2(ffs, i32, env, i32)
 DEF_HELPER_2(fls, i32, env, i32)
 DEF_HELPER_2(lr, tl, env, i32)
 DEF_HELPER_3(sr, void, env, i32, i32)
-DEF_HELPER_1(halt, void, env)
+DEF_HELPER_1(halt, noreturn, env)
 DEF_HELPER_1(rtie, void, env)
 DEF_HELPER_1(flush, void, env)
 DEF_HELPER_4(raise_exception, noreturn, env, i32, i32, i32)

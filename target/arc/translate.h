@@ -60,6 +60,7 @@ extern TCGv     cpu_DEf;
 extern TCGv     cpu_AEf;
 extern TCGv     cpu_IEf;
 extern TCGv     cpu_Hf;
+extern TCGv     cpu_Ef;
 
 extern TCGv     cpu_l1_Lf;
 extern TCGv     cpu_l1_Zf;

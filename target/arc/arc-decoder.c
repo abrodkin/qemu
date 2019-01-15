@@ -1333,122 +1333,122 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
     /* Possible candidate, check the operands.  */
     for (opidx = opcode->operands; *opidx; opidx++)
       {
-        int value, limmind;
-        const struct arc_operand *operand = &arc_operands[*opidx];
+	int value, limmind;
+	const struct arc_operand *operand = &arc_operands[*opidx];
 
-        if (operand->flags & ARC_OPERAND_FAKE)
-          continue;
+	if (operand->flags & ARC_OPERAND_FAKE)
+	  continue;
 
-        if (operand->extract)
-          value = (*operand->extract) (insn, &invalid);
-        else
-          value = (insn >> operand->shift) & ((1 << operand->bits) - 1);
+	if (operand->extract)
+	  value = (*operand->extract) (insn, &invalid);
+	else
+	  value = (insn >> operand->shift) & ((1 << operand->bits) - 1);
 
-        /* Check for LIMM indicator.  If it is there, then make sure
-           we pick the right format.  */
-        limmind = (isa_mask & ARC_OPCODE_ARCV2) ? 0x1E : 0x3E;
-        if (operand->flags & ARC_OPERAND_IR
-            && !(operand->flags & ARC_OPERAND_LIMM))
-          {
-            if ((value == 0x3E && insn_len == 4)
-                || (value == limmind && insn_len == 2))
-              {
-                invalid = TRUE;
-                break;
-              }
-          }
+	/* Check for LIMM indicator.  If it is there, then make sure
+	   we pick the right format.  */
+	limmind = (isa_mask & ARC_OPCODE_ARCV2) ? 0x1E : 0x3E;
+	if (operand->flags & ARC_OPERAND_IR
+	    && !(operand->flags & ARC_OPERAND_LIMM))
+	  {
+	    if ((value == 0x3E && insn_len == 4)
+		|| (value == limmind && insn_len == 2))
+	      {
+		invalid = TRUE;
+		break;
+	      }
+	  }
 
-        if (operand->flags & ARC_OPERAND_LIMM
-            && !(operand->flags & ARC_OPERAND_DUPLICATE))
-          has_limm = true;
+	if (operand->flags & ARC_OPERAND_LIMM
+	    && !(operand->flags & ARC_OPERAND_DUPLICATE))
+	  has_limm = true;
 
-        pinsn->operands[noperands].value = value;
-        pinsn->operands[noperands].type = operand->flags;
+	pinsn->operands[noperands].value = value;
+	pinsn->operands[noperands].type = operand->flags;
 	noperands += 1;
-        pinsn->n_ops = noperands;
+	pinsn->n_ops = noperands;
       }
 
     /* Check the flags.  */
     for (flgidx = opcode->flags; *flgidx; flgidx++)
       {
-        /* Get a valid flag class.  */
-        const struct arc_flag_class *cl_flags = &arc_flag_classes[*flgidx];
-        const unsigned *flgopridx;
-        bool foundA = false, foundB = false;
-        unsigned int value;
+	/* Get a valid flag class.  */
+	const struct arc_flag_class *cl_flags = &arc_flag_classes[*flgidx];
+	const unsigned *flgopridx;
+	bool foundA = false, foundB = false;
+	unsigned int value;
 
-        /* FIXME! Add check for EXTENSION flags.  */
+	/* FIXME! Add check for EXTENSION flags.  */
 
-        for (flgopridx = cl_flags->flags; *flgopridx; ++flgopridx)
-          {
-            const struct arc_flag_operand *flg_operand =
-              &arc_flag_operands[*flgopridx];
+	for (flgopridx = cl_flags->flags; *flgopridx; ++flgopridx)
+	  {
+	    const struct arc_flag_operand *flg_operand =
+	      &arc_flag_operands[*flgopridx];
 
-            /* Check for the implicit flags.  */
-            if (cl_flags->flag_class & F_CLASS_IMPLICIT)
-              {
-                if (cl_flags->flag_class & F_CLASS_COND)
-                  pinsn->cc = flg_operand->code;
-                else if (cl_flags->flag_class & F_CLASS_WB)
-                  pinsn->aa = flg_operand->code;
-                else if (cl_flags->flag_class & F_CLASS_ZZ)
-                  pinsn->zz = flg_operand->code;
-                continue;
-              }
+	    /* Check for the implicit flags.  */
+	    if (cl_flags->flag_class & F_CLASS_IMPLICIT)
+	      {
+		if (cl_flags->flag_class & F_CLASS_COND)
+		  pinsn->cc = flg_operand->code;
+		else if (cl_flags->flag_class & F_CLASS_WB)
+		  pinsn->aa = flg_operand->code;
+		else if (cl_flags->flag_class & F_CLASS_ZZ)
+		  pinsn->zz = flg_operand->code;
+		continue;
+	      }
 
-            value = (insn >> flg_operand->shift)
-              & ((1 << flg_operand->bits) - 1);
-            if (value == flg_operand->code)
-              {
-                if (cl_flags->flag_class & F_CLASS_ZZ)
-                  switch (flg_operand->name[0])
-                    {
-                    case 'b':
-                      pinsn->zz = 1;
-                      break;
-                    case 'h':
-                    case 'w':
-                      pinsn->zz = 2;
-                      break;
-                    default:
-                      pinsn->zz = 4;
-                      break;
-                    }
+	    value = (insn >> flg_operand->shift)
+	      & ((1 << flg_operand->bits) - 1);
+	    if (value == flg_operand->code)
+	      {
+		if (cl_flags->flag_class & F_CLASS_ZZ)
+		  switch (flg_operand->name[0])
+		    {
+		    case 'b':
+		      pinsn->zz = 1;
+		      break;
+		    case 'h':
+		    case 'w':
+		      pinsn->zz = 2;
+		      break;
+		    default:
+		      pinsn->zz = 4;
+		      break;
+		    }
 
 		// TODO: This has a problem: instruction "b label" sets this to true.
-                if (cl_flags->flag_class & F_CLASS_D)
-                  {
-                    pinsn->d = value ? true : false;
-                    if (cl_flags->flags[0] == F_DFAKE)
-                      pinsn->d = true;
-                  }
+		if (cl_flags->flag_class & F_CLASS_D)
+		  {
+		    pinsn->d = value ? true : false;
+		    if (cl_flags->flags[0] == F_DFAKE)
+		      pinsn->d = true;
+		  }
 
-                if (cl_flags->flag_class & F_CLASS_COND)
-                  pinsn->cc = value;
+		if (cl_flags->flag_class & F_CLASS_COND)
+		  pinsn->cc = value;
 
-                if (cl_flags->flag_class & F_CLASS_WB)
-                  pinsn->aa = value;
+		if (cl_flags->flag_class & F_CLASS_WB)
+		  pinsn->aa = value;
 
-                if (cl_flags->flag_class & F_CLASS_F)
-                  pinsn->f = true;
+		if (cl_flags->flag_class & F_CLASS_F)
+		  pinsn->f = true;
 
-                if (cl_flags->flag_class & F_CLASS_DI)
-                  pinsn->di = true;
+		if (cl_flags->flag_class & F_CLASS_DI)
+		  pinsn->di = true;
 
-                if (cl_flags->flag_class & F_CLASS_X)
-                  pinsn->x = true;
+		if (cl_flags->flag_class & F_CLASS_X)
+		  pinsn->x = true;
 
-                foundA = true;
-              }
-            if (value)
-              foundB = true;
-          }
+		foundA = true;
+	      }
+	    if (value)
+	      foundB = true;
+	  }
 
-        if (!foundA && foundB)
-          {
-            invalid = TRUE;
-            break;
-          }
+	if (!foundA && foundB)
+	  {
+	    invalid = TRUE;
+	    break;
+	  }
       }
 
     if (invalid)
@@ -1469,7 +1469,7 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
 
 static bool
 read_and_decode_context (DisasCtxt *ctx,
-                         const struct arc_opcode **opcode_p)
+			 const struct arc_opcode **opcode_p)
 {
   uint16_t buffer[2];
   uint8_t length;
@@ -1513,8 +1513,8 @@ read_and_decode_context (DisasCtxt *ctx,
   if (ctx->insn.limm_p)
     {
       ctx->insn.limm = ARRANGE_ENDIAN (true,
-                                       cpu_ldl_code (ctx->env,
-                                                     cpc_phy_addr + length));
+				       cpu_ldl_code (ctx->env,
+						     cpc_phy_addr + length));
       length += 4;
     }
   else
@@ -1587,7 +1587,7 @@ static void
 arc_debug_opcode(const struct arc_opcode *opcode, DisasCtxt *ctx, const char *msg)
 {
   qemu_log_mask(LOG_UNIMP,
-                "%s for %s at pc=0x%08x\n", msg, opcode->name, ctx->cpc);
+		"%s for %s at pc=0x%08x\n", msg, opcode->name, ctx->cpc);
 }
 
 static TCGv
@@ -1599,16 +1599,16 @@ arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned ch
   if (nop == ctx->insn.n_ops)
     {
       switch (ctx->insn.class)
-        {
-        case LOGICAL:
-          qemu_log_mask(LOG_UNIMP,
-                        "Make operand %d for %s one.\n", nop, opcode->name);
-          return ctx->one;
-        default:
-          qemu_log_mask(LOG_UNIMP,
-                        "Make operand %d for %s zero.\n", nop, opcode->name);
-          return ctx->zero;
-        }
+	{
+	case LOGICAL:
+	  qemu_log_mask(LOG_UNIMP,
+			"Make operand %d for %s one.\n", nop, opcode->name);
+	  return ctx->one;
+	default:
+	  qemu_log_mask(LOG_UNIMP,
+			"Make operand %d for %s zero.\n", nop, opcode->name);
+	  return ctx->zero;
+	}
     }
 
   assert (nop < ctx->insn.n_ops);
@@ -1618,18 +1618,18 @@ arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned ch
     {
       ret = cpu_r[operand.value];
       if (operand.value == 63)
-        tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+	tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
     }
   else
     {
       int32_t limm = operand.value;
       if (operand.type & ARC_OPERAND_LIMM)
       {
-        limm = ctx->insn.limm;
-        tcg_gen_movi_tl (cpu_limm, limm);
-        ret = cpu_r[62];
+	limm = ctx->insn.limm;
+	tcg_gen_movi_tl (cpu_limm, limm);
+	ret = cpu_r[62];
       } else {
-        ret = tcg_const_local_i32(limm);
+	ret = tcg_const_local_i32(limm);
       }
     }
 
@@ -1639,9 +1639,9 @@ arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned ch
 /* Generate exception.  */
 
 static void gen_excp (DisasCtxt *ctx,
-                      uint32_t index,
-                      uint32_t causecode,
-                      uint32_t param)
+		      uint32_t index,
+		      uint32_t causecode,
+		      uint32_t param)
 {
   TCGv_i32 tmp0 = tcg_const_i32 (index);
   TCGv_i32 tmp1 = tcg_const_i32 (causecode);
@@ -1683,6 +1683,40 @@ static void gen_trap (DisasCtxt *ctx, uint32_t param)
   tcg_temp_free_i32 (tmp2);
 }
 
+/* Generate sleep insn.  */
+static void gen_sleep (DisasCtxt *ctx, TCGv opa)
+{
+  uint32_t param = 0;
+
+  tcg_gen_movi_tl (cpu_pc, ctx->npc);
+  if (ctx->insn.operands[0].type & ARC_OPERAND_IR)
+    {
+      TCGv tmp3 = tcg_temp_local_new_i32 ();
+      TCGLabel *done_L = gen_new_label ();
+
+      tcg_gen_andi_tl (tmp3, opa, 0x10);
+      tcg_gen_brcondi_tl (TCG_COND_NE, tmp3, 0x10, done_L);
+      tcg_gen_andi_tl (cpu_Ef, opa, 0x0f);
+      tcg_gen_mov_tl (cpu_IEf, arc_true);
+      gen_set_label (done_L);
+
+      tcg_temp_free_i32 (tmp3);
+    }
+  else
+    {
+      param = ctx->insn.operands[0].value;
+      if (param & 0x10)
+	{
+	  tcg_gen_movi_tl (cpu_IEf, 1);
+	  tcg_gen_movi_tl (cpu_Ef, param & 0x0f);
+	}
+    }
+  /*FIXME! setup debug registers as well.  */
+
+  gen_helper_halt (cpu_env);
+  qemu_log_mask (CPU_LOG_TB_IN_ASM, "CPU in sleep mode, waiting for an IRQ.\n");
+}
+
 /* Return from exception.  */
 
 static void gen_rtie (DisasCtxt *ctx)
@@ -1709,26 +1743,26 @@ int arc_decode (DisasCtxt *ctx)
       TCGv ops[10];
       int i;
       for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
-        {
-          ops[i] = arc2_decode_operand (opcode, ctx, i);
-        }
+	{
+	  ops[i] = arc2_decode_operand (opcode, ctx, i);
+	}
 
       /* Store some elements statically to implement less dynamic
-         features of instructions.  Started by the need to keep a
-         static reference to LP_START and LP_END.  */
+	 features of instructions.  Started by the need to keep a
+	 static reference to LP_START and LP_END.  */
       switch(mapping)
-        {
+	{
 	case MAP_lp_LP:
 	  ctx->env->lps = ctx->npc;
 	  ctx->env->lpe = ctx->pcl + ctx->insn.operands[0].value;
-          break;
+	  break;
 
 	default:
 	  break;
       }
 
       switch(mapping)
-        {
+	{
 
 #define SEMANTIC_FUNCTION_CALL_0(NAME, A) \
   arc2_gen_##NAME (ctx);
@@ -1752,40 +1786,45 @@ int arc_decode (DisasCtxt *ctx)
 #undef SEMANTIC_FUNCTION_CALL_2
 #undef SEMANTIC_FUNCTION_CALL_3
 
-        case MAP_swi_SWI:
-        case MAP_swi_s_SWI:
-          gen_excp (ctx, EXCP_SWI, 0, ctx->insn.operands[0].value);
+	case MAP_swi_SWI:
+	case MAP_swi_s_SWI:
+	  gen_excp (ctx, EXCP_SWI, 0, ctx->insn.operands[0].value);
 	  ret = BS_NONE;
-          break;
+	  break;
 
-        case MAP_trap_s_TRAP:
-          gen_trap (ctx, ctx->insn.operands[0].value);
+	case MAP_trap_s_TRAP:
+	  gen_trap (ctx, ctx->insn.operands[0].value);
 	  ret = BS_NONE;
-          break;
+	  break;
 
-        case MAP_rtie_RTIE:
-          gen_rtie (ctx);
-          ret = BS_BRANCH;
-          break;
+	case MAP_rtie_RTIE:
+	  gen_rtie (ctx);
+	  ret = BS_BRANCH;
+	  break;
 
-        default:
-          arc_debug_opcode(opcode, ctx, "Could not map opcode");
+	case MAP_sleep_SLEEP:
+	  gen_sleep (ctx, ops[0]);
 	  ret = BS_NONE;
-          should_stop = false;
-          break;
-        }
+	  break;
+
+	default:
+	  arc_debug_opcode(opcode, ctx, "Could not map opcode");
+	  ret = BS_NONE;
+	  should_stop = false;
+	  break;
+	}
 
       for (i = 0;
-           i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
-           i++)
-        {
-          operand_t operand = ctx->insn.operands[i];
-          if (!(operand.type & ARC_OPERAND_LIMM)
-              && !(operand.type & ARC_OPERAND_IR))
-            {
-              tcg_temp_free_i32 (ops[i]);
-            }
-        }
+	   i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
+	   i++)
+	{
+	  operand_t operand = ctx->insn.operands[i];
+	  if (!(operand.type & ARC_OPERAND_LIMM)
+	      && !(operand.type & ARC_OPERAND_IR))
+	    {
+	      tcg_temp_free_i32 (ops[i]);
+	    }
+	}
 
     }
   else

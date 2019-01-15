@@ -47,6 +47,7 @@ TCGv     cpu_DEf;
 TCGv     cpu_AEf;
 TCGv     cpu_Hf;
 TCGv     cpu_IEf;
+TCGv     cpu_Ef;
 
 TCGv     cpu_l1_Lf;
 TCGv     cpu_l1_Zf;
@@ -193,6 +194,7 @@ void arc_translate_init(void)
     cpu_AEf = NEW_ARC_REG(stat.AEf);
     cpu_Hf = NEW_ARC_REG(stat.Hf);
     cpu_IEf = NEW_ARC_REG (stat.IEf);
+    cpu_Ef = NEW_ARC_REG (stat.Ef);
 
     cpu_l1_Zf = NEW_ARC_REG(stat_l1.Zf);
     cpu_l1_Lf = NEW_ARC_REG(stat_l1.Lf);

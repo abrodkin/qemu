@@ -524,9 +524,12 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
   return  result;
 }
 
-void helper_halt(CPUARCState *env)
+void QEMU_NORETURN helper_halt(CPUARCState *env)
 {
-    /* TODO: implement */
+  CPUState *cs = CPU (arc_env_get_cpu (env));
+  cs->halted = 1;
+  cs->exception_index = EXCP_HLT;
+  cpu_loop_exit (cs);
 }
 
 void helper_rtie (CPUARCState *env)
