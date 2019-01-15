@@ -240,6 +240,7 @@ typedef struct CPUARCState {
 #define TB_P1_MSK (0xf00000)
   uint32_t timer_build; /* Timer configuration AUX register.  */
   uint32_t irq_build; /* Interrupt Build Configuration Register.  */
+  uint32_t vecbase_build; /* Interrupt Vector Base Address Configuration.  */
 
   /* Fake register to keep track of the next pc. */
   uint32_t        npc_helper;

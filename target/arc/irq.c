@@ -209,7 +209,7 @@ static void arc_enter_firq (ARCCPU *cpu, uint32_t vector)
   /* Set stat {Z = U; U = 0; L = 1; ES = 0; DZ = 0; DE = 0;} */
   env->stat.Lf = 1;
   env->stat.Zf = env->stat.Uf; /* Old User/Kernel bit.  */
-  env->stat.Uf = 0; /* FIXME! Switch to kernel mode.  */
+  env->stat.Uf = 0;
   env->stat.ESf = 0;
   env->stat.DZf = 0;
   env->stat.DEf = 0;
@@ -299,7 +299,7 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
   env->stat.ESf = 0;
   env->stat.DZf = 0;
   env->stat.DEf	 = 0;
-  env->stat.Uf = 0; /* FIXME! switch to kernel mode.  */
+  env->stat.Uf = 0;
 }
 
 /* Function implementation for reading/writing aux regs.  */
@@ -351,6 +351,13 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
     case AUX_ID_timer_build:
       return env->timer_build;
 
+    case AUX_ID_int_vector_base:
+      return env->intvec;
+
+    case AUX_ID_vecbase_ac_build:
+      return env->vecbase_build;
+      break;
+
     default:
       break;
     }
@@ -367,11 +374,13 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
   switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_select:
-      env->irq_select = val; /* FIXME! check against the IRQ configured range.	*/
+      if (val <= ((env->irq_build >> 8) & 0xff))
+        env->irq_select = val;
+      else
+        qemu_log_mask (LOG_UNIMP, "[IRQ] Invalid write to IRQ_SELECT aux reg.");
       break;
 
     case AUX_ID_aux_irq_hint:
-      /* FIXME! we should clear/trigger an interrupt here.  */
       qemu_mutex_lock_iothread ();
       if (val == 0)
 	qemu_irq_lower (env->irq[env->aux_irq_hint]);
@@ -390,7 +399,11 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
       break;
 
     case AUX_ID_irq_priority:
-      irq_bank->priority = val & 0x0f; /* FIXME! check the irq priority ranges.  */
+      if (val <= ((env->irq_build >> 24) & 0x0f))
+        irq_bank->priority = val & 0x0f;
+      else
+        qemu_log_mask (LOG_UNIMP,
+                       "[IRQ] Invalid write to IRQ_PRIORITY aux reg.");
       break;
 
     case AUX_ID_aux_irq_ctrl:
@@ -403,6 +416,10 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
 
     case AUX_ID_aux_irq_act:
       env->aux_irq_act = val & 0xffff;
+      break;
+
+    case AUX_ID_int_vector_base:
+      env->intvec = val;
       break;
 
     default:
@@ -552,6 +569,10 @@ void arc_initializeIRQ (ARCCPU *cpu)
 
       for (i = 0; i < (cpu->cfg.number_of_interrupts & 0xff); i++)
 	env->irq_bank[16 + i].enable = 1;
+
+      env->vecbase_build = (cpu->cfg.intvbase_preset & (~0x3ffff))
+        | (0x04 << 2);
+      env->intvec = cpu->cfg.intvbase_preset & (~0x3ffff);
     }
   else
     env->irq_build = 0;

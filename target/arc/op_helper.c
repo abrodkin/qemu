@@ -233,10 +233,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
     case AUX_ID_status32_l2:
       break;
 
-    case AUX_ID_int_vector_base:
-      env->intvec = val;
-      break;
-
     case AUX_ID_aux_macmode:
       break;
 
@@ -423,10 +419,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
     case AUX_ID_status32_l1:
       result = get_status32_l1(env);
-      break;
-
-    case AUX_ID_int_vector_base:
-      result = env->intvec;
       break;
 
     case AUX_ID_aux_irq_lv12:

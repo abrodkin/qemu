@@ -76,7 +76,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("has-pct", ARCCPU, cfg.has_pct, false),
  DEFINE_PROP_BOOL ("has-rtt", ARCCPU, cfg.has_rtt, false),
  DEFINE_PROP_BOOL ("has-smart", ARCCPU, cfg.has_smart, false),
- DEFINE_PROP_UINT32 ("intv-base", ARCCPU, cfg.intvbase_preset, -1),
+ DEFINE_PROP_UINT32 ("intv-base", ARCCPU, cfg.intvbase_preset, 0x0),
  DEFINE_PROP_UINT32 ("lpc-size", ARCCPU, cfg.lpc_size, 32),
  DEFINE_PROP_UINT8 ("mpu-numreg", ARCCPU, cfg.mpu_num_regions, -1),
  DEFINE_PROP_UINT8 ("mpy-option", ARCCPU, cfg.mpy_option, 2),
