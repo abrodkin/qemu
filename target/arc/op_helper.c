@@ -527,8 +527,20 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 void QEMU_NORETURN helper_halt(CPUARCState *env)
 {
   CPUState *cs = CPU (arc_env_get_cpu (env));
-  cs->halted = 1;
-  cs->exception_index = EXCP_HLT;
+  if (env->stat.Uf)
+    {
+      cs->exception_index = EXCP_PRIVILRGEV;
+      env->causecode = 0;
+      env->param = 0;
+       /* Restore PC such that we point at the faulty instruction.  */
+      env->eret = env->pc;
+    }
+  else
+    {
+      env->pc = env->npc_helper;
+      cs->halted = 1;
+      cs->exception_index = EXCP_HLT;
+    }
   cpu_loop_exit (cs);
 }
 

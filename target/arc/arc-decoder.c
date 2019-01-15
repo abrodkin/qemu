@@ -1688,7 +1688,7 @@ static void gen_sleep (DisasCtxt *ctx, TCGv opa)
 {
   uint32_t param = 0;
 
-  tcg_gen_movi_tl (cpu_pc, ctx->npc);
+  tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
   if (ctx->insn.operands[0].type & ARC_OPERAND_IR)
     {
       TCGv tmp3 = tcg_temp_local_new_i32 ();
