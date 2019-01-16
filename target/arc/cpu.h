@@ -225,7 +225,9 @@ typedef struct CPUARCState {
   uint32_t family;
 
   uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
-  uint64_t last_clk;
+  uint64_t last_clk_t0;
+  uint64_t last_clk_t1;
+  uint64_t last_clk_rtc;
 
   void *irq[256];
   QEMUTimer *cpu_timer0; /* Internal timer.  */
