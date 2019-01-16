@@ -87,7 +87,7 @@ static Property arc_properties[] =
  DEFINE_PROP_UINT32 ("ntlb-numentries", ARCCPU, cfg.ntlb_num_entries, -1),
  DEFINE_PROP_UINT32 ("num-actionpoints", ARCCPU, cfg.num_actionpoints, -1),
  DEFINE_PROP_UINT32 ("num-irq", ARCCPU, cfg.number_of_interrupts, 240),
- DEFINE_PROP_UINT32 ("num-irqlevels", ARCCPU, cfg.number_of_levels, 16),
+ DEFINE_PROP_UINT32 ("num-irqlevels", ARCCPU, cfg.number_of_levels, 15),
  DEFINE_PROP_UINT32 ("pct-counters", ARCCPU, cfg.pct_counters, -1),
  DEFINE_PROP_UINT32 ("pct-irq", ARCCPU, cfg.pct_interrupt, -1),
  DEFINE_PROP_UINT32 ("pc-size", ARCCPU, cfg.pc_size, 32),

@@ -374,10 +374,12 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
   switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_select:
-      if (val <= ((env->irq_build >> 8) & 0xff))
+      if (val <= (16 + ((env->irq_build >> 8) & 0xff)))
         env->irq_select = val;
       else
-        qemu_log_mask (LOG_UNIMP, "[IRQ] Invalid write to IRQ_SELECT aux reg.");
+        qemu_log_mask (LOG_UNIMP,
+                       "[IRQ] Invalid write 0x%08x to IRQ_SELECT aux reg.\n",
+                       val);
       break;
 
     case AUX_ID_aux_irq_hint:
@@ -403,7 +405,8 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
         irq_bank->priority = val & 0x0f;
       else
         qemu_log_mask (LOG_UNIMP,
-                       "[IRQ] Invalid write to IRQ_PRIORITY aux reg.");
+                       "[IRQ] Invalid write 0x%08x to IRQ_PRIORITY aux reg.\n",
+                       val);
       break;
 
     case AUX_ID_aux_irq_ctrl:
