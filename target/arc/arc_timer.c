@@ -24,7 +24,7 @@
 #include "qemu/timer.h"
 #include "cpu.h"
 #include "hw/arc/cpudevs.h"
-
+#include "arc_timer.h"
 
 #define TIMER_PERIOD(hz) (1000000000LL/(hz))
 /* ARC timer update function.  */
@@ -60,9 +60,9 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
       next = now + (uint64_t) wait * TIMER_PERIOD (env->freq_hz);
       timer_mod (timer ? env->cpu_timer1 : env->cpu_timer0, next);
       qemu_log_mask(LOG_UNIMP,
-                    "[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
-                    timer, env->timer[timer].T_Limit,
-                    env->timer[timer].T_Count, wait);
+		    "[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
+		    timer, env->timer[timer].T_Limit,
+		    env->timer[timer].T_Count, wait);
     }
   cpu_arc_count_update (env);
 }
@@ -180,19 +180,20 @@ static void cpu_arc_count_reset (CPUARCState *env, uint32_t timer)
   env->timer[timer].T_Limit = 0x00ffffff;
 }
 
-uint32_t cpu_arc_count_get (CPUARCState *env, uint32_t timer)
+static uint32_t cpu_arc_count_get (CPUARCState *env, uint32_t timer)
 {
   cpu_arc_count_update (env);
   return env->timer[timer & 0x01].T_Count;
 }
 
-void cpu_arc_count_set (CPUARCState *env, uint32_t timer, uint32_t val)
+static void cpu_arc_count_set (CPUARCState *env, uint32_t timer, uint32_t val)
 {
   env->timer[timer & 0x01].T_Count = val;
   cpu_arc_timer_update (env, timer);
 }
 
-void cpu_arc_store_limit (CPUARCState *env, uint32_t timer, uint32_t value)
+static void cpu_arc_store_limit (CPUARCState *env,
+				 uint32_t timer, uint32_t value)
 {
   switch (timer)
     {
@@ -211,7 +212,8 @@ void cpu_arc_store_limit (CPUARCState *env, uint32_t timer, uint32_t value)
   cpu_arc_timer_update (env, timer);
 }
 
-void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
+static void cpu_arc_control_set (CPUARCState *env,
+				 uint32_t timer, uint32_t value)
 {
   timer &= 0x1;
   if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
@@ -220,7 +222,7 @@ void cpu_arc_control_set (CPUARCState *env, uint32_t timer, uint32_t value)
   cpu_arc_timer_update (env, timer);
 }
 
-/* Init procedure, called in platform.  */
+/* Init procedure, called in platform.	*/
 
 void cpu_arc_clock_init (ARCCPU *cpu)
 {
@@ -263,13 +265,13 @@ void arc_resetTIMER (ARCCPU *cpu)
     cpu_arc_count_reset (env, 1);
 }
 
-uint32_t arc_rtc_count_get (CPUARCState *env, bool lower)
+static uint32_t arc_rtc_count_get (CPUARCState *env, bool lower)
 {
   cpu_arc_rtc_hl_update (env);
   return lower ? env->aux_rtc_low : env->aux_rtc_high;
 }
 
-void arc_rtc_ctrl_set (CPUARCState *env, uint32_t val)
+static void arc_rtc_ctrl_set (CPUARCState *env, uint32_t val)
 {
   assert (env->stat.Uf == 0);
 
@@ -278,5 +280,103 @@ void arc_rtc_ctrl_set (CPUARCState *env, uint32_t val)
     {
       env->aux_rtc_low = 0;
       env->aux_rtc_high = 0;
+    }
+}
+
+/* Function implementation for reading/writing aux regs.  */
+uint32_t
+aux_timer_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
+{
+  CPUARCState *env = (CPUARCState *) data;
+
+  switch (aux_reg_detail->id)
+    {
+    case AUX_ID_control0:
+      return env->timer[0].T_Cntrl;
+      break;
+
+    case AUX_ID_control1:
+      return env->timer[1].T_Cntrl;
+      break;
+
+    case AUX_ID_count0:
+      return cpu_arc_count_get (env, 0);
+      break;
+
+    case AUX_ID_count1:
+      return cpu_arc_count_get (env, 1);
+      break;
+
+    case AUX_ID_limit0:
+      return env->timer[0].T_Limit;
+      break;
+
+    case AUX_ID_limit1:
+      return env->timer[1].T_Limit;
+      break;
+
+    case AUX_ID_timer_build:
+      return env->timer_build;
+      break;
+
+    case AUX_ID_aux_rtc_low:
+      return arc_rtc_count_get (env, true);
+      break;
+
+    case AUX_ID_aux_rtc_high:
+      return arc_rtc_count_get (env, false);
+      break;
+
+    case AUX_ID_aux_rtc_ctrl:
+      return env->aux_rtc_ctrl;
+      break;
+
+    default:
+      break;
+    }
+  return 0;
+}
+
+void
+aux_timer_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data)
+{
+  CPUARCState *env = (CPUARCState *) data;
+
+  switch (aux_reg_detail->id)
+    {
+    case AUX_ID_control0:
+      if (env->timer_build & TB_T0)
+	cpu_arc_control_set (env, 0, val);
+      break;
+
+    case AUX_ID_control1:
+      if (env->timer_build & TB_T1)
+	cpu_arc_control_set (env, 1, val);
+      break;
+
+    case AUX_ID_count0:
+      if (env->timer_build & TB_T0)
+	cpu_arc_count_set (env, 0, val);
+      break;
+
+    case AUX_ID_count1:
+      if (env->timer_build & TB_T1)
+	cpu_arc_count_set (env, 1, val);
+      break;
+
+    case AUX_ID_limit0:
+      cpu_arc_store_limit (env, 0, val);
+      break;
+
+    case AUX_ID_limit1:
+      cpu_arc_store_limit (env, 1, val);
+      break;
+
+    case AUX_ID_aux_rtc_ctrl:
+      arc_rtc_ctrl_set (env, val);
+      break;
+
+    default:
+      break;
     }
 }

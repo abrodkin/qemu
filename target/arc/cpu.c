@@ -28,6 +28,7 @@
 #include "hw/qdev-properties.h"
 #include "irq.h"
 #include "hw/arc/cpudevs.h"
+#include "arc_timer.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -210,6 +211,74 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
   /* Initialize build registers depending on the simulation
      parameters.  */
   env->freq_hz = cpu->cfg.freq_hz;
+
+  env->isa_config = 0x02;
+  switch (cpu->cfg.pc_size)
+    {
+    case 16:
+      break;
+    case 20:
+      env->isa_config |= 1 << 8;
+      break;
+    case 24:
+      env->isa_config |= 2 << 8;
+      break;
+    case 28:
+      env->isa_config |= 3 << 8;
+      break;
+    default:
+      env->isa_config |= 4 << 8;
+      break;
+    }
+
+  switch (cpu->cfg.lpc_size)
+    {
+    case 0:
+      break;
+    case 8:
+      env->isa_config |= 1 << 12;
+      break;
+    case 12:
+      env->isa_config |= 2 << 12;
+      break;
+    case 16:
+      env->isa_config |= 3 << 12;
+      break;
+    case 20:
+      env->isa_config |= 4 << 12;
+      break;
+    case 24:
+      env->isa_config |= 5 << 12;
+      break;
+    case 28:
+      env->isa_config |= 6 << 12;
+      break;
+    default:
+      env->isa_config |= 7 << 12;
+      break;
+    }
+
+  switch (cpu->cfg.addr_size)
+    {
+    case 16:
+      break;
+    case 20:
+      env->isa_config |= 1 << 16;
+      break;
+    case 24:
+      env->isa_config |= 2 << 16;
+      break;
+    case 28:
+      env->isa_config |= 3 << 16;
+      break;
+    default:
+      env->isa_config |= 4 << 16;
+      break;
+    }
+
+  env->isa_config |= (cpu->cfg.byte_order ? BIT(20) : 0) | BIT(21)
+    | (cpu->cfg.dmp_unaligned ? BIT(22) : 0) | BIT(23)
+    | (cpu->cfg.code_density ? (2 << 24) : 0) | BIT(28);
 
   arc_initializeTIMER (cpu);
   arc_initializeIRQ (cpu);

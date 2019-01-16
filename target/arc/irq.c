@@ -348,9 +348,6 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
     case AUX_ID_irq_build:
       return env->irq_build;
 
-    case AUX_ID_timer_build:
-      return env->timer_build;
-
     case AUX_ID_int_vector_base:
       return env->intvec;
 

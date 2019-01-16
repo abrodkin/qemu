@@ -260,41 +260,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
     case AUX_ID_bta_l2:
       break;
 
-    case AUX_ID_control0:
-      if (env->timer_build & TB_T0)
-        cpu_arc_control_set (env, 0, val);
-      break;
-
-    case AUX_ID_control1:
-      if (env->timer_build & TB_T1)
-        cpu_arc_control_set (env, 1, val);
-      break;
-
-    case AUX_ID_count0:
-      if (env->timer_build & TB_T0)
-        cpu_arc_count_set (env, 0, val);
-      break;
-
-    case AUX_ID_count1:
-      if (env->timer_build & TB_T1)
-        cpu_arc_count_set (env, 1, val);
-      break;
-
-    case AUX_ID_limit0:
-      cpu_arc_store_limit (env, 0, val);
-      break;
-
-    case AUX_ID_limit1:
-      cpu_arc_store_limit (env, 1, val);
-      break;
-
-    case AUX_ID_irq_build:
-      break;
-
-    case AUX_ID_aux_rtc_ctrl:
-      arc_rtc_ctrl_set (env, val);
-      break;
-
     default:
       if(aux_reg_detail->aux_reg->set_func != NULL)
         aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
@@ -421,10 +386,8 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       result = get_status32_l1(env);
       break;
 
-    case AUX_ID_aux_irq_lv12:
-      break;
-
-    case AUX_ID_aux_irq_lev:
+    case AUX_ID_isa_config:
+      result = env->isa_config;
       break;
 
     case AUX_ID_eret:
@@ -457,50 +420,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
     case AUX_ID_bta_l2:
       result = env->bta_l2;
-      break;
-
-    case AUX_ID_control0:
-      result = env->timer[0].T_Cntrl;
-      break;
-
-    case AUX_ID_control1:
-      result = env->timer[1].T_Cntrl;
-      break;
-
-    case AUX_ID_count0:
-      result = cpu_arc_count_get (env, 0);
-      break;
-
-    case AUX_ID_count1:
-      result = cpu_arc_count_get (env, 1);
-      break;
-
-    case AUX_ID_limit0:
-      result = env->timer[0].T_Limit;
-      break;
-
-    case AUX_ID_limit1:
-      result = env->timer[1].T_Limit;
-      break;
-
-    case AUX_ID_timer_build:
-      result = env->timer_build;
-      break;
-
-    case AUX_ID_irq_build:
-      result = env->irq_build;
-      break;
-
-    case AUX_ID_aux_rtc_low:
-      result = arc_rtc_count_get (env, true);
-      break;
-
-    case AUX_ID_aux_rtc_high:
-      result = arc_rtc_count_get (env, false);
-      break;
-
-    case AUX_ID_aux_rtc_ctrl:
-      result = env->aux_rtc_ctrl;
       break;
 
     default:

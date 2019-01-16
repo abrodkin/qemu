@@ -172,6 +172,8 @@ typedef struct CPUARCState {
   uint32_t        pc;     /*  program counter         */
   uint32_t        lps;    /*  loops start             */
   uint32_t        lpe;    /*  loops end               */
+  /* Fake register to keep track of the next pc. */
+  uint32_t        npc_helper;
 
   struct {
     uint32_t    LD;     /*  load pending bit        */
@@ -241,9 +243,7 @@ typedef struct CPUARCState {
   uint32_t timer_build; /* Timer configuration AUX register.  */
   uint32_t irq_build; /* Interrupt Build Configuration Register.  */
   uint32_t vecbase_build; /* Interrupt Vector Base Address Configuration.  */
-
-  /* Fake register to keep track of the next pc. */
-  uint32_t        npc_helper;
+  uint32_t isa_config; /* Instruction Set Configuration Register.  */
 
 } CPUARCState;
 
