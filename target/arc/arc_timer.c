@@ -40,7 +40,7 @@ static void cpu_arc_count_update (CPUARCState *env, uint32_t timer)
   timer &= 0x01;
   now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
 
-  if (timer)
+  if (timer == 0)
     {
       env->timer[0].T_Count += (uint32_t)((now - env->last_clk_t0) /
 					  TIMER_PERIOD (env->freq_hz));
@@ -53,7 +53,8 @@ static void cpu_arc_count_update (CPUARCState *env, uint32_t timer)
       env->last_clk_t1 = now;
     }
 
-  qemu_log_mask(LOG_UNIMP, "[TMRx] Timer%d count update\n", timer);
+  qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer count update 0x%08x\n", timer,
+                env->timer[timer].T_Count);
 }
 
 /* Update the next timeout time as difference between Count and Limit */

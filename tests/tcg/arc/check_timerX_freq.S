@@ -10,7 +10,7 @@
 
 	;; enable TIMER1 interrupts
 	sr	0x01,[control1]
-	mov	r0, 0x3fffe	;Twice faster
+	mov	r0, 0x3fffe	;Twice slower
 	sr	r0,[limit1]
 	sr	0,[count1]
 	mov	r4,0
@@ -53,12 +53,13 @@
 	stb	r2,[OUTPUT_DEVICE]
 	brne	r2,0,@.L13
 .L14:
-
-;;	breq	r3, 1, @.passMe
-;;	print	"Fail\n"
-;;	end
-;;.passMe:
-;;	print	"Pass\n"
+	breq	r5, 0, @.failMe
+	brgt	r4,r5, @.passMe
+.failMe:
+	print	"Fail\n"
+	end
+.passMe:
+	print	"Pass\n"
 	end
 
 	.align 4

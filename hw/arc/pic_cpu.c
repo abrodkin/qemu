@@ -28,6 +28,8 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
   ARCCPU *cpu = (ARCCPU *)opaque;
   CPUState *cs = CPU(cpu);
   CPUARCState *env = &cpu->env;
+  int i;
+  bool clear;
 
   if (!cpu->cfg.has_interrupts)
     return;
@@ -45,9 +47,22 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
     }
   else
     {
-      cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
-      env->irq_priority_pending &= ~(1 << env->irq_bank[irq].priority);
       env->irq_bank[irq].pending = 0;
+
+      clear = true;
+      for (i = 16; i < cpu->cfg.number_of_interrupts; i++)
+        if (env->irq_bank[i].pending
+            && env->irq_bank[i].priority == env->irq_bank[irq].priority)
+          {
+            clear = false;
+            break;
+          }
+
+      if (clear)
+        {
+          cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
+          env->irq_priority_pending &= ~(1 << env->irq_bank[irq].priority);
+        }
     }
 }
 
