@@ -135,6 +135,8 @@ typedef struct
   uint32_t T_Count;
   uint32_t T_Cntrl;
   uint32_t T_Limit;
+  uint64_t period;
+  uint64_t last_clk;
 } arc_timer_t;
 
 /* ARC PIC interrupt bancked regs.  */
@@ -225,14 +227,11 @@ typedef struct CPUARCState {
   uint32_t family;
 
   uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
-  uint64_t last_clk_t0;
-  uint64_t last_clk_t1;
   uint64_t last_clk_rtc;
 
   void *irq[256];
-  QEMUTimer *cpu_timer0; /* Internal timer.  */
-  QEMUTimer *cpu_timer1; /* Internal timer.  */
-  QEMUTimer *cpu_rtc; /* Internal timer.  */
+  QEMUTimer *cpu_timer[2]; /* Internal timer.  */
+  QEMUTimer *cpu_rtc; /* Internal RTC.  */
 
   /* Build AUX regs.  */
 #define TIMER0_IRQ 16
