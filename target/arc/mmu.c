@@ -192,12 +192,18 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
           mmu->tlbindex = index; /* Entry is deleted set index */
 	  tlb->pd0 &= ~PD0_V;
 	  num_finds--;
+	  qemu_log_mask (CPU_LOG_MMU,
+			 "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			  env->pc, pd0, pd1);
         }
       else
 	{
           while(num_finds > 0)
 	    {
 	      tlb->pd0 &= ~PD0_V;
+	      qemu_log_mask (CPU_LOG_MMU,
+			     "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			     env->pc, pd0, pd1);
 	      tlb = arc_mmu_lookup_tlb(pd0,
 				       (VPN(PD0_VPN) | PD0_V | PD0_SZ | PD0_G | PD0_S),
 				       mmu, &num_finds, NULL);
@@ -218,6 +224,10 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  mmu->tlbindex |= index;
 
 	  /* TODO: More verifications needed. */
+
+	   qemu_log_mask (CPU_LOG_MMU,
+			  "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			  env->pc, pd0, pd1);
 	}
   }
 
@@ -233,11 +243,13 @@ arc_mmu_have_permission(CPUARCState *env,
   bool ret = false;
   bool in_kernel_mode = !env->stat.Uf; /* Read status for user mode. */
   switch(type) {
+      // TODO: Verify if this is correct
     case MMU_MEM_READ:
       ret = in_kernel_mode ? tlb->pd1 & PD1_RK : tlb->pd1 & PD1_RU;
       break;
     case MMU_MEM_WRITE:
       ret = in_kernel_mode ? tlb->pd1 & PD1_WK : tlb->pd1 & PD1_WU;
+      //ret = in_kernel_mode ? true : tlb->pd1 & PD1_WU;
       break;
     case MMU_MEM_FETCH:
       ret = in_kernel_mode ? tlb->pd1 & PD1_XK : tlb->pd1 & PD1_XU;
@@ -247,6 +259,7 @@ arc_mmu_have_permission(CPUARCState *env,
       ret = ret & (in_kernel_mode ? tlb->pd1 & PD1_WK : tlb->pd1 & PD1_WU);
       break;
   }
+
   return ret;
 }
 
@@ -271,6 +284,9 @@ arc_mmu_translate(struct CPUARCState *env,
   if((vaddr >= 0x80000000) || mmu->enabled == false)
     return vaddr;
 
+  qemu_log_mask (CPU_LOG_MMU, "[MMU] Translate at 0x%08x, vaddr 0x%08x rwe = %s\n",
+		 env->pc, vaddr, RWE_STRING(rwe));
+
   uint32_t match_pd0 = (VPN(vaddr) | PD0_V);
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
 					     (VPN(PD0_VPN) | PD0_V),
@@ -280,6 +296,8 @@ arc_mmu_translate(struct CPUARCState *env,
   /* Check for multiple matches in nTLB, and return machine check exception. */
   if(num_matching_tlb > 1)
   {
+    qemu_log_mask (CPU_LOG_MMU, "[MMU] Machine Check exception. num_matching_tlb = %d\n",
+		   num_matching_tlb);
     SET_MMU_EXCEPTION(env, EXCP_MACHINE_CHECK, 0x01, 0x00);
     return 0;
   }
@@ -319,22 +337,37 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
+      qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception. rwe = %s, "
+		     "tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+		     RWE_STRING(rwe),
+		     tlb->pd0, tlb->pd1);
       SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
       return 0;
     }
 
-  if(match == true)
+  if(match == true) {
+    qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x\n",
+		   (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)));
     return (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK));
+  }
   else
     {
 tlb_miss_exception:
       mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
       if(rwe == MMU_MEM_FETCH)
 	{
+          qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception. rwe = %s, "
+			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+			 RWE_STRING(rwe),
+			 vaddr, tlb->pd0, tlb->pd1);
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
 	}
       else
 	{
+          qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissD exception. rwe = %s, "
+			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+			 RWE_STRING(rwe),
+			 vaddr, tlb->pd0, tlb->pd1);
 	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
 	}
       return 0;

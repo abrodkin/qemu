@@ -355,6 +355,9 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
       return env->vecbase_build;
       break;
 
+    case AUX_ID_aux_user_sp:
+      return env->aux_user_sp;
+
     default:
       break;
     }
@@ -417,6 +420,10 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
 
     case AUX_ID_int_vector_base:
       env->intvec = val;
+      break;
+
+    case AUX_ID_aux_user_sp:
+      env->aux_user_sp = val;
       break;
 
     default:

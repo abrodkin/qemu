@@ -1467,6 +1467,11 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
   return NULL;
 }
 
+static void gen_excp (DisasCtxt *ctx,
+                      uint32_t index,
+                      uint32_t causecode,
+                      uint32_t param);
+
 static bool
 read_and_decode_context (DisasCtxt *ctx,
 			 const struct arc_opcode **opcode_p)
@@ -1477,11 +1482,14 @@ read_and_decode_context (DisasCtxt *ctx,
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
   uint32_t cpc_phy_addr = arc_mmu_translate(ctx->env, ctx->cpc, MMU_MEM_FETCH);
-  //if((enum exception_code_list) ctx->env->mmu.exception.number != EXCP_NO_EXCEPTION)
-  //{
-  //  ctx->env->efa = arc_mmu_page_address_for(ctx->cpc);
-  //  RAISE_MMU_EXCEPTION(ctx->env);
-  //}
+  if((enum exception_code_list) ctx->env->mmu.exception.number == EXCP_TLB_MISS_I)
+  {
+    ctx->env->efa = arc_mmu_page_address_for(ctx->cpc);
+    gen_excp (ctx, EXCP_TLB_MISS_I,
+	      ctx->env->mmu.exception.causecode,
+	      ctx->env->mmu.exception.parameter);
+    //RAISE_MMU_EXCEPTION(ctx->env);
+  }
   buffer[0] = cpu_lduw_code(ctx->env, cpc_phy_addr);
   length = arc_insn_length (buffer[0], ctx->env->family);
 
@@ -1580,6 +1588,7 @@ arc_map_opcode (const struct arc_opcode *opcode)
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
 
+  assert(0);
   return MAP_NONE;
 }
 
@@ -1832,8 +1841,9 @@ int arc_decode (DisasCtxt *ctx)
       // FIXME! enable it when we have full support.
       //gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
       arc_debug_opcode(opcode, ctx, "Could not identify opcode");
+      assert(0);
       ret = BS_NONE;
-      should_stop = false;
+      should_stop = true;
     }
 
 #ifdef DEBUG_TCG

@@ -65,6 +65,13 @@ enum mmu_access_type {
   MMU_MEM_FETCH,  /* Read for execution. */
 };
 
+#define RWE_STRING(RWE) \
+  (RWE == MMU_MEM_READ ? "MEM_READ" : \
+   (RWE == MMU_MEM_WRITE ? "MEM_WRITE" : \
+    (RWE == MMU_MEM_ATTOMIC ? "MEM_ATTOMIC" : \
+     (RWE == MMU_MEM_FETCH ? "MEM_FECT" : "NOT_VALID_RWE"))))
+
+
 #define CAUSE_CODE(ENUM) \
   ((uint8_t) ENUM + 1)
 

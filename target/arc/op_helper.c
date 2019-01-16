@@ -265,6 +265,7 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
         aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
       else {
 	/* TODO: are lr and sr possible delayslot instructions ? */
+	assert(0);
         do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
       }
       break;
@@ -427,6 +428,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
       else {
 	/* TODO: is lr and sr possible delayslot instructions ? */
+	assert(0);
         do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
       }
       break;
