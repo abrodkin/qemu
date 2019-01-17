@@ -4201,7 +4201,7 @@ arc2_gen_PREFETCH (DisasCtxt *ctx, TCGv src1, TCGv src2)
   int ret = BS_NONE;
   int AA;
   AA = getAAFlag ();
-  if ((AA == 3))
+  if ((AA == 1) || AA == 2)
     {
     tcg_gen_add_i32(src1, src1, src2);
 ;

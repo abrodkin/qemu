@@ -60,7 +60,8 @@ TESTCASES += check_swirq.tst
 TESTCASES += check_swirq1.tst
 TESTCASES += check_mpyw.tst
 TESTCASES += check_subf.tst
-TESTCASES += check_mac.tst
+TESTCASES += check_prefetch.tst
+#TESTCASES += check_mac.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o
