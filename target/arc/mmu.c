@@ -258,6 +258,9 @@ arc_mmu_have_permission(CPUARCState *env,
       ret = in_kernel_mode ? tlb->pd1 & PD1_RK : tlb->pd1 & PD1_RU;
       ret = ret & (in_kernel_mode ? tlb->pd1 & PD1_WK : tlb->pd1 & PD1_WU);
       break;
+    case MMU_MEM_IRRELEVANT_TYPE:
+      ret = true;
+      break;
   }
 
   return ret;

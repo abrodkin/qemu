@@ -214,7 +214,10 @@ int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,
 
 hwaddr arc_cpu_get_phys_page_debug(CPUState *cs, vaddr addr)
 {
-  return  addr;   /*  I assume 1:1 address correspondance */
+  ARCCPU *cpu = ARC_CPU (cs);
+  CPUARCState *env = &cpu->env;
+
+  return arc_mmu_translate(env, addr, MMU_MEM_IRRELEVANT_TYPE);
 }
 
 void helper_debug(CPUARCState *env)
