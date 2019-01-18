@@ -322,7 +322,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   /* In case entry is not global.
    * Logic from PRM, in TLBPD0 description, more precisely ASID one. */
-  if((tlb->pd0 & PD0_G) == 0)
+  if((tlb->pd0 & PD0_G) == 0 && rwe != MMU_MEM_IRRELEVANT_TYPE)
     {
       /* ASID check against library.  */
       if((tlb->pd0 & PD0_S) != 0
@@ -356,23 +356,29 @@ arc_mmu_translate(struct CPUARCState *env,
   else
     {
 tlb_miss_exception:
-      mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
-      if(rwe == MMU_MEM_FETCH)
+      if(rwe != MMU_MEM_IRRELEVANT_TYPE)
 	{
-          qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception. rwe = %s, "
+	  mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
+          if(rwe == MMU_MEM_FETCH)
+	    {
+              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception. rwe = %s, "
 			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
 			 RWE_STRING(rwe),
 			 vaddr, tlb->pd0, tlb->pd1);
-	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
+	      SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
+	    }
+          else
+	    {
+              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissD exception. rwe = %s, "
+			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+			 RWE_STRING(rwe),
+			 vaddr, tlb->pd0, tlb->pd1);
+	      SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
+	    }
 	}
       else
-	{
-          qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissD exception. rwe = %s, "
-			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
-			 RWE_STRING(rwe),
-			 vaddr, tlb->pd0, tlb->pd1);
-	  SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
-	}
+	qemu_log_mask (CPU_LOG_MMU, "[MMU] Failed to translate to 0x%08x\n",
+		       vaddr);
       return 0;
     }
 }
