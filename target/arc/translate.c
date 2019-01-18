@@ -28,6 +28,8 @@ TCGv     cpu_sp;        /*  Stack Pointer                       */
 TCGv     cpu_ilink1;    /*  Level 1 interrupt link register     */
 TCGv     cpu_ilink2;    /*  Level 2 interrupt link register     */
 TCGv     cpu_blink;     /*  Branch link register                */
+TCGv     cpu_acclo;     /*  64-bit accumulator register: low    */
+TCGv     cpu_acchi;     /*  64-bit accumulator register: high   */
 TCGv     cpu_limm;      /*  Long immediate data indicator       */
 TCGv     cpu_pcl;       /*  Program Counter [31:2], read-only,
                                     32-bit aligned address.     */
@@ -238,15 +240,17 @@ void arc_translate_init(void)
         cpu_r[i] = tcg_global_mem_new_i32(cpu_env, ARC_REG_OFFS(r[i]), strdup(name));
     }
 
-    cpu_gp = cpu_r[26];
-    cpu_fp = cpu_r[27];
-    cpu_sp = cpu_r[28];
+    cpu_gp     = cpu_r[26];
+    cpu_fp     = cpu_r[27];
+    cpu_sp     = cpu_r[28];
     cpu_ilink1 = cpu_r[29];
     cpu_ilink2 = cpu_r[30];
-    cpu_blink = cpu_r[31];
-    cpu_lpc = cpu_r[60];
-    cpu_limm = cpu_r[62];
-    cpu_pcl = cpu_r[63];
+    cpu_blink  = cpu_r[31];
+    cpu_acclo  = cpu_r[58];
+    cpu_acchi  = cpu_r[59];
+    cpu_lpc    = cpu_r[60];
+    cpu_limm   = cpu_r[62];
+    cpu_pcl    = cpu_r[63];
 
     cpu_debug_LD = NEW_ARC_REG(debug.LD);
     cpu_debug_SH = NEW_ARC_REG(debug.SH);

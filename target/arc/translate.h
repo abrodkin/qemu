@@ -42,6 +42,8 @@ extern TCGv     cpu_sp;
 extern TCGv     cpu_ilink1;
 extern TCGv     cpu_ilink2;
 extern TCGv     cpu_blink;
+extern TCGv     cpu_acclo;
+extern TCGv     cpu_acchi;
 extern TCGv     cpu_pcl;
 extern TCGv     cpu_limm;
 

@@ -182,6 +182,8 @@ typedef enum ARC_COND {
 enum arc_registers {
   R_SP = 0,
   R_STATUS32,
+  R_ACCLO,
+  R_ACCHI
 };
 
 enum target_options {
@@ -298,6 +300,10 @@ void arc2_gen_write_aux_reg (TCGv reg_id, TCGv b);
 #define writeAuxReg(NAME, B) \
   arc2_gen_write_aux_reg(NAME, B)
 void tcg_gen_shlfi_i32(TCGv a, int b, TCGv c);
+TCGv arc2_gen_mac_alt1(TCGv_i32 b, TCGv_i32 c);
+TCGv arc2_gen_mac_alt2(TCGv_i32 b, TCGv_i32 c);
+#define MAC(B, C) \
+  arc2_gen_mac_alt2(B, C)
 TCGv arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end);
 #define extractBits(ELEM, START, END) \
   arc2_gen_extract_bits(ELEM, START, END)
@@ -325,7 +331,7 @@ TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2);
 #define Halt() \
   to_implement_wo_abort(ctx)
 
-TCGv arc2_has_interrupts();
+TCGv arc2_has_interrupts(DisasCtxt *);
 #define hasInterrupts() \
   arc2_has_interrupts(ctx)
 
