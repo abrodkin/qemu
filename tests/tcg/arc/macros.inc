@@ -129,9 +129,9 @@ tn_\name:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; macro:     assert_eq
-; input:     a, b - two values/registers to be compared
-;            num  - optional: printed error number, default is 1.
-;                   valid range is: [0 ... 9]
+; input:     a, b     - two values/registers to be compared
+;            test_num - optional: printed error number, default is 1.
+;                       valid range is: [0 ... 9]
 ; regs used: r11, r12
 ; example:   assert_eq 12, r2
 ;            assert_eq r1, 8
@@ -146,12 +146,12 @@ tn_\name:
 ;   this macro uses a relative lable. if the code using this macro
 ;   happens to use the  same  relative lable, then  the  assembler
 ;   will get confused. this label is: '3333'
-.macro assert_eq a, b, num=1
+.macro assert_eq a, b, test_num=1
   mov   r11, \a
   mov   r12, \b
   breq  r11, r12, @3333f
-  print "Ret:"
-  print_number \num
+  print "FAIL:"
+  print_number \test_num
   end
 3333:
 .endm
@@ -190,7 +190,7 @@ tn_\name:
 ; macro:     assert_flag
 ; input:     reg_stat_flag - index to get the corresponding flag
 ;            bit           - verification value: 0 or 1
-;            num           - optional: printed error number, default
+;            test_num      - optional: printed error number, default
 ;                            is 1. valid range is: [0 ... 9]
 ; regs used: r11, r12
 ; example:   assert_flag REG_STAT_Z, 1, num=8
@@ -205,12 +205,12 @@ tn_\name:
 ;   this macro uses a relative lable. if the code using this macro
 ;   happens to use the  same  relative lable, then  the  assembler
 ;   will get confused. this label is: '3333'
-.macro assert_flag reg_stat_flag, bit, num
+.macro assert_flag reg_stat_flag, bit, test_num
   lr     r11, [REG_STAT]
   and    r11, r11, \reg_stat_flag
   ; if bit=0 then checking if r11 == 0
   ; if bit=1 then checking if r11 == bit_mask
-  assert_eq r11, \bit*\reg_stat_flag, \num
+  assert_eq r11, \bit*\reg_stat_flag, \test_num
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

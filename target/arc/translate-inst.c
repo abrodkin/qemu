@@ -663,70 +663,39 @@ tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
 }
 
 
-TCGv
-arc2_gen_mac_alt1(TCGv_i32 b32, TCGv_i32 c32)
-{
-  TCGv_i64 b64 = tcg_temp_new_i64();
-  TCGv_i64 c64 = tcg_temp_new_i64();
-  TCGv_i64 product = tcg_temp_new_i64();
-  TCGv_i32 phi = tcg_temp_new_i32();  /* will be returned */
-
-  tcg_gen_ext_i32_i64(b64, b32);
-  tcg_gen_ext_i32_i64(c64, c32);
-  tcg_gen_mul_i64(product, b64, c64);
-
-  /* prepping the 64-bit accumulator register */
-  TCGv_i64 acc = tcg_temp_new_i64();
-  tcg_gen_concat_i32_i64(acc, cpu_acclo, cpu_acchi);
-
-  /* adding the product to the accumulator */
-  tcg_gen_add_i64(acc, acc, product);
-  tcg_gen_extrh_i64_i32(phi, product);
-
-  /* adjusting the overflow flag (ONLY if it occured) */
-  //TCGv_i32 acchi_new = tcg_temp_new_i32();
-  //tcg_gen_extrh_i64_i32(phi, product);      /* phi = high_part(product) */
-  //tcg_gen_extrh_i64_i32(acchi_new, acc);    /* acchi_new = high_part(accumulator) */
-  //TCGv one = tcg_const_local_i32(1);        /* ONE = 1 */
-  //TCGv_i32 overflow = tcg_temp_new_i32();
-  //gen_helper_overflow_add_flag(overflow, acchi_new, cpu_acchi, phi);
-  //tcg_gen_setcond_i32 (TCG_COND_EQ, cpu_Vf, overflow, one);
-
-  /* extracting back to 32 bits */
-  tcg_gen_extr_i64_i32(cpu_acclo, cpu_acchi, acc);
-  //arc2_gen_setNFlag(cpu_acchi);            /* adjusting the N flag */
-  return phi;
-}
-
-
 /* accumulator += b32 * c32 */
 TCGv
-arc2_gen_mac_alt2(TCGv_i32 b32, TCGv_i32 c32)
+arc2_gen_mac(TCGv_i32 b32, TCGv_i32 c32)
 {
   TCGv_i32 plo = tcg_temp_new_i32();
   TCGv_i32 phi = tcg_temp_local_new_i32();
   tcg_gen_muls2_i32(plo, phi, b32, c32);
 
   /* adding the product to the accumulator */
-  //TCGv_i32 acchi_old = tcg_temp_local_new_i32();
-  //tcg_gen_mov_i32(acchi_old, cpu_acchi);
   tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
   tcg_temp_free(plo);
-
-  /* updating the flags */
-  //arc2_gen_setNFlag(cpu_acchi);
-  /* overflow bit is only set if there was an overflow; i.e. never cleared */
-  //TCGLabel *done = gen_new_label();
-  //TCGv zero = tcg_const_local_i32(0);
-  //TCGv_i32 overflow = tcg_temp_new_i32();
-  //gen_helper_overflow_add_flag(overflow, cpu_acchi, acchi_old, phi);
-  //tcg_gen_brcond_i32(TCG_COND_EQ, overflow, zero, done);
-  //tcg_gen_movi_tl(cpu_Vf, 1);
-  //gen_set_label(done);
 
   /* return the high_part of multiplication ==> used for overflow detection */
   return phi;
 }
+
+
+/* unsigned version */
+TCGv
+arc2_gen_macu(TCGv_i32 b32, TCGv_i32 c32)
+{
+  TCGv_i32 plo = tcg_temp_new_i32();
+  TCGv_i32 phi = tcg_temp_local_new_i32();
+  tcg_gen_mulu2_i32(plo, phi, b32, c32);
+
+  /* adding the product to the accumulator */
+  tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
+  tcg_temp_free(plo);
+
+  /* return the high_part of multiplication ==> used for overflow detection */
+  return phi;
+}
+
 
 
 TCGv
