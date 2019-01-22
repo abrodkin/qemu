@@ -9,11 +9,9 @@ tn_\name:
 
 .macro check_r2 val
   sub.f     r0, r2, \val
-  mov.eq    r0, 0x30      ; '0'
-  mov.ne    r0, 0x31      ; '1'
-  print     "Ret:"
-  st        r0, [OUTPUT_DEVICE]
-  print     "\n"
+  beq	    @3333f
+  print     "Fail"
+3333:
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

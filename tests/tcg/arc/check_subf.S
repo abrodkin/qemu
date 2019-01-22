@@ -64,6 +64,4 @@ sub1_flags_test 0x80000000, 0x00000004, 0x7FFFFFF8, z=0, n=0, c=0, v=1, test_num
 sub2_flags_test 0x80000000, 0x00000002, 0x7FFFFFF8, z=0, n=0, c=0, v=1, test_num=0x19
 sub3_flags_test 0x80000000, 0x00000001, 0x7FFFFFF8, z=0, n=0, c=0, v=1, test_num=0x20
 
-print "Ret:0\n"        ; we have survived all the asserts
-
 end

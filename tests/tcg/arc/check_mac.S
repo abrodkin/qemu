@@ -225,6 +225,4 @@ clear_flags_and_accu
 
 
 ;;;;;;;;;;;;;;;;;;; Finished ;;;;;;;;;;;;;;;;;;;;;;;;;;
-print "Passed"
-
 end
