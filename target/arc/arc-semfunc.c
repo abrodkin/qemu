@@ -4178,6 +4178,27 @@ arc2_gen_NOP (DisasCtxt *ctx)
 
 
 
+/* PREALLOC
+ *    Variables:
+ *    Functions: doNothing
+--- code ---
+{
+  doNothing ();
+}
+ */
+
+int
+arc2_gen_PREALLOC (DisasCtxt *ctx)
+{
+  int ret = BS_NONE;
+
+  return ret;
+}
+
+
+
+
+
 /* PREFETCH
  *    Variables: @src1, @src2
  *    Functions: getAAFlag, doNothing
