@@ -22,13 +22,74 @@
 #include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
+#include "internals.h"
 
-static uint32_t arc_cpu_get_stat32(CPUState *cs)
+
+int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
 {
-    ARCCPU *cpu = ARC_CPU(cs);
-    CPUARCState *env = &cpu->env;
-    uint32_t val = 0;
+  ARCCPU *cpu = ARC_CPU(cs);
+  CPUARCState *env = &cpu->env;
+  uint32_t regval = 0;
 
+  switch (n)
+  {
+    case 0 ... 31:
+      regval = env->r[n];
+      break;
+    case GDB_REG_58:
+      regval = env->r[58];
+      break;
+    case GDB_REG_59:
+      regval = env->r[59];
+      break;
+    case GDB_REG_60:
+      regval = env->r[60];
+      break;
+    case GDB_REG_63:
+      regval = env->r[63];
+      break;
+    default:
+      assert(!"Unsupported register is being read.");
+  }
+
+  return gdb_get_reg32(mem_buf, regval);
+}
+
+
+int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
+{
+  ARCCPU *cpu = ARC_CPU(cs);
+  CPUARCState *env = &cpu->env;
+  uint16_t regval = ldl_p(mem_buf);
+
+  switch (n)
+  {
+    case 0 ... 31:
+      env->r[n] = regval;
+      break;
+    case GDB_REG_58:
+      env->r[58] = regval;
+      break;
+    case GDB_REG_59:
+      env->r[59] = regval;
+      break;
+    case GDB_REG_60:
+      env->r[60] = regval;
+      break;
+    case GDB_REG_63:
+      env->r[63] = regval;
+      break;
+    default:
+      assert(!"Unsupported register is being written.");
+  }
+
+  return 4;
+}
+
+
+static uint32_t arc_cpu_get_stat32(CPUARCState *env)
+{
+    uint32_t val = 0;
     val |= env->stat.Hf  ? BIT(0)  : 0;
     val |= env->stat.Ef << 1;
     val |= env->stat.AEf ? BIT(5)  : 0;
@@ -39,17 +100,14 @@ static uint32_t arc_cpu_get_stat32(CPUState *cs)
     val |= env->stat.Nf  ? BIT(10) : 0;
     val |= env->stat.Zf  ? BIT(11) : 0;
     val |= env->stat.Lf  ? BIT(12) : 0;
-
     return val;
 }
 
-static void arc_cpu_set_stat32(CPUState *cs, uint32_t val)
-{
-    ARCCPU *cpu = ARC_CPU(cs);
-    CPUARCState *env = &cpu->env;
 
+static void arc_cpu_set_stat32(CPUARCState *env, uint32_t val)
+{
     env->stat.Hf  = 0 != (val & BIT(0));
-    env->stat.Ef = (val >> 1) & 0x0f;
+    env->stat.Ef  = (val >> 1) & 0x0f;
     env->stat.AEf = 0 != (val & BIT(5));
     env->stat.DEf = 0 != (val & BIT(6));
     env->stat.Uf  = 0 != (val & BIT(7));
@@ -60,72 +118,65 @@ static void arc_cpu_set_stat32(CPUState *cs, uint32_t val)
     env->stat.Lf  = 0 != (val & BIT(12));
 }
 
-#define QEMU_AUX_REG_SET(A) (A)
 
-#define CPU_STATUS32_VAL                        \
-  arc_cpu_get_stat32(cs);
-
-#define GDB_REG(NAME, QEMU_LOC)                 \
-  case GDB_REG_##NAME: \
-    val = QEMU_LOC; \
-    break;
-#define GDB_AUX_REG(NAME, QEMU_LOC)             \
-  case GDB_AUX_REG_##NAME: \
-    val = QEMU_LOC; \
-    break;
-
-int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
+static int
+arc_aux_minimal_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
-  ARCCPU *cpu = ARC_CPU(cs);
-  CPUARCState *env = &cpu->env;
-  uint32_t val = 0;
-
-  switch (n)
-    {
-#include "gdb_map.def"
-
+  uint32_t regval = 0;
+  switch (regnum)
+  {
+    case GDB_AUX_REG_PC:
+      regval = env->pc;
+      break;
+    case GDB_AUX_REG_LPS:
+      regval = env->lps;
+      break;
+    case GDB_AUX_REG_LPE:
+      regval = env->lpe;
+      break;
+    case GDB_AUX_REG_STATUS:
+      regval = arc_cpu_get_stat32(env);
+      break;
     default:
-	assert(0); // Should never happen
-    }
-
-  return gdb_get_reg32(mem_buf, val);
+      assert(!"Unsupported auxiliary register is being read.");
+  }
+  return gdb_get_reg32(mem_buf, regval);
 }
 
-#undef CPU_STATUS32_VAL
-#undef GDB_REG
-#undef GDB_AUX_REG
-#undef QEMU_AUX_REG_SET
 
-#define CPU_STATUS32_VAL                        \
-  arc_cpu_set_stat32 (cs, val);
-
-#define QEMU_AUX_REG_SET(A)                     \
-  A = val;
-
-#define GDB_AUX_REG(NAME, QEMU_LOC)             \
-  case GDB_AUX_REG_##NAME:                      \
-  QEMU_LOC                                      \
-  break;
-#define GDB_REG(NAME, QEMU_LOC)                 \
-  case GDB_REG_##NAME:                          \
-  QEMU_LOC = val;                               \
-  break;
-int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
+static int
+arc_aux_minimal_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
-  ARCCPU *cpu = ARC_CPU(cs);
-  CPUARCState *env = &cpu->env;
-  uint16_t val = ldl_p(mem_buf);
-
-  switch (n)
-    {
-#include "gdb_map.def"
-
+  uint16_t regval = ldl_p(mem_buf);
+  switch (regnum)
+  {
+    case GDB_AUX_REG_PC:
+      env->pc = regval;
+      break;
+    case GDB_AUX_REG_LPS:
+      env->lps = regval;
+      break;
+    case GDB_AUX_REG_LPE:
+      env->lpe = regval;
+      break;
+    case GDB_AUX_REG_STATUS:
+      arc_cpu_set_stat32(env, regval);
+      break;
     default:
-      assert(0); // Should never happen
-    }
-
+      assert(!"Unsupported auxiliary register is being written.");
+  }
   return 4;
 }
-#undef CPU_STATUS32_VAL
-#undef GDB_AUX_REG
-#undef GDB_REG
+
+
+void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu)
+{
+    CPUState *cs = CPU(cpu);
+
+    gdb_register_coprocessor(cs,
+                             arc_aux_minimal_gdb_get_reg,    /* getter */
+                             arc_aux_minimal_gdb_set_reg,    /* setter */
+                             GDB_AUX_REG_LAST,               /* number of registers */
+                             "arc-aux-minimal.xml",          /* feature file */
+                             0);                             /* position in g packet */
+}

@@ -55,25 +55,54 @@ enum arc_features {
   no_features,
 };
 
-#define GDB_AUX_REG(NAME, LOC)
-#define GDB_REG(NAME, LOC) GDB_REG_##NAME,
 enum gdb_regs {
-  GDB_REG_INVALID = -1,
-#include "gdb_map.def"
+  GDB_REG_0 = 0,
+  GDB_REG_1,
+  GDB_REG_2,
+  GDB_REG_3,
+  GDB_REG_4,
+  GDB_REG_5,
+  GDB_REG_6,
+  GDB_REG_7,
+  GDB_REG_8,
+  GDB_REG_9,
+  GDB_REG_10,
+  GDB_REG_11,
+  GDB_REG_12,
+  GDB_REG_13,
+  GDB_REG_14,
+  GDB_REG_15,
+  GDB_REG_16,
+  GDB_REG_17,
+  GDB_REG_18,
+  GDB_REG_19,
+  GDB_REG_20,
+  GDB_REG_21,
+  GDB_REG_22,
+  GDB_REG_23,
+  GDB_REG_24,
+  GDB_REG_25,
+  GDB_REG_26,         /* GP */
+  GDB_REG_27,         /* FP */
+  GDB_REG_28,         /* SP */
+  GDB_REG_29,         /* ILINK */
+  GDB_REG_30,         /* R30 */
+  GDB_REG_31,         /* BLINK  */
+  //  FIXME: writes 152 bytes while GDB expects 144 bytes
+  GDB_REG_58,         /* little_endian? ACCL : ACCH */
+  GDB_REG_59,         /* little_endian? ACCH : ACCL */
+  GDB_REG_60,         /* LP */
+  GDB_REG_63,         /* Immediate */
   GDB_REG_LAST
 };
-#undef GDB_REG
-#undef GDB_AUX_REG
-#define GDB_AUX_REG(NAME, LOC) GDB_AUX_REG_##NAME,
-#define GDB_REG(NAME, LOC)
+
 enum gdb_aux_regs {
-  GDB_AUX_REG_INVALID = GDB_REG_LAST-1,
-#include "gdb_map.def"
+  GDB_AUX_REG_PC = 0, /* program counter */
+  GDB_AUX_REG_LPS,    /* loop body start */
+  GDB_AUX_REG_LPE,    /* loop body end */
+  GDB_AUX_REG_STATUS, /* status flag */
   GDB_AUX_REG_LAST
 };
-#undef GDB_REG
-#undef GDB_AUX_REG
-
 
 #define CPU_GP(env)     ((env)->r[26])
 #define CPU_FP(env)     ((env)->r[27])
@@ -82,9 +111,8 @@ enum gdb_aux_regs {
 #define CPU_ILINK1(env) ((env)->r[29])
 #define CPU_ILINK2(env) ((env)->r[30])
 #define CPU_BLINK(env)  ((env)->r[31])
-#define CPU_MLO(env)    ((env)->r[57])
-#define CPU_MMI(env)    ((env)->r[58])
-#define CPU_MHI(env)    ((env)->r[59])
+#define CPU_ACCL(env)   ((env)->r[58])
+#define CPU_ACCH(env)   ((env)->r[59])
 #define CPU_LP(env)     ((env)->r[60])
 #define CPU_IMM(env)    ((env)->r[62])
 #define CPU_PCL(env)    ((env)->r[63])

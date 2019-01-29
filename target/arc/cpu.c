@@ -29,6 +29,7 @@
 #include "irq.h"
 #include "hw/arc/cpudevs.h"
 #include "arc_timer.h"
+#include "internals.h"
 
 static const VMStateDescription vms_arc_cpu = {
   .name               = "cpu",
@@ -190,6 +191,7 @@ static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)
   info->endian = BFD_ENDIAN_LITTLE;
 }
 
+
 static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 {
   CPUState *cs = CPU (dev);
@@ -204,7 +206,7 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
     return;
   }
 
-  //arc_cpu_register_gdb_regs_for_features(cpu);
+  arc_cpu_register_gdb_regs_for_features(cpu);
 
   qemu_init_vcpu(cs);
 
@@ -327,7 +329,7 @@ static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
 
 static gchar *arc_gdb_arch_name(CPUState *cs)
 {
-    return g_strdup("arc");
+    return g_strdup("arc:ARCv2");
 }
 
 static void arc_cpu_class_init(ObjectClass *oc, void *data)
@@ -361,13 +363,11 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
   dc->props = arc_properties;
   cc->gdb_read_register = arc_cpu_gdb_read_register;
   cc->gdb_write_register = arc_cpu_gdb_write_register;
-  //cc->gdb_num_core_regs = GDB_REG_LAST;
-  cc->gdb_num_core_regs = GDB_AUX_REG_LAST;
 
-  //cc->gdb_num_core_regs = 26;
-  //cc->gdb_core_xml_file = "arc-core.xml";
-  //cc->gdb_core_xml_file = "arc-core-v2.xml";
-  //cc->gdb_arch_name = arc_gdb_arch_name;
+  /* Core GDB support */
+  cc->gdb_core_xml_file = "arc-core-v2.xml";
+  cc->gdb_num_core_regs = GDB_REG_LAST;
+  cc->gdb_arch_name = arc_gdb_arch_name;
 
 #ifdef CONFIG_TCG
     cc->tcg_initialize = arc_translate_init;
