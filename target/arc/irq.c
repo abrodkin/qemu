@@ -34,7 +34,7 @@ static uint32_t save_reg_pair_32[] =
 static uint32_t save_reg_pair_16[] =
   { 0, 2, 10, 12, 14, 26, 28, 30};
 
-static uint32_t pack_status32 (status_t *status_r)
+uint32_t pack_status32 (status_t *status_r)
 {
   uint32_t res = 0x00000000;
 
@@ -58,25 +58,25 @@ static uint32_t pack_status32 (status_t *status_r)
   return res;
 }
 
-static void unpack_status32(CPUARCState *env, uint32_t value)
+void unpack_status32(status_t *status_r, uint32_t value)
 {
-  env->stat.IEf = ((value >> 31) & 0x1);
-  env->stat.USf = ((value >> 20) & 0x1);
-  env->stat.ADf = ((value >> 19) & 0x1);
-  env->stat.RBf = ((value >> 16) & 0x7);
-  env->stat.ESf = ((value >> 15) & 0x1);
-  env->stat.SCf = ((value >> 14) & 0x1);
-  env->stat.DZf = ((value >> 13) & 0x1);
-  env->stat.Lf  = ((value >> 12) & 0x1);
-  env->stat.Zf  = ((value >> 11) & 0x1);
-  env->stat.Nf  = ((value >> 10) & 0x1);
-  env->stat.Cf  = ((value >> 9)  & 0x1);
-  env->stat.Vf  = ((value >> 8)  & 0x1);
-  env->stat.Uf  = ((value >> 7)  & 0x1);
-  env->stat.DEf = ((value >> 6)  & 0x1);
-  env->stat.AEf = ((value >> 5)  & 0x1);
-  env->stat.Ef  = ((value >> 1)  & 0xf);
-  //env->stat.Hf  = ((value >> 0)  & 0x1);
+  status_r->IEf = ((value >> 31) & 0x1);
+  status_r->USf = ((value >> 20) & 0x1);
+  status_r->ADf = ((value >> 19) & 0x1);
+  status_r->RBf = ((value >> 16) & 0x7);
+  status_r->ESf = ((value >> 15) & 0x1);
+  status_r->SCf = ((value >> 14) & 0x1);
+  status_r->DZf = ((value >> 13) & 0x1);
+  status_r->Lf  = ((value >> 12) & 0x1);
+  status_r->Zf  = ((value >> 11) & 0x1);
+  status_r->Nf  = ((value >> 10) & 0x1);
+  status_r->Cf  = ((value >> 9)  & 0x1);
+  status_r->Vf  = ((value >> 8)  & 0x1);
+  status_r->Uf  = ((value >> 7)  & 0x1);
+  status_r->DEf = ((value >> 6)  & 0x1);
+  status_r->AEf = ((value >> 5)  & 0x1);
+  status_r->Ef  = ((value >> 1)  & 0xf);
+  //status_r->Hf  = ((value >> 0)  & 0x1);
 }
 
 /* Return from fast interrupts.  */
@@ -182,7 +182,7 @@ static void arc_rtie_irq (CPUARCState *env)
       && env->stat.Uf && !(env->aux_irq_ctrl & (1 << 11)))
     switchSP (env);
 
-  unpack_status32 (env, tmp_stat);
+  unpack_status32 (&env->stat, tmp_stat);
   env->aux_irq_act &= ~(env->stat.Uf << 31); /* Keep U-bit in sync.  */
   CPU_PCL (env) = CPU_ILINK (env);
   env->pc = CPU_ILINK (env);
@@ -533,7 +533,7 @@ void switchSP (CPUARCState *env)
   uint32_t tmp;
   qemu_log_mask (CPU_LOG_INT,
 		 "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
-		 env->aux_user_sp, CPU_SP (env));
+		 CPU_SP (env), env->aux_user_sp);
 
   tmp = env->aux_user_sp;
   env->aux_user_sp = CPU_SP (env);

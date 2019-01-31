@@ -32,24 +32,7 @@
 
 static uint32_t get_status32_internal (status_t *status_r)
 {
-  uint32_t res = 0x00000000;
-
-  res |= (status_r->IEf & 0x1) << 31;
-  res |= (status_r->USf & 0x1) << 20;
-  res |= (status_r->ADf & 0x1) << 19;
-  res |= (status_r->RBf & 0x7) << 16;
-  res |= (status_r->ESf & 0x1) << 15;
-  res |= (status_r->SCf & 0x1) << 14;
-  res |= (status_r->DZf & 0x1) << 13;
-  res |= (status_r->Lf  & 0x1) << 12;
-  res |= (status_r->Zf  & 0x1) << 11;
-  res |= (status_r->Nf  & 0x1) << 10;
-  res |= (status_r->Cf  & 0x1) << 9;
-  res |= (status_r->Vf  & 0x1) << 8;
-  res |= (status_r->Uf  & 0x1) << 7;
-  res |= (status_r->DEf & 0x1) << 6;
-  res |= (status_r->AEf & 0x1) << 5;
-  res |= (status_r->Ef  & 0xf) << 1;
+  uint32_t res = pack_status32(status_r);
 
   return res;
 }
@@ -73,27 +56,7 @@ void helper_print_value(CPUARCState *env, target_ulong value)
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
-  //printf("        Status 32 was and set at %08x (%08x => ", env->pc, get_status32_internal(&(env->stat)));
-
-  env->stat.IEf = ((value >> 31) & 0x1);
-  env->stat.USf = ((value >> 20) & 0x1);
-  env->stat.ADf = ((value >> 19) & 0x1);
-  env->stat.RBf = ((value >> 16) & 0x7);
-  env->stat.ESf = ((value >> 15) & 0x1);
-  env->stat.SCf = ((value >> 14) & 0x1);
-  env->stat.DZf = ((value >> 13) & 0x1);
-  env->stat.Lf  = ((value >> 12) & 0x1);
-  env->stat.Zf  = ((value >> 11) & 0x1);
-  env->stat.Nf  = ((value >> 10) & 0x1);
-  env->stat.Cf  = ((value >> 9)  & 0x1);
-  env->stat.Vf  = ((value >> 8)  & 0x1);
-  env->stat.Uf  = ((value >> 7)  & 0x1);
-  env->stat.DEf = ((value >> 6)  & 0x1);
-  env->stat.AEf = ((value >> 5)  & 0x1);
-  env->stat.Ef  = ((value >> 1)  & 0xf);
-  //env->stat.Hf  = ((value >> 0)  & 0x1);
-
-  //printf("%08x) register was (%08x)\n", get_status32_internal(&(env->stat)), value);
+  unpack_status32(&env->stat, value);
 }
 
 
@@ -212,28 +175,9 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       env->lpe = val;
       break;
 
-    case AUX_ID_identity:
-      break;
-
-    case AUX_ID_debug:
-      break;
-
-    case AUX_ID_pc:
-      /* FIXME! Raise illegal instruction.  */
-      break;
-
     case AUX_ID_status32:
       //printf("Status 32 changed by aux_reg\n");
       set_status32(env, val);
-      break;
-
-    case AUX_ID_status32_l1:
-      break;
-
-    case AUX_ID_status32_l2:
-      break;
-
-    case AUX_ID_aux_macmode:
       break;
 
     case AUX_ID_eret:
@@ -245,19 +189,11 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
       break;
 
     case AUX_ID_erstatus:
+      unpack_status32(&env->stat_er, val);
       break;
 
     case AUX_ID_ecr:
       env->ecr = val;
-      break;
-
-    case AUX_ID_bta:
-      break;
-
-    case AUX_ID_bta_l1:
-      break;
-
-    case AUX_ID_bta_l2:
       break;
 
     default:

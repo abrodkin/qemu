@@ -31,5 +31,7 @@ bool arc_rtie_interrupts (CPUARCState *);
 void switchSP (CPUARCState *);
 void arc_initializeIRQ (ARCCPU *);
 void arc_resetIRQ (ARCCPU *);
+uint32_t pack_status32 (status_t *status_r);
+void unpack_status32(status_t *status_r, uint32_t value);
 
 #endif
