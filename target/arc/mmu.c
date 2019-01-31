@@ -55,6 +55,7 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
         reg = mmu->tlbcmd;
         break;
       case AUX_ID_pid:
+
         reg = (mmu->enabled << 31) | mmu->pid_asid;
 	break;
       case AUX_ID_sasid0:
@@ -95,6 +96,9 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
         mmu->scratch_data0 = val;
         break;
       case AUX_ID_pid:
+	qemu_log_mask (CPU_LOG_MMU,
+		       "[MMU] Writing PID_ASID with value 0x%08x at 0x%08x\n",
+			val, env->pc);
         mmu->enabled = (val >> 31);
         mmu->pid_asid = val & 0xff;
         break;
@@ -133,7 +137,23 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
     *num_finds = 0;
   for (w = 0; w < N_WAYS; w++, tlb++)
     {
-      if((vaddr & compare_mask) == (tlb->pd0 & compare_mask))
+      uint32_t match = vaddr & compare_mask;
+
+      if((tlb->pd0 & PD0_G) == 0)
+      {
+	if((tlb->pd0 & PD0_S) != 0)
+	  {
+	    /* Match to a shared library. */
+	    match |= mmu->sasid0 & PD0_ASID_MATCH;
+	    compare_mask |= PD0_ASID_MATCH;
+	  } else {
+	    /* Match to a process. */
+	    match |= mmu->pid_asid & PD0_PID_MATCH;
+	    compare_mask |= PD0_PID_MATCH;
+	  }
+      }
+
+      if(match == (tlb->pd0 & compare_mask))
       {
 	ret = tlb;
 	if(num_finds != NULL)
@@ -358,12 +378,12 @@ arc_mmu_translate(struct CPUARCState *env,
     {
       /* ASID check against library.  */
       if((tlb->pd0 & PD0_S) != 0
-	 && (tlb->pd0 & PD0_ASID_MATCH) != (mmu->pid_asid & PD0_ASID_MATCH))
+	 && (tlb->pd0 & PD0_ASID_MATCH) != (mmu->sasid0 & PD0_ASID_MATCH))
       {
         match = false;
       } else {
         /* Check if ASID matches with PID. */
-        if(mmu->pid_asid != (tlb->pd0 & PD0_ASID_MATCH))
+        if(mmu->pid_asid != (tlb->pd0 & PD0_PID_MATCH))
           {
             match = false;
           }
