@@ -423,7 +423,7 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
       break;
 
     case AUX_ID_aux_irq_act:
-      env->aux_irq_act = val & 0xffff;
+      env->aux_irq_act = val & 0x8000ffff;
       break;
 
     case AUX_ID_int_vector_base:
