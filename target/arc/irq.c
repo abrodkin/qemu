@@ -181,13 +181,13 @@ static void arc_rtie_irq (CPUARCState *env)
 
   CPU_ILINK (env) = irq_pop (env, "PC"); /* CPU PC*/
   uint32_t tmp_stat = irq_pop (env, "STATUS32"); /* status. */
+  unpack_status32 (&env->stat, tmp_stat);
 
   /* Late switch to Kernel SP if previously in User thread.  */
   if (((env->aux_irq_act & 0xffff) == 0)
       && env->stat.Uf && !(env->aux_irq_ctrl & (1 << 11)))
     switchSP (env);
 
-  unpack_status32 (&env->stat, tmp_stat);
   env->aux_irq_act &= ~(env->stat.Uf << 31); /* Keep U-bit in sync.  */
   CPU_PCL (env) = CPU_ILINK (env);
   env->pc = CPU_ILINK (env);
