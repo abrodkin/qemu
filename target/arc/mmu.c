@@ -340,8 +340,9 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
-      qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception. rwe = %s, "
+      qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x. rwe = %s, "
 		     "tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+		     env->pc,
 		     RWE_STRING(rwe),
 		     tlb->pd0, tlb->pd1);
       SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
@@ -361,16 +362,18 @@ tlb_miss_exception:
 	  mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
           if(rwe == MMU_MEM_FETCH)
 	    {
-              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception. rwe = %s, "
+              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception at 0x%08x. rwe = %s, "
 			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+			 env->pc,
 			 RWE_STRING(rwe),
 			 vaddr, tlb->pd0, tlb->pd1);
 	      SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_I, 0x00, 0x00);
 	    }
           else
 	    {
-              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissD exception. rwe = %s, "
+              qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissD exception at 0x%08x. rwe = %s, "
 			 "vaddr = %08x, tlb->pd0 = %08x, tlb->pd1 = %08x\n",
+			 env->pc,
 			 RWE_STRING(rwe),
 			 vaddr, tlb->pd0, tlb->pd1);
 	      SET_MMU_EXCEPTION(env, EXCP_TLB_MISS_D, CAUSE_CODE(rwe), 0x00);
