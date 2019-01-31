@@ -126,14 +126,19 @@ static void arc_rtie_irq (CPUARCState *env)
 
   /* Clear currently active interrupt.  */
   tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
+
+  qemu_log_mask (CPU_LOG_INT,
+		 "[IRQ] exit irq:%d IRQ_ACT:0x%08x PRIO:%d\n",
+		 env->icause[tmp], env->aux_irq_act, tmp);
+
   /* FIXME! I assume the current active interrupt is the one which is
      the highest in the aux_irq_act register.  */
   env->aux_irq_act &= ~(1 << tmp);
 
   qemu_log_mask (CPU_LOG_INT,
-		 "[IRQ] exit irq:%d U:%d AE:%d IE:%d E:%d\n",
+		 "[IRQ] exit irq:%d U:%d AE:%d IE:%d E:%d IRQ_ACT:0x%08x\n",
 		 env->icause[tmp], env->stat.Uf, env->stat.AEf, env->stat.IEf,
-		 env->stat.Ef);
+		 env->stat.Ef, env->aux_irq_act);
 
   if (((env->aux_irq_act & 0xffff) == 0)
       && (env->aux_irq_act & 0x80000000) && (env->aux_irq_ctrl & (1 << 11)))
@@ -532,7 +537,7 @@ void switchSP (CPUARCState *env)
 {
   uint32_t tmp;
   qemu_log_mask (CPU_LOG_INT,
-		 "[IRQ] swap: r28 <= 0x%08x  AUX_USER_SP <= 0x%08x\n",
+		 "[IRQ] swap: r28 = 0x%08x  AUX_USER_SP = 0x%08x\n",
 		 CPU_SP (env), env->aux_user_sp);
 
   tmp = env->aux_user_sp;
