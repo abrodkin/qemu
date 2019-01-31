@@ -46,7 +46,12 @@
 #define PD1_RK  0x00000040      /* Kernel Read */
 #define PD1_FLG (PD1_FC | PD1_XU | PD1_WU | PD1_RU | PD1_XK | PD1_WK | PD1_RK)
 
+#define TLBINDEX_INDEX  0x00001fff
+#define TLBINDEX_E      0x80000000
+#define TLBINDEX_RC	0x70000000
 
+#define TLB_CMD_WRITE    0x1
+#define TLB_CMD_READ    0x2
 #define TLB_CMD_INSERT  0x7
 #define TLB_CMD_DELETE  0x8
 

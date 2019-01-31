@@ -114,6 +114,14 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 #define PFN(addr) (addr & PAGE_MASK)
 
 static struct arc_tlb_e *
+arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
+{
+  uint32_t set = index / 4;
+  uint32_t bank = index % 4;
+  return &mmu->nTLB[set][bank];
+}
+
+static struct arc_tlb_e *
 arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds, int *index)
 {
   struct arc_tlb_e *ret = NULL;
@@ -172,6 +180,26 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   if((pd0 & PD0_G) != 0)
     matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
 
+  if (val == TLB_CMD_WRITE)
+    {
+      // TODO: Include index verification. We are always clearing the index as
+      // we assume it is always valid.
+
+      tlb = arc_mmu_get_tlb_at_index(mmu->tlbindex & TLBINDEX_INDEX, mmu);
+      tlb->pd0 = mmu->tlbpd0;
+      tlb->pd1 = mmu->tlbpd1;
+    }
+  if (val == TLB_CMD_READ)
+    {
+      // TODO: Include index verification. We are always clearing the index as
+      // we assume it is always valid.
+
+      tlb = arc_mmu_get_tlb_at_index(mmu->tlbindex & TLBINDEX_INDEX, mmu);
+      mmu->tlbpd0 = tlb->pd0;
+      mmu->tlbpd1 = tlb->pd1;
+
+      mmu->tlbindex &= ~(TLBINDEX_E || TLBINDEX_RC);
+    }
   if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
     {
 
@@ -193,7 +221,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  tlb->pd0 &= ~PD0_V;
 	  num_finds--;
 	  qemu_log_mask (CPU_LOG_MMU,
-			 "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			 "[MMU] Delete at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
 			  env->pc, pd0, pd1);
         }
       else
@@ -202,7 +230,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	    {
 	      tlb->pd0 &= ~PD0_V;
 	      qemu_log_mask (CPU_LOG_MMU,
-			     "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			     "[MMU] Delete at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
 			     env->pc, pd0, pd1);
 	      tlb = arc_mmu_lookup_tlb(pd0,
 				       (VPN(PD0_VPN) | PD0_V | PD0_SZ | PD0_G | PD0_S),
@@ -231,7 +259,11 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	}
   }
 
-  assert(val == TLB_CMD_INSERT || val == TLB_CMD_DELETE);
+  assert(val == TLB_CMD_INSERT
+	 || val == TLB_CMD_DELETE
+	 || val == TLB_CMD_WRITE
+	 || val == TLB_CMD_READ
+	 );
 }
 
 /* Function to verify if we have permission to use MMU TLB entry. */
