@@ -30,23 +30,20 @@
 #include "qemu/main-loop.h"
 #include "irq.h"
 
-static uint32_t get_status32_internal (status_t *status_r)
+static target_ulong get_status32 (CPUARCState *env)
 {
-  uint32_t res = pack_status32(status_r);
+  target_ulong value = pack_status32 (&env->stat);
 
-  return res;
-}
-
-static uint32_t get_status32 (CPUARCState *env)
-{
-  uint32_t res = 0x00000000;
-
-  res = get_status32_internal (&env->stat);
+  /* TODO: Implement debug mode */
+  if(env->stat.Uf == 1)
+    {
+      value &= 0x00000f00;
+    }
 
   if (env->stopped)
-    res |= BIT(0);
+    value |= BIT(0);
 
-  return res;
+  return value;
 }
 
 void helper_print_value(CPUARCState *env, target_ulong value)
@@ -56,13 +53,26 @@ void helper_print_value(CPUARCState *env, target_ulong value)
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
+  /* TODO: Implement debug mode. */
+  bool debug_mode = false;
+  if(env->stat.Uf == 1)
+    {
+      value &= 0x00000f00;
+    }
+  else if(!debug_mode)
+    {
+      value &= 0xffff6f3f;
+    }
+
+
   unpack_status32(&env->stat, value);
 }
 
 
 static uint32_t get_status32_l1 (CPUARCState *env)
 {
-  return get_status32_internal (&env->stat_l1);
+  /* TODO: Is this needed */
+  return pack_status32 (&env->stat_l1);
 }
 
 static void
@@ -336,7 +346,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
       break;
 
     case AUX_ID_erstatus:
-      result = get_status32_internal (&env->stat_er);
+      result = pack_status32 (&env->stat_er);
       break;
 
     case AUX_ID_ecr:
@@ -413,7 +423,7 @@ void helper_rtie (CPUARCState *env)
     arc_rtie_interrupts (env);
 
   qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n", env->r[63],
-                get_status32_internal (&env->stat));
+                pack_status32 (&env->stat));
 }
 
 void helper_flush(CPUARCState *env)
