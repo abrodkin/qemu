@@ -88,7 +88,6 @@ enum gdb_regs {
   GDB_REG_29,         /* ILINK */
   GDB_REG_30,         /* R30 */
   GDB_REG_31,         /* BLINK  */
-  //  FIXME: writes 152 bytes while GDB expects 144 bytes
   GDB_REG_58,         /* little_endian? ACCL : ACCH */
   GDB_REG_59,         /* little_endian? ACCH : ACCL */
   GDB_REG_60,         /* LP */
@@ -111,8 +110,6 @@ enum gdb_aux_regs {
 #define CPU_ILINK1(env) ((env)->r[29])
 #define CPU_ILINK2(env) ((env)->r[30])
 #define CPU_BLINK(env)  ((env)->r[31])
-#define CPU_ACCL(env)   ((env)->r[58])
-#define CPU_ACCH(env)   ((env)->r[59])
 #define CPU_LP(env)     ((env)->r[60])
 #define CPU_IMM(env)    ((env)->r[62])
 #define CPU_PCL(env)    ((env)->r[63])
