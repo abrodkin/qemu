@@ -481,6 +481,14 @@ uint32_t helper_overflow_sub_flag(uint32_t dest, uint32_t b, uint32_t c)
     return 0;
 }
 
+uint32_t helper_repl_mask (uint32_t dest, uint32_t src, uint32_t mask)
+{
+  uint32_t ret = dest & (~mask);
+  ret |= (src & mask);
+
+  return ret;
+}
+
 uint32_t helper_mpymu(CPUARCState *env, uint32_t b, uint32_t c)
 {
   uint64_t _b = (uint64_t) b;

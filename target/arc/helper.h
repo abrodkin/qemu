@@ -44,3 +44,5 @@ DEF_HELPER_2(print_value, void, env, i32)
 
 DEF_HELPER_2(mmu_translate_read, i32, env, i32)
 DEF_HELPER_2(mmu_translate_write, i32, env, i32)
+
+DEF_HELPER_3(repl_mask, i32, i32, i32, i32)

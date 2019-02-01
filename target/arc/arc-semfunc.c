@@ -26,7 +26,7 @@
 
 /* FLAG
  *    Variables: @src
- *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, targetHasOption, setRegister
+ *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, ReplMask, targetHasOption, setRegister
 --- code ---
 {
   cc_flag = getCCFlag ();
@@ -43,23 +43,23 @@
         }
       else
         {
-          status32 = (status32 | (@src & 3840));
+          ReplMask (status32, @src, 3840);
           if(((getBit (status32, 7) == 0) && (hasInterrupts () > 0)))
             {
-              status32 = (status32 | (@src & 30));
+              ReplMask (status32, @src, 30);
               if(targetHasOption (DIV_REM_OPTION))
                 {
-                  status32 = (status32 | (@src & 8192));
+                  ReplMask (status32, @src, 8192);
                 };
               if(targetHasOption (STACK_CHECKING))
                 {
-                  status32 = (status32 | (@src & 16384));
+                  ReplMask (status32, @src, 16384);
                 };
               if(targetHasOption (LL64_OPTION))
                 {
-                  status32 = (status32 | (@src & 524288));
+                  ReplMask (status32, @src, 524288);
                 };
-              status32 = (status32 | (@src & 1048576));
+              ReplMask (status32, @src, 1048576);
             };
         };
       setRegister (R_STATUS32, status32);
@@ -127,8 +127,8 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
   gen_set_label(done_3);
   tcg_gen_br(done_2);
   gen_set_label(else_2);
-  tcg_gen_andi_i32(temp_19, src, 3840);
-  tcg_gen_or_i32(status32, status32, temp_19);
+  tcg_gen_movi_i32(temp_19, 3840);
+  ReplMask(status32, src, temp_19);
   TCGLabel *done_4 = gen_new_label();
   tcg_gen_movi_i32(temp_21, 7);
   temp_20 = getBit(status32, temp_21);
@@ -137,12 +137,12 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
   tcg_gen_and_i32(temp_11, temp_9, temp_10);
   tcg_gen_xori_i32(temp_12, temp_11, 1); tcg_gen_andi_i32(temp_12, temp_12, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_12, arc_true, done_4);;
-  tcg_gen_andi_i32(temp_22, src, 30);
-  tcg_gen_or_i32(status32, status32, temp_22);
+  tcg_gen_movi_i32(temp_22, 30);
+  ReplMask(status32, src, temp_22);
   if (targetHasOption (DIV_REM_OPTION))
     {
-    tcg_gen_andi_i32(temp_23, src, 8192);
-  tcg_gen_or_i32(status32, status32, temp_23);
+    tcg_gen_movi_i32(temp_23, 8192);
+  ReplMask(status32, src, temp_23);
 ;
     }
   else
@@ -151,8 +151,8 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
     }
   if (targetHasOption (STACK_CHECKING))
     {
-    tcg_gen_andi_i32(temp_24, src, 16384);
-  tcg_gen_or_i32(status32, status32, temp_24);
+    tcg_gen_movi_i32(temp_24, 16384);
+  ReplMask(status32, src, temp_24);
 ;
     }
   else
@@ -161,16 +161,16 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
     }
   if (targetHasOption (LL64_OPTION))
     {
-    tcg_gen_andi_i32(temp_25, src, 524288);
-  tcg_gen_or_i32(status32, status32, temp_25);
+    tcg_gen_movi_i32(temp_25, 524288);
+  ReplMask(status32, src, temp_25);
 ;
     }
   else
     {
   ;
     }
-  tcg_gen_andi_i32(temp_26, src, 1048576);
-  tcg_gen_or_i32(status32, status32, temp_26);
+  tcg_gen_movi_i32(temp_26, 1048576);
+  ReplMask(status32, src, temp_26);
   gen_set_label(done_4);
   gen_set_label(done_2);
   setRegister(R_STATUS32, status32);
@@ -213,7 +213,7 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
 
 /* KFLAG
  *    Variables: @src
- *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, targetHasOption, setRegister
+ *    Functions: getCCFlag, getRegister, getBit, hasInterrupts, Halt, ReplMask, targetHasOption, setRegister
 --- code ---
 {
   cc_flag = getCCFlag ();
@@ -230,25 +230,25 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
         }
       else
         {
-          status32 = (status32 | (@src & 3840));
+          ReplMask (status32, @src, 3840);
           if(((getBit (status32, 7) == 0) && (hasInterrupts () > 0)))
             {
-              status32 = (status32 | (@src & 62));
+              ReplMask (status32, @src, 62);
               if(targetHasOption (DIV_REM_OPTION))
                 {
-                  status32 = (status32 | (@src & 8192));
+                  ReplMask (status32, @src, 8192);
                 };
               if(targetHasOption (STACK_CHECKING))
                 {
-                  status32 = (status32 | (@src & 16384));
+                  ReplMask (status32, @src, 16384);
                 };
-              status32 = (status32 | (@src & 65536));
+              ReplMask (status32, @src, 65536);
               if(targetHasOption (LL64_OPTION))
                 {
-                  status32 = (status32 | (@src & 524288));
+                  ReplMask (status32, @src, 524288);
                 };
-              status32 = (status32 | (@src & 1048576));
-              status32 = (status32 | (@src & 2147483648));
+              ReplMask (status32, @src, 1048576);
+              ReplMask (status32, @src, 2147483648);
             };
         };
       setRegister (R_STATUS32, status32);
@@ -318,8 +318,8 @@ arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
   gen_set_label(done_3);
   tcg_gen_br(done_2);
   gen_set_label(else_2);
-  tcg_gen_andi_i32(temp_19, src, 3840);
-  tcg_gen_or_i32(status32, status32, temp_19);
+  tcg_gen_movi_i32(temp_19, 3840);
+  ReplMask(status32, src, temp_19);
   TCGLabel *done_4 = gen_new_label();
   tcg_gen_movi_i32(temp_21, 7);
   temp_20 = getBit(status32, temp_21);
@@ -328,12 +328,12 @@ arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
   tcg_gen_and_i32(temp_11, temp_9, temp_10);
   tcg_gen_xori_i32(temp_12, temp_11, 1); tcg_gen_andi_i32(temp_12, temp_12, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_12, arc_true, done_4);;
-  tcg_gen_andi_i32(temp_22, src, 62);
-  tcg_gen_or_i32(status32, status32, temp_22);
+  tcg_gen_movi_i32(temp_22, 62);
+  ReplMask(status32, src, temp_22);
   if (targetHasOption (DIV_REM_OPTION))
     {
-    tcg_gen_andi_i32(temp_23, src, 8192);
-  tcg_gen_or_i32(status32, status32, temp_23);
+    tcg_gen_movi_i32(temp_23, 8192);
+  ReplMask(status32, src, temp_23);
 ;
     }
   else
@@ -342,30 +342,30 @@ arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
     }
   if (targetHasOption (STACK_CHECKING))
     {
-    tcg_gen_andi_i32(temp_24, src, 16384);
-  tcg_gen_or_i32(status32, status32, temp_24);
+    tcg_gen_movi_i32(temp_24, 16384);
+  ReplMask(status32, src, temp_24);
 ;
     }
   else
     {
   ;
     }
-  tcg_gen_andi_i32(temp_25, src, 65536);
-  tcg_gen_or_i32(status32, status32, temp_25);
+  tcg_gen_movi_i32(temp_25, 65536);
+  ReplMask(status32, src, temp_25);
   if (targetHasOption (LL64_OPTION))
     {
-    tcg_gen_andi_i32(temp_26, src, 524288);
-  tcg_gen_or_i32(status32, status32, temp_26);
+    tcg_gen_movi_i32(temp_26, 524288);
+  ReplMask(status32, src, temp_26);
 ;
     }
   else
     {
   ;
     }
-  tcg_gen_andi_i32(temp_27, src, 1048576);
-  tcg_gen_or_i32(status32, status32, temp_27);
-  tcg_gen_andi_i32(temp_28, src, 2147483648);
-  tcg_gen_or_i32(status32, status32, temp_28);
+  tcg_gen_movi_i32(temp_27, 1048576);
+  ReplMask(status32, src, temp_27);
+  tcg_gen_movi_i32(temp_28, 2147483648);
+  ReplMask(status32, src, temp_28);
   gen_set_label(done_4);
   gen_set_label(done_2);
   setRegister(R_STATUS32, status32);

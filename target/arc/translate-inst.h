@@ -197,6 +197,10 @@ enum target_options {
 #define LP_START (arc_aux_reg_address_for(AUX_ID_lp_start, ARC_OPCODE_ARCv2HS))
 #define LP_END (arc_aux_reg_address_for(AUX_ID_lp_end, ARC_OPCODE_ARCv2HS))
 
+#define ReplMask(DEST, SRC, MASK) \
+  gen_helper_repl_mask (DEST, DEST, SRC, MASK)
+
+
 TCGv arc_gen_verifyCCFlag(DisasCtxt *ctx);
 #define getCCFlag() arc_gen_verifyCCFlag(ctx)
 TCGv arc_gen_getCarry(DisasCtxt *ctx);
