@@ -135,6 +135,8 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 
   if(num_finds != NULL)
     *num_finds = 0;
+
+  bool general_match = true;
   for (w = 0; w < N_WAYS; w++, tlb++)
     {
       uint32_t match = vaddr & compare_mask;
@@ -144,8 +146,11 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	if((tlb->pd0 & PD0_S) != 0)
 	  {
 	    /* Match to a shared library. */
-	    match |= mmu->sasid0 & PD0_ASID_MATCH;
-	    compare_mask |= PD0_ASID_MATCH;
+	    uint8_t position = tlb->pd0 & PD0_ASID_MATCH;
+            uint32_t m1 = mmu->sasid0 & (1 << (position & (32-1)));
+            uint32_t m2 = mmu->sasid1 & (1 << ((position-32) & (32-1)));
+	    if(m1 == 0 && m2 == 0)
+	      general_match = false;
 	  } else {
 	    /* Match to a process. */
 	    match |= mmu->pid_asid & PD0_PID_MATCH;
@@ -153,7 +158,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	  }
       }
 
-      if(match == (tlb->pd0 & compare_mask))
+      if(match == (tlb->pd0 & compare_mask) && general_match)
       {
 	ret = tlb;
 	if(num_finds != NULL)
@@ -374,21 +379,21 @@ arc_mmu_translate(struct CPUARCState *env,
 
   /* In case entry is not global.
    * Logic from PRM, in TLBPD0 description, more precisely ASID one. */
-  if((tlb->pd0 & PD0_G) == 0 && rwe != MMU_MEM_IRRELEVANT_TYPE)
-    {
-      /* ASID check against library.  */
-      if((tlb->pd0 & PD0_S) != 0
-	 && (tlb->pd0 & PD0_ASID_MATCH) != (mmu->sasid0 & PD0_ASID_MATCH))
-      {
-        match = false;
-      } else {
-        /* Check if ASID matches with PID. */
-        if(mmu->pid_asid != (tlb->pd0 & PD0_PID_MATCH))
-          {
-            match = false;
-          }
-      }
-    }
+  //if((tlb->pd0 & PD0_G) == 0 && rwe != MMU_MEM_IRRELEVANT_TYPE)
+  //  {
+  //    /* ASID check against library.  */
+  //    if((tlb->pd0 & PD0_S) != 0
+  //       && (tlb->pd0 & PD0_ASID_MATCH) != (mmu->sasid0 & PD0_ASID_MATCH))
+  //    {
+  //      match = false;
+  //    } else {
+  //      /* Check if ASID matches with PID. */
+  //      if(mmu->pid_asid != (tlb->pd0 & PD0_PID_MATCH))
+  //        {
+  //          match = false;
+  //        }
+  //    }
+  //  }
 
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
