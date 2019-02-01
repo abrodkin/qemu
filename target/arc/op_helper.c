@@ -431,14 +431,6 @@ void helper_flush(CPUARCState *env)
   tb_flush((CPUState *)arc_env_get_cpu(env));
 }
 
-void helper_clear_status32_swi_trap(CPUARCState *env)
-{
-  /* Clear some status32 flags as in definition of SWI and TRAP */
-  env->stat.IEf = 0;
-  env->stat.Uf = 0;
-  env->stat.AEf = 1;
-}
-
 /* This should only be called from translate, via gen_raise_exception.
    We expect that ENV->PC has already been updated.  */
 
