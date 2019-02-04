@@ -67,8 +67,8 @@
 enum mmu_access_type {
   MMU_MEM_READ = 0,
   MMU_MEM_WRITE,
-  MMU_MEM_ATTOMIC,
   MMU_MEM_FETCH,  /* Read for execution. */
+  MMU_MEM_ATTOMIC,
   MMU_MEM_IRRELEVANT_TYPE,
 };
 
@@ -81,7 +81,9 @@ enum mmu_access_type {
 
 
 #define CAUSE_CODE(ENUM) \
-  ((uint8_t) ENUM + 1)
+  ((ENUM == MMU_MEM_FETCH) ? 0 : \
+   ((ENUM == MMU_MEM_READ) ? 1 : \
+     ((ENUM == MMU_MEM_WRITE) ? 2 : 3)))
 
 
 struct arc_tlb_e {

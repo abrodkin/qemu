@@ -1482,10 +1482,11 @@ read_and_decode_context (DisasCtxt *ctx,
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
   uint32_t cpc_phy_addr = arc_mmu_translate(ctx->env, ctx->cpc, MMU_MEM_FETCH);
-  if((enum exception_code_list) ctx->env->mmu.exception.number == EXCP_TLB_MISS_I)
+  if((enum exception_code_list) ctx->env->mmu.exception.number != EXCP_NO_EXCEPTION)
   {
     ctx->env->efa = arc_mmu_page_address_for(ctx->cpc);
-    gen_excp (ctx, EXCP_TLB_MISS_I,
+    gen_excp (ctx,
+	      ctx->env->mmu.exception.number,
 	      ctx->env->mmu.exception.causecode,
 	      ctx->env->mmu.exception.parameter);
     //RAISE_MMU_EXCEPTION(ctx->env);
