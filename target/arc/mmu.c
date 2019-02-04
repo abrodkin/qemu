@@ -344,8 +344,9 @@ arc_mmu_translate(struct CPUARCState *env,
   if((vaddr >= 0x80000000) || mmu->enabled == false)
     return vaddr;
 
-  qemu_log_mask (CPU_LOG_MMU, "[MMU] Translate at 0x%08x, vaddr 0x%08x rwe = %s\n",
-		 env->pc, vaddr, RWE_STRING(rwe));
+  if(rwe != MMU_MEM_IRRELEVANT_TYPE)
+    qemu_log_mask (CPU_LOG_MMU, "[MMU] Translate at 0x%08x, vaddr 0x%08x, pid %d, rwe = %s\n",
+		   env->pc, vaddr, mmu->pid_asid, RWE_STRING(rwe));
 
   uint32_t match_pd0 = (VPN(vaddr) | PD0_V);
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
@@ -407,8 +408,9 @@ arc_mmu_translate(struct CPUARCState *env,
     }
 
   if(match == true) {
-    qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x\n",
-		   (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)));
+    if(rwe != MMU_MEM_IRRELEVANT_TYPE)
+      qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x\n",
+		     (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)));
     return (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK));
   }
   else
@@ -416,7 +418,10 @@ arc_mmu_translate(struct CPUARCState *env,
 tlb_miss_exception:
       if(rwe != MMU_MEM_IRRELEVANT_TYPE)
 	{
-	  mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
+	  if(mmu->sasid0 != 0 || mmu->sasid1 != 0)
+	    assert(0);
+	  else
+	    mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
           if(rwe == MMU_MEM_FETCH)
 	    {
               qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception at 0x%08x. rwe = %s, "
@@ -437,8 +442,9 @@ tlb_miss_exception:
 	    }
 	}
       else
-	qemu_log_mask (CPU_LOG_MMU, "[MMU] Failed to translate to 0x%08x\n",
-		       vaddr);
+	if(rwe != MMU_MEM_IRRELEVANT_TYPE)
+	  qemu_log_mask (CPU_LOG_MMU, "[MMU] Failed to translate to 0x%08x\n",
+			 vaddr);
       return 0;
     }
 }
