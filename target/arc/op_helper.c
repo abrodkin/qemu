@@ -46,11 +46,6 @@ static target_ulong get_status32 (CPUARCState *env)
   return value;
 }
 
-void helper_print_value(CPUARCState *env, target_ulong value)
-{
-  //printf("        Argument is %08x at address %08x\n", value, env->pc);
-}
-
 static void set_status32(CPUARCState *env, target_ulong value)
 {
   /* TODO: Implement debug mode. */
@@ -66,13 +61,6 @@ static void set_status32(CPUARCState *env, target_ulong value)
 
 
   unpack_status32(&env->stat, value);
-}
-
-
-static uint32_t get_status32_l1 (CPUARCState *env)
-{
-  /* TODO: Is this needed */
-  return pack_status32 (&env->stat_l1);
 }
 
 static void
@@ -219,24 +207,6 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
     cpu_outl(aux, val);
 }
 
-static target_ulong get_status(CPUARCState *env)
-{
-    target_ulong res = 0x00000000;
-
-    res |= (env->stat.Zf) ? BIT(31) : 0;
-    res |= (env->stat.Nf) ? BIT(30) : 0;
-    res |= (env->stat.Cf) ? BIT(29) : 0;
-    res |= (env->stat.Vf) ? BIT(28) : 0;
-    res |= (env->stat.Ef) << 1;
-
-    if (env->stopped)
-      res |= BIT(25);
-
-    res |= (env->r[63] >> 2) & 0x03ffffff;
-
-    return res;
-}
-
 static target_ulong get_debug(CPUARCState *env)
 {
   target_ulong res = 0x00000000;
@@ -293,10 +263,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
   switch (aux_reg_detail->id)
     {
-    case AUX_ID_status:
-      result = get_status(env);
-      break;
-
     case AUX_ID_aux_volatile:
       result = 0xc0000000;
       break;
@@ -327,10 +293,6 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
     case AUX_ID_status32:
       result = get_status32(env);
-      break;
-
-    case AUX_ID_status32_l1:
-      result = get_status32_l1(env);
       break;
 
     case AUX_ID_isa_config:
