@@ -7280,28 +7280,28 @@ arc2_gen_SETHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 
 /* EX
- *    Variables: @src, @dest
+ *    Variables: @b, @c
  *    Functions: getMemory, setMemory
 --- code ---
 {
-  tmp = getMemory (@src, LONG);
-  setMemory (@src, LONG, @dest);
-  @dest = tmp;
+  temp = @b;
+  @b = getMemory (@c, LONG);
+  setMemory (@c, LONG, temp);
 }
  */
 
 int
-arc2_gen_EX (DisasCtxt *ctx, TCGv src, TCGv dest)
+arc2_gen_EX (DisasCtxt *ctx, TCGv b, TCGv c)
 {
   int ret = BS_NONE;
+  TCGv temp = tcg_temp_local_new_i32();
   TCGv temp_1 = NULL /* REFERENCE */;
-  TCGv tmp = tcg_temp_local_new_i32();
-  temp_1 = getMemory(src, LONG);
-  tcg_gen_mov_i32(tmp, temp_1);
-  setMemory(src, LONG, dest);
-  tcg_gen_mov_i32(dest, tmp);
+  tcg_gen_mov_i32(temp, b);
+  temp_1 = getMemory(c, LONG);
+  tcg_gen_mov_i32(b, temp_1);
+  setMemory(c, LONG, temp);
+  tcg_temp_free(temp);
   if(temp_1 != NULL) tcg_temp_free(temp_1);
-  tcg_temp_free(tmp);
 
   return ret;
 }
