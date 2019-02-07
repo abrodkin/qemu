@@ -346,7 +346,7 @@ void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
     } while (ctx.bstate == BS_NONE
              && !tcg_op_buf_full()
              && !ctx.singlestep
-             && ((ctx.npc & 0x3) != 0 && num_insns < max_insns-1)
+             && ((ctx.npc & 0x3) != 0 || num_insns < max_insns-1)
 	     && (num_insns < max_insns)
              && (ctx.cpc < next_page_start));
 

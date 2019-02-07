@@ -77,6 +77,9 @@ uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);
   if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
   {
+    ARCCPU *cpu = container_of(env, ARCCPU, env);
+    CPUState *cs = CPU(cpu);
+    cpu_restore_state(cpu, GETPC(), true);
     env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
   }
@@ -88,6 +91,9 @@ uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
   uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
   if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
   {
+    ARCCPU *cpu = container_of(env, ARCCPU, env);
+    CPUState *cs = CPU(cpu);
+    cpu_restore_state(cpu, GETPC(), true);
     env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
   }
