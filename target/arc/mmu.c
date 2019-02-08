@@ -451,7 +451,10 @@ tlb_miss_exception:
 
 uint32_t arc_mmu_page_address_for(uint32_t vaddr)
 {
-  return VPN(vaddr);
+  uint32_t ret = VPN(vaddr);
+  if(vaddr >= 0x80000000)
+    ret |= 0x80000000;
+  return ret;
 }
 
 void arc_mmu_init(struct arc_mmu *mmu)
@@ -471,3 +474,20 @@ void arc_mmu_init(struct arc_mmu *mmu)
   memset(mmu->nTLB, 0, sizeof(mmu->nTLB));
 }
 
+/* Softmmu support function for MMU. */
+void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
+	      MMUAccessType access_type,
+	      int mmu_idx, uintptr_t retaddr)
+{
+  int prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+  MemTxAttrs attrs = {};
+  target_ulong page_size = TARGET_PAGE_SIZE;
+
+  CPUARCState *env = cs->env_ptr;
+  enum mmu_access_type rwe = (char) access_type;
+
+  vaddr = arc_mmu_page_address_for(vaddr);
+  uint32_t paddr = arc_mmu_translate (env, vaddr, rwe);
+
+  tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
+}

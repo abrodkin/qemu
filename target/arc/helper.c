@@ -182,22 +182,6 @@ void arc_cpu_list (FILE *f, fprintf_function cpu_fprintf)
   g_slist_free (list);
 }
 
-void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
-	      MMUAccessType access_type,
-	      int mmu_idx, uintptr_t retaddr)
-{
-  target_ulong page_size = TARGET_PAGE_SIZE;
-  int prot = 0;
-  MemTxAttrs attrs = {};
-  uint32_t paddr;
-
-  vaddr &= TARGET_PAGE_MASK;
-  paddr = PHYS_BASE_RAM + vaddr - VIRT_BASE_RAM;
-  prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
-
-  tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
-}
-
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,
 			    int len, bool is_write)
 {

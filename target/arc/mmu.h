@@ -60,10 +60,11 @@
 #define N_WAYS          4
 #define TLB_ENTRIES     (N_SETS * N_WAYS)
 
-#define PAGE_SHIFT      13
+#define PAGE_SHIFT      TARGET_PAGE_BITS
 #define PAGE_SIZE       (1 << PAGE_SHIFT)
 #define PAGE_MASK       (~(PAGE_SIZE - 1))
 
+/* NOTE: Do not reorder, this is casted in tbl_fill function. */
 enum mmu_access_type {
   MMU_MEM_READ = 0,
   MMU_MEM_WRITE,
