@@ -7530,12 +7530,14 @@ arc2_gen_DMB (DisasCtxt *ctx, TCGv a)
     {
       address = (@src1 + (@src2 << 1));
     };
-  if(((AA == 1) || (AA == 2)))
-    {
-      @src1 = (@src1 + @src2);
-    };
+  l_src1 = @src1;
+  l_src2 = @src2;
   setDebugLD (1);
   @dest = getMemory (address, ZZ);
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (l_src1 + l_src2);
+    };
   if((getFlagX () == 1))
     {
       @dest = SignExtend (@dest, ZZ);
@@ -7556,6 +7558,8 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv address = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv l_src1 = tcg_temp_local_new_i32();
+  TCGv l_src2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -7601,19 +7605,21 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     {
   ;
     }
+  tcg_gen_mov_i32(l_src1, src1);
+  tcg_gen_mov_i32(l_src2, src2);
+  tcg_gen_movi_i32(temp_4, 1);
+  setDebugLD(temp_4);
+  temp_5 = getMemory(address, ZZ);
+  tcg_gen_mov_i32(dest, temp_5);
   if (((AA == 1) || (AA == 2)))
     {
-    tcg_gen_add_i32(src1, src1, src2);
+    tcg_gen_add_i32(src1, l_src1, l_src2);
 ;
     }
   else
     {
   ;
     }
-  tcg_gen_movi_i32(temp_4, 1);
-  setDebugLD(temp_4);
-  temp_5 = getMemory(address, ZZ);
-  tcg_gen_mov_i32(dest, temp_5);
   if ((getFlagX () == 1))
     {
     tcg_gen_mov_i32(dest, SignExtend(dest, ZZ));
@@ -7632,6 +7638,8 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_temp_free(address);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_3);
+  tcg_temp_free(l_src1);
+  tcg_temp_free(l_src2);
   tcg_temp_free(temp_4);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_1);
@@ -7668,14 +7676,16 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     {
       address = (@src1 + (@src2 << 1));
     };
-  if(((AA == 1) || (AA == 2)))
-    {
-      @src1 = (@src1 + @src2);
-    };
+  l_src1 = @src1;
+  l_src2 = @src2;
   setDebugLD (1);
   @dest = getMemory (address, LONG);
   pair = nextReg (dest);
   pair = getMemory ((address + 4), LONG);
+  if(((AA == 1) || (AA == 2)))
+    {
+      @src1 = (l_src1 + l_src2);
+    };
   if(NoFurtherLoadsPending ())
     {
       setDebugLD (0);
@@ -7692,6 +7702,8 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv address = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv l_src1 = tcg_temp_local_new_i32();
+  TCGv l_src2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = NULL /* REFERENCE */;
   TCGv pair = tcg_temp_local_new_i32();
@@ -7740,15 +7752,8 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     {
   ;
     }
-  if (((AA == 1) || (AA == 2)))
-    {
-    tcg_gen_add_i32(src1, src1, src2);
-;
-    }
-  else
-    {
-  ;
-    }
+  tcg_gen_mov_i32(l_src1, src1);
+  tcg_gen_mov_i32(l_src2, src2);
   tcg_gen_movi_i32(temp_4, 1);
   setDebugLD(temp_4);
   temp_5 = getMemory(address, LONG);
@@ -7757,6 +7762,15 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_addi_i32(temp_7, address, 4);
   temp_6 = getMemory(temp_7, LONG);
   tcg_gen_mov_i32(pair, temp_6);
+  if (((AA == 1) || (AA == 2)))
+    {
+    tcg_gen_add_i32(src1, l_src1, l_src2);
+;
+    }
+  else
+    {
+  ;
+    }
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_xori_i32(temp_1, NoFurtherLoadsPending(), 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, done_1);;
@@ -7766,6 +7780,8 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_temp_free(address);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_3);
+  tcg_temp_free(l_src1);
+  tcg_temp_free(l_src2);
   tcg_temp_free(temp_4);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
   tcg_temp_free(temp_7);
