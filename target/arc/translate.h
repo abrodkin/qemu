@@ -36,6 +36,41 @@
 #include "exec/helper-gen.h"
 #include "exec/log.h"
 
+#include "exec/translator.h"
+
+enum insn_return_state {
+    BS_NONE      = 0x00,     /*  Nothing special (none of the below          */
+    BS_STOP	 = 0x01,
+    BS_BRANCH    = 0x02,     /*  A branch condition is reached               */
+    BS_BRANCH_DS = 0x03,     /*  A branch condition is reached               */
+    BS_EXCP      = 0x04,     /*  An exception condition is reached           */
+    BS_BREAK     = 0x05,
+    BS_BRANCH_HW_LOOP,	     /*  A branch condition in LP_END for hardware loops  */
+};
+typedef struct DisasContext {
+    DisasContextBase base;
+
+    uint32_t cpc;   /*  current pc      */
+    uint32_t npc;   /*  next pc         */
+    uint32_t dpc;   /*  next next pc         */
+    uint32_t pcl;
+    uint32_t lpe;
+    uint32_t lps;
+
+    unsigned ds;    /*  we are within ds*/
+
+    TCGv one;       /*  0x00000001      */
+    TCGv zero;      /*  0x00000000      */
+
+    insn_t insn;
+
+    CPUARCState *env;
+    enum insn_return_state bstate;
+    uint16_t buffer[2];
+
+} DisasContext;
+
+
 extern TCGv     cpu_gp;
 extern TCGv     cpu_fp;
 extern TCGv     cpu_sp;
@@ -129,43 +164,43 @@ extern TCGv     cpu_npc_helper;
 
 //extern TCGv	cpu_aux_regs[AUX_REG_SIZE];
 
-enum {
-    BS_NONE      = 0x00,     /*  Nothing special (none of the below          */
-    BS_STOP      = 0x01,     /*  We want to stop translation for any reason  */
-    BS_BRANCH    = 0x02,     /*  A branch condition is reached               */
-    BS_BRANCH_DS = 0x03,     /*  A branch condition is reached               */
-    BS_EXCP      = 0x04,     /*  An exception condition is reached           */
-    BS_BREAK     = 0x05,
-    BS_BRANCH_HW_LOOP,	     /*  A branch condition in LP_END for hardware loops  */
-};
+//enum {
+//    BS_NONE      = 0x00,     /*  Nothing special (none of the below          */
+//    BS_STOP      = 0x01,
+//    BS_BRANCH    = 0x02,     /*  A branch condition is reached               */
+//    BS_BRANCH_DS = 0x03,     /*  A branch condition is reached               */
+//    BS_EXCP      = 0x04,     /*  An exception condition is reached           */
+//    BS_BREAK     = 0x05,
+//    BS_BRANCH_HW_LOOP,	     /*  A branch condition in LP_END for hardware loops  */
+//};
 
 #define BS_DELAYED_SLOT(n)  ((n) ? BS_BRANCH_DS : BS_BRANCH)
 
-typedef struct DisasCtxt DisasCtxt;
+typedef struct DisasContext DisasCtxt;
 
-struct DisasCtxt {
-    struct TranslationBlock    *tb;
-
-    uint32_t cpc;   /*  current pc      */
-    uint32_t npc;   /*  next pc         */
-    uint32_t dpc;   /*  next next pc    */
-    uint32_t pcl;
-    uint32_t lpe;
-    uint32_t lps;
-
-    unsigned ds;    /*  we are within ds*/
-
-    TCGv one;       /*  0x00000000      */
-    TCGv zero;      /*  0x00000000      */
-
-    insn_t insn;
-
-    int memidx;
-    int bstate;
-    int singlestep;
-
-    CPUARCState *env;
-};
+//struct DisasCtxt {
+//    struct TranslationBlock    *tb;
+//
+//    uint32_t cpc;   /*  current pc      */
+//    uint32_t npc;   /*  next pc         */
+//    uint32_t dpc;   /*  next next pc    */
+//    uint32_t pcl;
+//    uint32_t lpe;
+//    uint32_t lps;
+//
+//    unsigned ds;    /*  we are within ds*/
+//
+//    TCGv one;       /*  0x00000000      */
+//    TCGv zero;      /*  0x00000000      */
+//
+//    insn_t insn;
+//
+//    int memidx;
+//    int bstate;
+//    int singlestep;
+//
+//    CPUARCState *env;
+//};
 
 int arc_decode(DisasCtxt *ctx);
 

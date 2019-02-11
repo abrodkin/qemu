@@ -118,10 +118,10 @@ TCGv	 cpu_npc_helper;
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
-static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
+static inline bool use_goto_tb(DisasContext *dc, target_ulong dest)
 {
 #ifndef CONFIG_USER_ONLY
-    return (dc->tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+    return (dc->base.tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
 #else
     if(dc->singlestep)
       return false;
@@ -130,7 +130,7 @@ static inline bool use_goto_tb(DisasCtxt *dc, target_ulong dest)
 #endif
 }
 
-void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
+void gen_goto_tb(DisasContext *ctx, int n, TCGv dest)
 {
   //TranslationBlock   *tb;
   //tb = ctx->tb;
@@ -143,24 +143,24 @@ void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest)
 #else
     tcg_gen_mov_tl(cpu_pc,  dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
-    if(ctx->singlestep)
+    if(ctx->base.singlestep_enabled)
       gen_helper_debug(cpu_env);
     tcg_gen_exit_tb(NULL, 0);
 #endif
 }
-static void  gen_gotoi_tb(DisasCtxt *ctx, int n, target_ulong dest)
+static void  gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
 {
     if (use_goto_tb(ctx, dest)) {
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-	if(ctx->singlestep)
+	if(ctx->base.singlestep_enabled)
 	  gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(ctx->tb, n);
+        tcg_gen_exit_tb(ctx->base.tb, n);
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-	if(ctx->singlestep)
+	if(ctx->base.singlestep_enabled)
 	  gen_helper_debug(cpu_env);
         tcg_gen_exit_tb(NULL, 0);
     }
@@ -267,166 +267,304 @@ void arc_translate_init(void)
     init_not_done = 0;
 }
 
-void gen_intermediate_code(CPUState *cs, struct TranslationBlock *tb)
+static void arc_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
 {
-    CPUARCState *env = cs->env_ptr;
-    DisasCtxt ctx;
-    target_ulong pc_start;
-    int num_insns;
-    int max_insns;
-    uint32_t next_page_start;
-
-    pc_start = tb->pc;
-    ctx.tb = tb;
-    ctx.memidx = 0;
-    ctx.bstate = BS_NONE;
-    ctx.singlestep = cs->singlestep_enabled;
-
-    next_page_start = (pc_start & TARGET_PAGE_MASK) + TARGET_PAGE_SIZE;
-    num_insns = 0;
-    max_insns = tb->cflags & CF_COUNT_MASK;
-
-    if (max_insns == 0) {
-        max_insns = CF_COUNT_MASK;
-    }
-    if (max_insns > TCG_MAX_INSNS) {
-        max_insns = TCG_MAX_INSNS;
-    }
-    if(ctx.singlestep) {
-      max_insns = 1;
-    }
-
-    gen_tb_start(tb);
-
-    ctx.zero = tcg_const_local_i32(0);
-    ctx.one = tcg_const_local_i32(1);
-
-    ctx.npc = pc_start;
-    ctx.env = env;
-    ctx.ds = 0;
-
-    do {
-        ctx.cpc = ctx.npc;
-        ctx.pcl = ctx.cpc & 0xfffffffc;
-
-        tcg_gen_insn_start(ctx.cpc);
-        num_insns++;
-
-        if (unlikely(cpu_breakpoint_test(cs, ctx.cpc, BP_ANY)))
-	  {
-            tcg_gen_movi_i32(cpu_pc, ctx.cpc);
-            gen_helper_debug(cpu_env);
-            ctx.bstate = BS_EXCP;
-            break;
-          }
-
-        if (num_insns == max_insns && (tb->cflags & CF_LAST_IO)) {
-            gen_io_start();
-        }
-
-        int tmp = arc_decode (&ctx);
-        if (ctx.bstate == BS_BRANCH_DS)
-          num_insns++;
-        else
-          ctx.bstate = tmp;
-
-	/* Hardware loop control code */
-	if (ctx.npc == env->lpe)
-	  {
-            TCGLabel *label = gen_new_label();
-            tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-            tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
-	    gen_goto_tb(&ctx, 0, cpu_lps);
-            gen_set_label(label);
-	    gen_gotoi_tb(&ctx, 1, ctx.npc);
-
-            ctx.bstate = BS_BRANCH_HW_LOOP;
-	  }
-
-    } while (ctx.bstate == BS_NONE
-             && !tcg_op_buf_full()
-             && !ctx.singlestep
-             && ((ctx.npc & 0x3) != 0 || num_insns < max_insns-1)
-	     && (num_insns < max_insns)
-             && (ctx.cpc < next_page_start));
-
-    if (tb->cflags & CF_LAST_IO) {
-        gen_io_end();
-    }
-
-    if (ctx.singlestep) {
-	//assert(0); // TODO
-        switch (ctx.bstate) {
-        case BS_STOP:
-        case BS_NONE:
-            tcg_gen_movi_tl(cpu_pc, ctx.npc);
-            tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
-	    break;
-
-	case BS_BRANCH_HW_LOOP:
-	    ctx.bstate = BS_BRANCH;
-	    break;
-        case BS_BRANCH_DS:
-        case BS_BRANCH:
-          tcg_gen_movi_tl(cpu_pc, ctx.npc);
-          tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
-	  break;
-	default:
-	  break;
-	}
-
-        gen_helper_debug(cpu_env);
-        tcg_gen_exit_tb(NULL, 0);
-    } else {
-        switch (ctx.bstate) {
-        case BS_STOP:
-        case BS_NONE:
-            gen_gotoi_tb(&ctx, 0, ctx.npc);
-            break;
-        case BS_BRANCH_DS:
-          //ctx.npc = ctx.dpc;
-        case BS_BRANCH:
-	    {
-	    //  TCGLabel *skip_fallthrough = gen_new_label();
-	    //  // NOTE: cpu_pc is not update on every single instruction on non single step mode.
-	    //  // For that reason we should compare cpu_pc with tb->pc instead of the instruction pc.
-	    //  tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
-	    //  //tcg_gen_movi_tl (cpu_pc, ctx.npc);
-	      gen_gotoi_tb(&ctx, 0, ctx.npc);
-	    //tcg_gen_exit_tb(NULL, 0);
-	    //  gen_set_label (skip_fallthrough);
-	    }
-	    break;
-        case BS_EXCP:
-	case BS_BRANCH_HW_LOOP:
-            tcg_gen_exit_tb(NULL, 0);
-            break;
-        default:
-            break;
-        }
-    }
-
-    tcg_temp_free_i32(ctx.one);
-    tcg_temp_free_i32(ctx.zero);
-
-    gen_tb_end(tb, num_insns);
-
-    tb->size = (ctx.npc - pc_start);
-    tb->icount = num_insns;
-
-#ifdef DEBUG_DISAS
-    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
-        && qemu_log_in_addr_range(pc_start)) {
-        qemu_log_lock();
-        qemu_log("------------------\n");
-        log_target_disas(cs, pc_start, ctx.npc - pc_start);
-//        qemu_log("\nisize=%d osize=%d\n",
-//                 ctx.npc - pc_start, tcg_op_buf_count());
-        qemu_log_unlock();
-    }
-#endif
-
+  DisasContext *dc = container_of(dcbase, DisasContext, base);
+  dc->bstate = BS_NONE;
 }
+static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
+{
+  DisasContext *dc = container_of(dcbase, DisasContext, base);
+
+  dc->zero = tcg_const_local_i32(0);
+  dc->one = tcg_const_local_i32(1);
+}
+
+static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
+{
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+
+    tcg_gen_insn_start(dc->base.pc_next);
+    dc->cpc = dc->base.pc_next;
+}
+
+static bool arc_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *cpu,
+                                    const CPUBreakpoint *bp)
+{
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+
+    tcg_gen_movi_tl(cpu_pc, dc->cpc);
+    dc->base.is_jmp = DISAS_NORETURN;
+    gen_helper_debug(cpu_env);
+    /* The address covered by the breakpoint must be included in
+       [tb->pc, tb->pc + tb->size) in order to for it to be
+       properly cleared -- thus we increment the PC here so that
+       the logic setting tb->size below does the right thing.  */
+    dc->base.pc_next += 4; /* TODO: Verify this */
+    return true;
+}
+
+
+static void decode_opc(CPUARCState *env, DisasContext *ctx)
+{
+  ctx->env = env;
+  ctx->bstate = arc_decode (ctx);
+  switch(ctx->bstate) {
+    case BS_BRANCH_DS:
+      ctx->base.num_insns++;
+    case BS_BRANCH:
+      ctx->base.is_jmp = DISAS_NORETURN;
+      break;
+    case BS_BRANCH_HW_LOOP:
+    case BS_NONE:
+      ctx->base.is_jmp = DISAS_NEXT;
+      break;
+    default:
+      assert(0);
+  }
+}
+
+static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
+{
+  DisasContext *dc = container_of(dcbase, DisasContext, base);
+  CPUARCState *env = cpu->env_ptr;
+
+  dc->cpc = dc->base.pc_next;
+  decode_opc(env, dc);
+  dc->base.pc_next = dc->npc;
+
+  /* Hardware loop control code */
+  if (dc->npc == env->lpe)
+    {
+      TCGLabel *label = gen_new_label();
+      tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
+      tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
+      gen_goto_tb(dc, 0, cpu_lps);
+      gen_set_label(label);
+      gen_gotoi_tb(dc, 1, dc->npc);
+    }
+
+  if(dc->base.is_jmp == DISAS_NORETURN)
+    {
+      gen_gotoi_tb(dc, 0, dc->npc);
+    }
+  else if(dc->base.is_jmp == DISAS_NEXT)
+    {
+      target_ulong page_start;
+
+      page_start = dc->base.pc_first & TARGET_PAGE_MASK;
+      if (dc->base.pc_next - page_start >= TARGET_PAGE_SIZE) {
+          dc->base.is_jmp = DISAS_TOO_MANY;
+      }
+    }
+}
+
+static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
+{
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+
+    switch (dc->base.is_jmp) {
+      case DISAS_TOO_MANY:
+          gen_gotoi_tb(dc, 0, dc->base.pc_next);
+          break;
+      case DISAS_NORETURN:
+          break;
+      default:
+          g_assert_not_reached();
+    }
+}
+
+static void arc_tr_disas_log(const DisasContextBase *dcbase, CPUState *cpu)
+{
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+
+    qemu_log("IN: %s\n", lookup_symbol(dc->base.pc_first));
+    log_target_disas(cpu, dc->base.pc_first, dc->base.tb->size);
+}
+
+
+static const TranslatorOps arc_translator_ops = {
+    .init_disas_context = arc_tr_init_disas_context,
+    .tb_start           = arc_tr_tb_start,
+    .insn_start         = arc_tr_insn_start,
+    .breakpoint_check   = arc_tr_breakpoint_check,
+    .translate_insn     = arc_tr_translate_insn,
+    .tb_stop            = arc_tr_tb_stop,
+    .disas_log          = arc_tr_disas_log,
+};
+
+//static void gen_intermediate_code_old(CPUState *cs, struct TranslationBlock *tb);
+/* generate intermediate code for basic block 'tb'.  */
+void gen_intermediate_code(CPUState *cpu, TranslationBlock *tb)
+{
+#ifdef OLD_WAY
+    gen_intermediate_code_old(cpu, tb);
+#else
+    DisasContext dc;
+    const TranslatorOps *ops = &arc_translator_ops;
+    translator_loop(ops, &dc.base, cpu, tb);
+#endif
+}
+
+//static void gen_intermediate_code_old(CPUState *cs, struct TranslationBlock *tb)
+//{
+//    CPUARCState *env = cs->env_ptr;
+//    DisasCtxt ctx;
+//    target_ulong pc_start;
+//    int num_insns;
+//    int max_insns;
+//    uint32_t next_page_start;
+//
+//    /* init */
+//    pc_start = tb->pc;
+//    ctx.tb = tb;
+//    ctx.memidx = 0;
+//    ctx.bstate = BS_NONE;
+//    ctx.singlestep = cs->singlestep_enabled;
+//
+//    next_page_start = (pc_start & TARGET_PAGE_MASK) + TARGET_PAGE_SIZE;
+//    num_insns = 0;
+//    max_insns = tb->cflags & CF_COUNT_MASK;
+//
+//    if (max_insns == 0) {
+//        max_insns = CF_COUNT_MASK;
+//    }
+//    if (max_insns > TCG_MAX_INSNS) {
+//        max_insns = TCG_MAX_INSNS;
+//    }
+//    if(ctx.singlestep) {
+//      max_insns = 1;
+//    }
+//
+//    gen_tb_start(tb);
+//
+//    ctx.zero = tcg_const_local_i32(0);
+//    ctx.one = tcg_const_local_i32(1);
+//
+//    ctx.npc = pc_start;
+//    ctx.env = env;
+//    ctx.ds = 0;
+//
+//    do {
+//        ctx.cpc = ctx.npc;
+//        ctx.pcl = ctx.cpc & 0xfffffffc;
+//
+//        tcg_gen_insn_start(ctx.cpc);
+//        num_insns++;
+//
+//        if (unlikely(cpu_breakpoint_test(cs, ctx.cpc, BP_ANY)))
+//	  {
+//            tcg_gen_movi_i32(cpu_pc, ctx.cpc);
+//            gen_helper_debug(cpu_env);
+//            ctx.bstate = BS_EXCP;
+//            break;
+//          }
+//
+//        if (num_insns == max_insns && (tb->cflags & CF_LAST_IO)) {
+//            gen_io_start();
+//        }
+//
+//        int tmp = arc_decode (&ctx);
+//        if (ctx.bstate == BS_BRANCH_DS)
+//          num_insns++;
+//        else
+//          ctx.bstate = tmp;
+//
+//	/* Hardware loop control code */
+//	if (ctx.npc == env->lpe)
+//	  {
+//            TCGLabel *label = gen_new_label();
+//            tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
+//            tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
+//	    gen_goto_tb(&ctx, 0, cpu_lps);
+//            gen_set_label(label);
+//	    gen_gotoi_tb(&ctx, 1, ctx.npc);
+//
+//            ctx.bstate = BS_BRANCH_HW_LOOP;
+//	  }
+//
+//    } while (ctx.bstate == BS_NONE
+//             && !tcg_op_buf_full()
+//             && !ctx.singlestep
+//             && ((ctx.npc & 0x3) != 0 || num_insns < max_insns-1)
+//	     && (num_insns < max_insns)
+//             && (ctx.cpc < next_page_start));
+//
+//    if (tb->cflags & CF_LAST_IO) {
+//        gen_io_end();
+//    }
+//
+//    if (ctx.singlestep) {
+//	//assert(0); // TODO
+//        switch (ctx.bstate) {
+//        case BS_NONE:
+//            tcg_gen_movi_tl(cpu_pc, ctx.npc);
+//            tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
+//	    break;
+//
+//	case BS_BRANCH_HW_LOOP:
+//	    ctx.bstate = BS_BRANCH;
+//	    break;
+//        case BS_BRANCH_DS:
+//        case BS_BRANCH:
+//          tcg_gen_movi_tl(cpu_pc, ctx.npc);
+//          tcg_gen_movi_tl(cpu_pcl, ctx.npc & 0xfffffffc);
+//	  break;
+//	default:
+//	  break;
+//	}
+//
+//        gen_helper_debug(cpu_env);
+//        tcg_gen_exit_tb(NULL, 0);
+//    } else {
+//        switch (ctx.bstate) {
+//        case BS_NONE:
+//            gen_gotoi_tb(&ctx, 0, ctx.npc);
+//            break;
+//        case BS_BRANCH_DS:
+//          //ctx.npc = ctx.dpc;
+//        case BS_BRANCH:
+//	    {
+//	    //  TCGLabel *skip_fallthrough = gen_new_label();
+//	    //  // NOTE: cpu_pc is not update on every single instruction on non single step mode.
+//	    //  // For that reason we should compare cpu_pc with tb->pc instead of the instruction pc.
+//	    //  tcg_gen_brcondi_i32(TCG_COND_NE, cpu_pc, tb->pc, skip_fallthrough);
+//	    //  //tcg_gen_movi_tl (cpu_pc, ctx.npc);
+//	      gen_gotoi_tb(&ctx, 0, ctx.npc);
+//	    //tcg_gen_exit_tb(NULL, 0);
+//	    //  gen_set_label (skip_fallthrough);
+//	    }
+//	    break;
+//        case BS_EXCP:
+//	case BS_BRANCH_HW_LOOP:
+//            tcg_gen_exit_tb(NULL, 0);
+//            break;
+//        default:
+//            break;
+//        }
+//    }
+//
+//    tcg_temp_free_i32(ctx.one);
+//    tcg_temp_free_i32(ctx.zero);
+//
+//    gen_tb_end(tb, num_insns);
+//
+//    tb->size = (ctx.npc - pc_start);
+//    tb->icount = num_insns;
+//
+//#ifdef DEBUG_DISAS
+//    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
+//        && qemu_log_in_addr_range(pc_start)) {
+//        qemu_log_lock();
+//        qemu_log("------------------\n");
+//        log_target_disas(cs, pc_start, ctx.npc - pc_start);
+////        qemu_log("\nisize=%d osize=%d\n",
+////                 ctx.npc - pc_start, tcg_op_buf_count());
+//        qemu_log_unlock();
+//    }
+//#endif
+//
+//}
 
 void restore_state_to_opc(CPUARCState *env, TranslationBlock *tb,
                                                             target_ulong *data)

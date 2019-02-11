@@ -216,6 +216,8 @@ no_semantics(DisasCtxt *ctx)
   return;
 }
 
+#define MEMIDX 0
+
 void
 arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_extend)
 {
@@ -227,21 +229,21 @@ arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_e
   switch (size)
     {
       case 0x00:
-	tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UL);
+	tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UL);
 	break;
 
       case 0x01:
 	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_SB);
+	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_SB);
 	else
-	  tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UB);
+	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UB);
 	break;
 
       case 0x02:
 	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_SW);
+	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_SW);
 	else
-	  tcg_gen_qemu_st_tl(src, addr, ctx->memidx, MO_UW);
+	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UW);
 	break;
 
       case 0x03:
@@ -262,21 +264,21 @@ arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
   switch (size)
     {
       case 0x00:
-	tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UL);
+	tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UL);
 	break;
 
       case 0x01:
 	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_SB);
+	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_SB);
 	else
-	  tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UB);
+	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UB);
 	break;
 
       case 0x02:
 	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_SW);
+	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_SW);
 	else
-	  tcg_gen_qemu_ld_tl(dest, addr, ctx->memidx, MO_UW);
+	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UW);
 	break;
 
       case 0x03:
