@@ -79,7 +79,7 @@ uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
   {
     ARCCPU *cpu = arc_env_get_cpu(env);
     CPUState *cs = CPU(cpu);
-    cpu_restore_state(cpu, GETPC(), true);
+    cpu_restore_state(cs, GETPC(), true);
     env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
   }
@@ -93,7 +93,7 @@ uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
   {
     ARCCPU *cpu = arc_env_get_cpu(env);
     CPUState *cs = CPU(cpu);
-    cpu_restore_state(cpu, GETPC(), true);
+    cpu_restore_state(cs, GETPC(), true);
     env->efa = arc_mmu_page_address_for(vaddr);
     RAISE_MMU_EXCEPTION(env);
   }
@@ -410,7 +410,7 @@ helper_raise_exception (CPUARCState *env,
 {
   ARCCPU *cpu = arc_env_get_cpu(env);
   CPUState *cs = CPU (cpu);
-  cpu_restore_state(cpu, GETPC(), true);
+  cpu_restore_state(cs, GETPC(), true);
   cs->exception_index = index;
   env->causecode = causecode;
   env->param = param;
