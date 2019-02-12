@@ -483,11 +483,25 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   MemTxAttrs attrs = {};
   target_ulong page_size = TARGET_PAGE_SIZE;
 
-  CPUARCState *env = cs->env_ptr;
+  ARCCPU *cpu = ARC_CPU(cs);
+  CPUARCState *env = &cpu->env;
   enum mmu_access_type rwe = (char) access_type;
 
   vaddr = arc_mmu_page_address_for(vaddr);
   uint32_t paddr = arc_mmu_translate (env, vaddr, rwe);
+  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+  {
+    ARCCPU *cpu = arc_env_get_cpu(env);
+    CPUState *cs = CPU(cpu);
+    cpu_restore_state(cs, GETPC(), true);
+    env->efa = arc_mmu_page_address_for(vaddr);
+    env->eret = env->pc;
+    env->erbta = env->npc_helper;
+    helper_raise_exception (env,
+			    env->mmu.exception.number,
+			    env->mmu.exception.causecode,
+			    env->mmu.exception.parameter);
+  }
 
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }

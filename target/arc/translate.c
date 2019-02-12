@@ -120,13 +120,12 @@ TCGv	 cpu_npc_helper;
 
 static inline bool use_goto_tb(DisasContext *dc, target_ulong dest)
 {
-#ifndef CONFIG_USER_ONLY
-    return (dc->base.tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
-#else
-    if(dc->singlestep)
+  if(unlikely(dc->base.singlestep_enabled))
       return false;
-    else
-      return true;
+#ifndef CONFIG_USER_ONLY
+  return (dc->base.tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+#else
+  return true;
 #endif
 }
 
@@ -154,8 +153,6 @@ static void  gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-	if(ctx->base.singlestep_enabled)
-	  gen_helper_debug(cpu_env);
         tcg_gen_exit_tb(ctx->base.tb, n);
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
@@ -296,11 +293,7 @@ static bool arc_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *cpu,
     tcg_gen_movi_tl(cpu_pc, dc->cpc);
     dc->base.is_jmp = DISAS_NORETURN;
     gen_helper_debug(cpu_env);
-    /* The address covered by the breakpoint must be included in
-       [tb->pc, tb->pc + tb->size) in order to for it to be
-       properly cleared -- thus we increment the PC here so that
-       the logic setting tb->size below does the right thing.  */
-    dc->base.pc_next += 4; /* TODO: Verify this */
+    dc->base.pc_next += 2;
     return true;
 }
 

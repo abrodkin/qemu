@@ -1467,11 +1467,6 @@ find_format (insn_t *pinsn, uint64_t insn, uint8_t insn_len, uint32_t isa_mask)
   return NULL;
 }
 
-static void gen_excp (DisasCtxt *ctx,
-                      uint32_t index,
-                      uint32_t causecode,
-                      uint32_t param);
-
 static bool
 read_and_decode_context (DisasCtxt *ctx,
 			 const struct arc_opcode **opcode_p)
@@ -1481,17 +1476,7 @@ read_and_decode_context (DisasCtxt *ctx,
   uint64_t insn;
 
   /* Read the first 16 bits, figure it out what kind of instruction it is.  */
-  uint32_t cpc_phy_addr = arc_mmu_translate(ctx->env, ctx->cpc, MMU_MEM_FETCH);
-  if((enum exception_code_list) ctx->env->mmu.exception.number != EXCP_NO_EXCEPTION)
-  {
-    ctx->env->efa = arc_mmu_page_address_for(ctx->cpc);
-    gen_excp (ctx,
-	      ctx->env->mmu.exception.number,
-	      ctx->env->mmu.exception.causecode,
-	      ctx->env->mmu.exception.parameter);
-    //RAISE_MMU_EXCEPTION(ctx->env);
-  }
-  buffer[0] = cpu_lduw_code(ctx->env, cpc_phy_addr);
+  buffer[0] = cpu_lduw_code(ctx->env, ctx->cpc);
   length = arc_insn_length (buffer[0], ctx->env->family);
 
   switch (length)
@@ -1502,7 +1487,7 @@ read_and_decode_context (DisasCtxt *ctx,
       break;
     case 4:
       /* 32-bit instructions.  */
-      buffer[1] = cpu_lduw_code(ctx->env, cpc_phy_addr + 2);
+      buffer[1] = cpu_lduw_code(ctx->env, ctx->cpc + 2);
       uint32_t buf = (buffer[0] << 16) | buffer[1];
       insn = buf;
       break;
@@ -1523,7 +1508,7 @@ read_and_decode_context (DisasCtxt *ctx,
     {
       ctx->insn.limm = ARRANGE_ENDIAN (true,
 				       cpu_ldl_code (ctx->env,
-						     cpc_phy_addr + length));
+						     ctx->cpc + length));
       length += 4;
     }
   else
