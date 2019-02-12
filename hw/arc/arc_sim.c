@@ -98,7 +98,7 @@ static void arc_sim_init(MachineState *machine)
         }
 
         /* Set the initial CPU properties.  */
-        object_property_set_uint (OBJECT (cpu), 100000000, "freq_hz",
+        object_property_set_uint (OBJECT (cpu), 1000000, "freq_hz",
                                   &error_fatal);
         object_property_set_bool(OBJECT (cpu), true, "realized", &error_fatal);
 
@@ -119,7 +119,7 @@ static void arc_sim_init(MachineState *machine)
                            1024);
     memory_region_add_subregion (get_system_memory(), 0xf0000000, system_io);
 
-    serial_mm_init(get_system_memory(), 0x90000000, 0, cpu->env.irq[2],
+    serial_mm_init(get_system_memory(), 0x90000000, 2, cpu->env.irq[20],
                    115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
 
     if (nd_table[0].used) {

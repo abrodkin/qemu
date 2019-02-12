@@ -363,6 +363,9 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
     case AUX_ID_aux_user_sp:
       return env->aux_user_sp;
 
+    case AUX_ID_aux_irq_hint:
+      return env->aux_irq_hint;
+
     default:
       break;
     }
