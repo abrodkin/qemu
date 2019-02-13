@@ -283,6 +283,11 @@ static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
 
     tcg_gen_insn_start(dc->base.pc_next);
     dc->cpc = dc->base.pc_next;
+
+    if (dc->base.num_insns == dc->base.max_insns
+	&& (dc->base.tb->cflags & CF_LAST_IO)) {
+        gen_io_start();
+    }
 }
 
 static bool arc_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *cpu,
@@ -364,6 +369,11 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
           break;
       default:
           g_assert_not_reached();
+    }
+
+    if (dc->base.num_insns == dc->base.max_insns
+	&& (dc->base.tb->cflags & CF_LAST_IO)) {
+        gen_io_end();
     }
 }
 

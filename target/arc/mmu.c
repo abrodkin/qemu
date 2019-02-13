@@ -411,6 +411,7 @@ arc_mmu_translate(struct CPUARCState *env,
     if(rwe != MMU_MEM_IRRELEVANT_TYPE)
       qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x\n",
 		     (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)));
+//    assert(((tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK))) >= 0x80000000);
     return (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK));
   }
   else
@@ -491,12 +492,11 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   uint32_t paddr = arc_mmu_translate (env, vaddr, rwe);
   if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
   {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
-    cpu_restore_state(cs, GETPC(), true);
+    cpu_restore_state(cs, retaddr, true);
     env->efa = arc_mmu_page_address_for(vaddr);
     env->eret = env->pc;
     env->erbta = env->npc_helper;
+
     helper_raise_exception (env,
 			    env->mmu.exception.number,
 			    env->mmu.exception.causecode,

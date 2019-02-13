@@ -221,64 +221,59 @@ no_semantics(DisasCtxt *ctx)
 void
 arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_extend)
 {
-  TCGv addr = tcg_temp_local_new_i32();
 
   tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
-  gen_helper_mmu_translate_write(addr, cpu_env, vaddr);
 
   switch (size)
     {
       case 0x00:
-	tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UL);
+	tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UL);
 	break;
 
       case 0x01:
 	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_SB);
+	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SB);
 	else
-	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UB);
+	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UB);
 	break;
 
       case 0x02:
 	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_SW);
+	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SW);
 	else
-	  tcg_gen_qemu_st_tl(src, addr, MEMIDX, MO_UW);
+	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UW);
 	break;
 
       case 0x03:
 	assert(!"reserved");
 	break;
     }
-  tcg_temp_free(addr);
 }
 
 TCGv
 arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 {
   TCGv dest = tcg_temp_local_new_i32();
-  TCGv addr = tcg_temp_local_new_i32();
   tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
-  gen_helper_mmu_translate_read(addr, cpu_env, vaddr);
 
   switch (size)
     {
       case 0x00:
-	tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UL);
+	tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UL);
 	break;
 
       case 0x01:
 	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_SB);
+	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SB);
 	else
-	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UB);
+	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UB);
 	break;
 
       case 0x02:
 	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_SW);
+	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SW);
 	else
-	  tcg_gen_qemu_ld_tl(dest, addr, MEMIDX, MO_UW);
+	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UW);
 	break;
 
       case 0x03:
@@ -286,7 +281,6 @@ arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 	break;
     }
 
-  tcg_temp_free(addr);
   return dest;
 }
 
