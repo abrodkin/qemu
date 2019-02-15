@@ -14,7 +14,6 @@ LD = $(CROSS)ld
 AS = $(CROSS)as
 CFLAGS  = -mcpu=archs -O2 --specs=qemu.specs
 ASFLAGS = -mcpu=archs
-LDPHYSFLAGS = --section-start=.text=0x80000000
 
 TESTCASES = check_add.tst
 TESTCASES += check_lp.tst
@@ -50,7 +49,7 @@ TESTCASES += check_norm.tst
 TESTCASES += check_excp.tst
 TESTCASES += check_excp_1.ctst
 TESTCASES += check_mmu.tst
-#TESTCASES += check_excp_mmu.tst
+TESTCASES += check_excp_mmu.tst
 TESTCASES += check_timer0.tst
 TESTCASES += check_timer0_loop.tst
 TESTCASES += check_timer0_linux.tst
@@ -72,8 +71,8 @@ OBJECTS = ivt.o
 	$(CC) $(ASFLAGS) -c $< -o $@ -I$(TST_PATH)
 
 %_mmu.tst: %_mmu.o ${OBJECTS} $(SRC_PATH)/tests/tcg/arc/macros.inc $(SRC_PATH)/tests/tcg/arc/mmu.inc
-	echo "Running: $(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld ${OBJECTS} $< -o $@"; \
-	$(LD) $(LDPHYSFLAGS) -T $(TST_PATH)/tarc.ld ${OBJECTS} $< -o $@
+	echo "Running: $(LD) -T $(TST_PATH)/tarc_mmu.ld ${OBJECTS} $< -o $@"; \
+	$(LD) -T $(TST_PATH)/tarc_mmu.ld ${OBJECTS} $< -o $@
 
 %.tst: %.o ${OBJECTS} $(SRC_PATH)/tests/tcg/arc/macros.inc
 	echo "Running: $(LD) -T $(TST_PATH)/tarc.ld ${OBJECTS} $< -o $@"; \

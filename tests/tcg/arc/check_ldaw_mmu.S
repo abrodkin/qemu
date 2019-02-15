@@ -28,8 +28,13 @@
 .equ PD1_PPN  , (PHYS_ADR & PAGE_NUMBER_MSK)
 .equ PD0_BITS , (PD0_VPN | REG_PD0_GLOBAL | REG_PD0_VALID)
 .equ PD1_BITS , (PD1_PPN | REG_PD1_KRNL_R)
+.equ INT_VECT_ADDRESS, 0x80000000 ; physical address for IVT
 
 start
+
+; use physicall address range for handling exceptions (ivt)
+mov r0, INT_VECT_ADDRESS
+sr  r0, [REG_IVT_BASE]
 
 ; initialize the data in physical address
 mov r0, MAGICDATA
