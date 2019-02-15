@@ -76,6 +76,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 		uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
+  CPUState *cs = CPU(arc_env_get_cpu(env));
   struct arc_mmu *mmu = &env->mmu;
 
   switch (aux_reg_detail->id) {
@@ -101,6 +102,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 			val, env->pc);
         mmu->enabled = (val >> 31);
         mmu->pid_asid = val & 0xff;
+	tlb_flush(cs);
         break;
       case AUX_ID_sasid0:
         mmu->sasid0 = val;
@@ -489,19 +491,23 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   enum mmu_access_type rwe = (char) access_type;
 
   vaddr = arc_mmu_page_address_for(vaddr);
-  uint32_t paddr = arc_mmu_translate (env, vaddr, rwe);
-  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
-  {
-    cpu_restore_state(cs, retaddr, true);
-    env->efa = arc_mmu_page_address_for(vaddr);
-    env->eret = env->pc;
-    env->erbta = env->npc_helper;
+  uint32_t paddr = vaddr;
+  if(vaddr < 0x80000000)
+    {
+      paddr = arc_mmu_translate (env, vaddr, rwe);
+      if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
+      {
+        cpu_restore_state(cs, retaddr, true);
+        env->efa = arc_mmu_page_address_for(vaddr);
+        env->eret = env->pc;
+        env->erbta = env->npc_helper;
 
-    helper_raise_exception (env,
-			    env->mmu.exception.number,
-			    env->mmu.exception.causecode,
-			    env->mmu.exception.parameter);
-  }
+        helper_raise_exception (env,
+				env->mmu.exception.number,
+				env->mmu.exception.causecode,
+				env->mmu.exception.parameter);
+      }
+    }
 
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }

@@ -66,6 +66,9 @@ static void set_status32(CPUARCState *env, target_ulong value)
 static void
 do_exception_no_delayslot (CPUARCState *env, uint32_t index, uint32_t causecode, uint32_t param)
 {
+  ARCCPU *cpu = arc_env_get_cpu(env);
+  CPUState *cs = CPU(cpu);
+  cpu_restore_state(cs, GETPC(), true);
   env->eret = env->pc;
   env->erbta = env->npc_helper;
 
@@ -410,7 +413,8 @@ helper_raise_exception (CPUARCState *env,
 {
   ARCCPU *cpu = arc_env_get_cpu(env);
   CPUState *cs = CPU (cpu);
-  cpu_restore_state(cs, GETPC(), true);
+  // Cannot restore state here.
+  //cpu_restore_state(cs, GETPC(), true);
   cs->exception_index = index;
   env->causecode = causecode;
   env->param = param;
