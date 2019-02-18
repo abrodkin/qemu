@@ -4,7 +4,7 @@
 	test_name TIMER0
 	;; enable TIMER0 interrupts
 	sr	0x01,[control0]
-	mov	r0, 0x1ffffff
+	mov	r0, 0x5ffff
 	sr	r0,[limit0]
 	sr	0,[count0]
 	mov	r3, 0
