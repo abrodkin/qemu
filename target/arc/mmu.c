@@ -341,6 +341,9 @@ arc_mmu_translate(struct CPUARCState *env,
 
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
+  if(env->stat.Uf == true && vaddr >= 0x80000000)
+    goto protv_exception;
+
   /* Check that we are not addressing an address above 0x80000000.
    * Return the same address in that case. */
   if((vaddr >= 0x80000000) || mmu->enabled == false)
@@ -400,6 +403,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
+protv_exception:
       qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x. rwe = %s, "
 		     "tlb->pd0 = %08x, tlb->pd1 = %08x\n",
 		     env->pc,
