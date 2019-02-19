@@ -75,34 +75,6 @@ do_exception_no_delayslot (CPUARCState *env, uint32_t index, uint32_t causecode,
   helper_raise_exception (env, index, causecode, param);
 }
 
-uint32_t helper_mmu_translate_read(CPUARCState *env, uint32_t vaddr)
-{
-  uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_READ);
-  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
-  {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
-    cpu_restore_state(cs, GETPC(), true);
-    env->efa = arc_mmu_page_address_for(vaddr);
-    RAISE_MMU_EXCEPTION(env);
-  }
-  return ret;
-}
-
-uint32_t helper_mmu_translate_write(CPUARCState *env, uint32_t vaddr)
-{
-  uint32_t ret = arc_mmu_translate(env, vaddr, MMU_MEM_WRITE);
-  if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
-  {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
-    cpu_restore_state(cs, GETPC(), true);
-    env->efa = arc_mmu_page_address_for(vaddr);
-    RAISE_MMU_EXCEPTION(env);
-  }
-  return ret;
-}
-
 target_ulong helper_norm(CPUARCState *env, uint32_t src1)
 {
   int i;

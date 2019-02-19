@@ -220,8 +220,9 @@ hwaddr arc_cpu_get_phys_page_debug(CPUState *cs, vaddr addr)
 {
   ARCCPU *cpu = ARC_CPU (cs);
   CPUARCState *env = &cpu->env;
+  uint32_t index;
 
-  return arc_mmu_translate(env, addr, MMU_MEM_IRRELEVANT_TYPE);
+  return arc_mmu_translate(env, addr, MMU_MEM_IRRELEVANT_TYPE, &index);
 }
 
 void helper_debug(CPUARCState *env)

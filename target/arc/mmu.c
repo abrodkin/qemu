@@ -128,7 +128,7 @@ arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
 }
 
 static struct arc_tlb_e *
-arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds, int *index)
+arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds, uint32_t *index)
 {
   struct arc_tlb_e *ret = NULL;
   uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
@@ -198,7 +198,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   uint32_t pd0 = mmu->tlbpd0;
   uint32_t pd1 = mmu->tlbpd1;
   int num_finds = 4;
-  int index = -1;
+  uint32_t index;
   struct arc_tlb_e *tlb;
 
   mmu->tlbcmd = val;
@@ -334,7 +334,8 @@ arc_mmu_have_permission(CPUARCState *env,
 /* Translation function to get physical address from virtual address. */
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
-		  uint32_t vaddr, enum mmu_access_type rwe)
+		  uint32_t vaddr, enum mmu_access_type rwe,
+		  uint32_t *index)
 {
   struct arc_mmu *mmu = &(env->mmu);
   int num_matching_tlb = 0;
@@ -357,7 +358,7 @@ arc_mmu_translate(struct CPUARCState *env,
   struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
 					     (VPN(PD0_VPN) | PD0_V),
 					     mmu,
-					     &num_matching_tlb, NULL);
+					     &num_matching_tlb, index);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */
   if(num_matching_tlb > 1)
@@ -481,12 +482,38 @@ void arc_mmu_init(struct arc_mmu *mmu)
   memset(mmu->nTLB, 0, sizeof(mmu->nTLB));
 }
 
+static int
+arc_mmu_get_prot_for_index(uint32_t index, CPUARCState *env)
+{
+  struct arc_tlb_e *tlb;
+  int ret = 0;
+  bool in_kernel_mode = !env->stat.Uf; /* Read status for user mode. */
+
+  tlb = arc_mmu_get_tlb_at_index(
+	  index,
+	  &env->mmu);
+
+  if((in_kernel_mode && (tlb->pd1 & PD1_RK) != 0)
+     || (!in_kernel_mode && (tlb->pd1 & PD1_RU) != 0))
+    ret |= PAGE_READ;
+
+  if((in_kernel_mode && (tlb->pd1 & PD1_WK) != 0)
+     || (!in_kernel_mode && (tlb->pd1 & PD1_WU) != 0))
+    ret |= PAGE_WRITE;
+
+  if((in_kernel_mode && (tlb->pd1 & PD1_XK) != 0)
+     || (!in_kernel_mode && (tlb->pd1 & PD1_XU) != 0))
+    ret |= PAGE_EXEC;
+
+  return ret;
+}
+
 /* Softmmu support function for MMU. */
 void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 	      MMUAccessType access_type,
 	      int mmu_idx, uintptr_t retaddr)
 {
-  int prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+  int prot = 0;
   MemTxAttrs attrs = {};
   target_ulong page_size = TARGET_PAGE_SIZE;
 
@@ -498,7 +525,8 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   uint32_t paddr = vaddr;
   if(vaddr < 0x80000000)
     {
-      paddr = arc_mmu_translate (env, vaddr, rwe);
+      uint32_t index;
+      paddr = arc_mmu_translate (env, vaddr, rwe, &index);
       if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
         {
           cpu_restore_state(cs, retaddr, true);
@@ -511,6 +539,12 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
           env->param = env->mmu.exception.parameter;
           cpu_loop_exit (cs);
       }
+      else
+	prot = arc_mmu_get_prot_for_index(index, env);
+    }
+  else
+    {
+      prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
     }
 
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);

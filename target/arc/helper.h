@@ -41,7 +41,4 @@ DEF_HELPER_3(mpym, i32, env, i32, i32)
 DEF_HELPER_0(get_lf, i32)
 DEF_HELPER_1(set_lf, void, i32)
 
-DEF_HELPER_2(mmu_translate_read, i32, env, i32)
-DEF_HELPER_2(mmu_translate_write, i32, env, i32)
-
 DEF_HELPER_3(repl_mask, i32, i32, i32, i32)

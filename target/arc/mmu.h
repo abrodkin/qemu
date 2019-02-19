@@ -145,7 +145,8 @@ arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data);
 
 uint32_t
 arc_mmu_translate(struct CPUARCState *env,
-		  uint32_t vaddr, enum mmu_access_type rwe);
+		  uint32_t vaddr, enum mmu_access_type rwe,
+		  uint32_t *index);
 
 uint32_t arc_mmu_page_address_for(uint32_t vaddr);
 
