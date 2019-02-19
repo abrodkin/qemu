@@ -144,6 +144,18 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
   uint32_t regval = 0;
   switch (regnum)
   {
+    case GDB_AUX_OTHER_REG_TIMER_BUILD:
+      regval = env->timer_build;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_BUILD:
+      regval = env->irq_build;
+      break;
+    case GDB_AUX_OTHER_REG_VECBASE_BUILD:
+      regval = env->vecbase_build;
+      break;
+    case GDB_AUX_OTHER_REG_ISA_CONFIG:
+      regval = env->isa_config;
+      break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
       regval = env->timer[0].T_Count;
       break;
@@ -162,6 +174,21 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_TIMER_LIM1:
       regval = env->timer[1].T_Limit;
       break;
+    case GDB_AUX_OTHER_REG_PID:
+      regval = (env->mmu.enabled << 31) | env->mmu.pid_asid;
+      break;
+    case GDB_AUX_OTHER_REG_TLBPD0:
+      regval = env->mmu.tlbpd0;
+      break;
+    case GDB_AUX_OTHER_REG_TLBPD1:
+      regval = env->mmu.tlbpd1;
+      break;
+    case GDB_AUX_OTHER_REG_TLB_INDEX:
+      regval = env->mmu.tlbindex;
+      break;
+    case GDB_AUX_OTHER_REG_TLB_CMD:
+      regval = env->mmu.tlbcmd;
+      break;
     default:
       assert(!"Unsupported other auxiliary register is being read.");
   }
@@ -175,6 +202,12 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
   uint16_t regval = ldl_p(mem_buf);
   switch (regnum)
   {
+    case GDB_AUX_OTHER_REG_TIMER_BUILD:
+    case GDB_AUX_OTHER_REG_IRQ_BUILD:
+    case GDB_AUX_OTHER_REG_VECBASE_BUILD:
+    case GDB_AUX_OTHER_REG_ISA_CONFIG:
+      /* builds/configs cannot be changed */
+      break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
       env->timer[0].T_Count = regval;
       break;
@@ -192,6 +225,22 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
       break;
     case GDB_AUX_OTHER_REG_TIMER_LIM1:
       env->timer[1].T_Limit = regval;
+      break;
+    case GDB_AUX_OTHER_REG_PID:
+      env->mmu.enabled  = (regval & 0x80000000) >> 31;
+      env->mmu.pid_asid = (regval & 0x7fffffff);
+      break;
+    case GDB_AUX_OTHER_REG_TLBPD0:
+      env->mmu.tlbpd0 = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TLBPD1:
+      env->mmu.tlbpd1 = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TLB_INDEX:
+      env->mmu.tlbindex = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TLB_CMD:
+      env->mmu.tlbcmd = regval;
       break;
     default:
       assert(!"Unsupported other auxiliary register is being written.");

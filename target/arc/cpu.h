@@ -104,12 +104,24 @@ enum gdb_aux_min_regs {
 };
 
 enum gdb_aux_other_regs {
-  GDB_AUX_OTHER_REG_TIMER_CNT0 = 0, /* timer 0 counter */
-  GDB_AUX_OTHER_REG_TIMER_CTRL0,    /* timer 0 control */
-  GDB_AUX_OTHER_REG_TIMER_LIM0,     /* timer 0 limit   */
-  GDB_AUX_OTHER_REG_TIMER_CNT1,     /* timer 1 counter */
-  GDB_AUX_OTHER_REG_TIMER_CTRL1,    /* timer 1 control */
-  GDB_AUX_OTHER_REG_TIMER_LIM1,     /* timer 1 limit   */
+  /* builds */
+  GDB_AUX_OTHER_REG_TIMER_BUILD = 0,  /* timer build */
+  GDB_AUX_OTHER_REG_IRQ_BUILD,        /* irq build */
+  GDB_AUX_OTHER_REG_VECBASE_BUILD,    /* vector base address config */
+  GDB_AUX_OTHER_REG_ISA_CONFIG,       /* isa config */
+  /* timers */
+  GDB_AUX_OTHER_REG_TIMER_CNT0,       /* timer 0 counter */
+  GDB_AUX_OTHER_REG_TIMER_CTRL0,      /* timer 0 control */
+  GDB_AUX_OTHER_REG_TIMER_LIM0,       /* timer 0 limit   */
+  GDB_AUX_OTHER_REG_TIMER_CNT1,       /* timer 1 counter */
+  GDB_AUX_OTHER_REG_TIMER_CTRL1,      /* timer 1 control */
+  GDB_AUX_OTHER_REG_TIMER_LIM1,       /* timer 1 limit   */
+  /* mmu */
+  GDB_AUX_OTHER_REG_PID,              /* process identity */
+  GDB_AUX_OTHER_REG_TLBPD0,           /* page descriptor 0 */
+  GDB_AUX_OTHER_REG_TLBPD1,           /* page descriptor 1 */
+  GDB_AUX_OTHER_REG_TLB_INDEX,        /* tlb index */
+  GDB_AUX_OTHER_REG_TLB_CMD,          /* tlb command */
   GDB_AUX_OTHER_REG_LAST
 };
 

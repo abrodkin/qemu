@@ -6,6 +6,37 @@
 
 <!DOCTYPE feature SYSTEM "gdb-target.dtd">
 <feature name="org.gnu.gdb.arc.aux-other">
+  <flags id="timer_build_type" size="4">
+    <field name="version" start="0"  end="7"/>
+    <field name="T0"      start="8"  end="8"/>
+    <field name="T1"      start="9"  end="9"/>
+    <field name="RTC"     start="10" end="10"/>
+    <field name="P0"      start="16" end="19"/>
+    <field name="P1"      start="20" end="23"/>
+  </flags>
+  <flags id="irq_build_type" size="4">
+    <field name="version" start="0"  end="7"/>
+    <field name="IRQs"    start="8"  end="15"/>
+    <field name="exts"    start="16" end="23"/>
+    <field name="P"       start="24" end="27"/>
+    <field name="F"       start="28" end="28"/>
+  </flags>
+  <flags id="vecbase_ac_build_type" size="4">
+    <field name="version" start="2"  end="9"/>
+    <field name="addr"    start="10" end="31"/>
+  </flags>
+  <flags id="isa_config_type" size="4">
+    <field name="version"   start="0"  end="7"/>
+    <field name="pc_size"   start="8"  end="11"/>
+    <field name="lpc_size"  start="12" end="15"/>
+    <field name="addr_size" start="16" end="19"/>
+    <field name="B"         start="20" end="20"/>
+    <field name="A"         start="21" end="21"/>
+    <field name="N"         start="22" end="22"/>
+    <field name="L"         start="23" end="23"/>
+    <field name="C"         start="24" end="27"/>
+    <field name="D"         start="28" end="31"/>
+  </flags>
   <flags id="timer_ctrl_type" size="4">
     <field name="IE" start="0" end="0"/>
     <field name="NH" start="1" end="1"/>
@@ -13,13 +44,54 @@
     <field name="IP" start="3" end="3"/>
     <field name="PD" start="4" end="4"/>
   </flags>
+  <flags id="tlbpd0_type" size="4">
+    <field name="A"   start="0"  end="7"  type="uint8"/>
+    <field name="G"   start="8"  end="8"  type="bool"/>
+    <field name="V"   start="9"  end="9"  type="bool"/>
+    <field name="SZ " start="10" end="10" type="bool"/>
+    <field name="VPN" start="12" end="30" type="uint32"/>
+    <field name="S"   start="31" end="31" type="bool"/>
+  </flags>
+  <flags id="tlbpd1_type" size="4">
+    <field name="FC"  start="0"  end="0"/>
+    <field name="EU"  start="1"  end="1"/>
+    <field name="WU"  start="2"  end="2"/>
+    <field name="RU"  start="3"  end="3"/>
+    <field name="EK"  start="4"  end="4"/>
+    <field name="WK"  start="5"  end="5"/>
+    <field name="RK"  start="6"  end="6"/>
+    <field name="PPN" start="12" end="31"/>
+  </flags>
+  <flags id="tlbindex_type" size="4">
+    <field name="index" start="0"  end="12"/>
+    <field name="RC"    start="28" end="30"/>
+    <field name="E"     start="31" end="31"/>
+  </flags>
+  <flags id="tlbcmd_type" size="4">
+    <field name="cmd" start="0" end="5"/>
+  </flags>
+  <flags id="pid_type" size="4">
+    <field name="P" start="0"  end="7"/>
+    <field name="S" start="29" end="29"/>
+    <field name="T" start="31" end="31"/>
+  </flags>
   <!-- build registers -->
+  <reg name="timer_build"   bitsize="32" regnum="40" type="timer_build_type"      group=""/>
+  <reg name="irq_build"     bitsize="32" regnum="41" type="irq_build_type"        group=""/>
+  <reg name="vecbase_build" bitsize="32" regnum="42" type="vecbase_ac_build_type" group=""/>
+  <reg name="isa_config"    bitsize="32" regnum="43" type="isa_config_type"       group=""/>
   <!-- timer registers -->
-  <reg name="timer_count0" bitsize="32" regnum="40"                        group="general"/>
-  <reg name="timer_ctrl0"  bitsize="32" regnum="41" type="timer_ctrl_type" group="general"/>
-  <reg name="timer_limit0" bitsize="32" regnum="42"                        group="general"/>
-  <reg name="timer_count1" bitsize="32" regnum="43"                        group="general"/>
-  <reg name="timer_ctrl1"  bitsize="32" regnum="44" type="timer_ctrl_type" group="general"/>
-  <reg name="timer_limit1" bitsize="32" regnum="45"                        group="general"/>
+  <reg name="timer_count0" bitsize="32" regnum="44"                        group="general"/>
+  <reg name="timer_ctrl0"  bitsize="32" regnum="45" type="timer_ctrl_type" group="general"/>
+  <reg name="timer_limit0" bitsize="32" regnum="46"                        group="general"/>
+  <reg name="timer_count1" bitsize="32" regnum="47"                        group="general"/>
+  <reg name="timer_ctrl1"  bitsize="32" regnum="48" type="timer_ctrl_type" group="general"/>
+  <reg name="timer_limit1" bitsize="32" regnum="49"                        group="general"/>
   <!-- mmu registers -->
+  <reg name="pid"      bitsize="32" regnum="50" type="pid_type"      group="general"/>
+  <reg name="tlbpd0"   bitsize="32" regnum="51" type="tlbpd0_type"   group="general"/>
+  <reg name="tlppd1"   bitsize="32" regnum="52" type="tlbpd1_type"   group="general"/>
+  <reg name="tlbindex" bitsize="32" regnum="53" type="tlbindex_type" group="general"/>
+  <reg name="tlbcmd"   bitsize="32" regnum="54" type="tlbcmd_type"   group="general"/>
+  <!-- irq registers -->
 </feature>
