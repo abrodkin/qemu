@@ -49,6 +49,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
   CPUARCState *env = &cpu->env;
   uint32_t offset = 0;
   uint32_t vectno;
+  const char *name;
 
   /* FIXME! we cannot do interrupts in delay slots.  */
 
@@ -56,64 +57,46 @@ void arc_cpu_do_interrupt (CPUState *cs)
   switch (cs->exception_index)
     {
     case EXCP_RESET:
+      name = "Reset";
+      break;
     case EXCP_MEMORY_ERROR:
+      name = "Memory Error";
+      break;
     case EXCP_INST_ERROR:
+      name = "Instruction Error";
+      break;
     case EXCP_MACHINE_CHECK:
+      name = "Machine Check";
+      break;
     case EXCP_TLB_MISS_I:
+      name = "TLB Miss Instruction";
+      break;
     case EXCP_TLB_MISS_D:
+      name = "TLB Miss Data";
+      break;
     case EXCP_PROTV:
+      name = "Protection Violation";
+      break;
     case EXCP_PRIVILRGEV:
+      name = "Privilege Violation";
+      break;
     case EXCP_SWI:
+      name = "SWI";
+      break;
     case EXCP_TRAP:
+      name = "Trap";
+      break;
     case EXCP_EXTENSION:
+      name = "Extension";
+      break;
     case EXCP_DIVZERO:
+      name = "DIV by Zero";
+      break;
     case EXCP_DCERROR:
+      name = "DCError";
+      break;
     case EXCP_MALIGNED:
-      qemu_log_mask (CPU_LOG_INT, "[EXCP] exception %d at pc=0x%08x\n",
-		     cs->exception_index, env->pc);
-
-      /* If we take an exception within an exception => fatal Machine
-	 Check.  */
-      if (env->stat.AEf == 1)
-	{
-	  cs->exception_index = EXCP_MACHINE_CHECK;
-	  env->causecode = 0;
-	  env->param = 0;
-	}
-      vectno = cs->exception_index & 0x0F;
-      offset = vectno << 2;
-
-      /* 3. exception status register is loaded with the contents of
-	 STATUS32.  */
-      env->stat_er = env->stat;
-
-      /* 4. exception return branch target address register.  */
-      env->erbta = env->bta;
-
-      /* 5. eception cause register is loaded with a code to indicate
-	 the cause of the exception.  */
-      env->ecr = (vectno & 0xFF) << 16;
-      env->ecr |= (env->causecode & 0xFF) << 8;
-      env->ecr |= (env->param & 0xFF);
-
-      /* 7. CPU is switched to kernel mode.  */
-      env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
-      if (env->stat_er.Uf)
-        switchSP (env);
-
-      /* 8. Interrupts are disabled.  */
-      env->stat.IEf = 0;
-
-      /* 9. The active exception flag is set.  */
-      env->stat.AEf = 1;
-
-      /* 10-14. Other flags sets.  */
-      env->stat.Lf  = 1;
-      env->stat.DEf  = 0;
-      env->stat.ESf = 0;
-      env->stat.DZf = 0;
-      env->stat.SCf = 0;
-
+      name = "Maligned";
       break;
     case EXCP_IRQ:
     default:
@@ -122,12 +105,57 @@ void arc_cpu_do_interrupt (CPUState *cs)
       break;
     }
 
+  qemu_log_mask (CPU_LOG_INT, "[EXCP] exception %d (%s) at pc=0x%08x\n",
+                 cs->exception_index, name, env->pc);
+
+  /* If we take an exception within an exception => fatal Machine
+     Check.  */
+  if (env->stat.AEf == 1)
+    {
+      cs->exception_index = EXCP_MACHINE_CHECK;
+      env->causecode = 0;
+      env->param = 0;
+    }
+  vectno = cs->exception_index & 0x0F;
+  offset = vectno << 2;
+
+  /* 3. exception status register is loaded with the contents of
+     STATUS32.  */
+  env->stat_er = env->stat;
+
+  /* 4. exception return branch target address register.  */
+  env->erbta = env->bta;
+
+  /* 5. eception cause register is loaded with a code to indicate
+     the cause of the exception.  */
+  env->ecr = (vectno & 0xFF) << 16;
+  env->ecr |= (env->causecode & 0xFF) << 8;
+  env->ecr |= (env->param & 0xFF);
+
+  /* 7. CPU is switched to kernel mode.  */
+  env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
+  if (env->stat_er.Uf)
+    switchSP (env);
+
+  /* 8. Interrupts are disabled.  */
+  env->stat.IEf = 0;
+
+  /* 9. The active exception flag is set.  */
+  env->stat.AEf = 1;
+
+  /* 10-14. Other flags sets.  */
+  env->stat.Lf  = 1;
+  env->stat.DEf  = 0;
+  env->stat.ESf = 0;
+  env->stat.DZf = 0;
+  env->stat.SCf = 0;
+
   /* 15. The PC is set with the appropriate exception vector. */
   env->pc = cpu_ldl_code (env, env->intvec + offset);
   CPU_PCL (env) = env->pc & 0xfffffffe;
 
-  qemu_log_mask(CPU_LOG_INT, "[EXCP] %s isr=%x vec=%x ecr=0x%08x\n",
-		__func__, env->pc, offset, env->ecr);
+  qemu_log_mask(CPU_LOG_INT, "[EXCP] isr=%x vec=%x ecr=0x%08x\n",
+		env->pc, offset, env->ecr);
 
   cs->exception_index = -1;
 }

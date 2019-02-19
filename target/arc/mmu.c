@@ -500,16 +500,16 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
     {
       paddr = arc_mmu_translate (env, vaddr, rwe);
       if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
-      {
-        cpu_restore_state(cs, retaddr, true);
-        env->efa = arc_mmu_page_address_for(vaddr);
-        env->eret = env->pc;
-        env->erbta = env->npc_helper;
+        {
+          cpu_restore_state(cs, retaddr, true);
+          env->efa = arc_mmu_page_address_for(vaddr);
+          env->eret = env->pc;
+          env->erbta = env->npc_helper;
 
-        helper_raise_exception (env,
-				env->mmu.exception.number,
-				env->mmu.exception.causecode,
-				env->mmu.exception.parameter);
+          cs->exception_index = env->mmu.exception.number;
+          env->causecode = env->mmu.exception.causecode;
+          env->param = env->mmu.exception.parameter;
+          cpu_loop_exit (cs);
       }
     }
 

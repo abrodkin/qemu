@@ -456,11 +456,11 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
      executing interrupts when in delay slots.	*/
 
   /* Check if we should execute this interrupt.	 */
-  if ((env->stat.Hf != 0)
+  if (env->stat.Hf
       /* The interrupts are enabled.  */
-      || (env->stat.IEf != 1)
+      || (env->stat.IEf == 0)
       /* We are not in an exception.  */
-      || (env->stat.AEf != 0)
+      || env->stat.AEf
       || (!(interrupt_request & CPU_INTERRUPT_HARD)))
     return false;
 
@@ -540,7 +540,8 @@ void switchSP (CPUARCState *env)
 {
   uint32_t tmp;
   qemu_log_mask (CPU_LOG_INT,
-		 "[IRQ] swap: r28 = 0x%08x  AUX_USER_SP = 0x%08x\n",
+		 "[%s] swap: r28 = 0x%08x  AUX_USER_SP = 0x%08x\n",
+                 (env->aux_irq_act & 0xFFFF) ? "IRQ" : "EXCP",
 		 CPU_SP (env), env->aux_user_sp);
 
   tmp = env->aux_user_sp;

@@ -387,14 +387,15 @@ void helper_rtie (CPUARCState *env)
       if (env->stat.Uf)
         switchSP (env);
 
-      /*FXME! bank selection if needed.  */
-      qemu_log_mask(CPU_LOG_INT, "[IRQ] return from exception 0x%08x\n", env->r[63]);
+      qemu_log_mask(CPU_LOG_INT, "[EXCP] RTIE @0x%08x ECR:0x%08x\n",
+                    env->r[63], env->ecr);
     }
   else
-    arc_rtie_interrupts (env);
-
-  qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n", env->r[63],
-                pack_status32 (&env->stat));
+    {
+      arc_rtie_interrupts (env);
+      qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n",
+                    env->r[63], pack_status32 (&env->stat));
+    }
 }
 
 void helper_flush(CPUARCState *env)
