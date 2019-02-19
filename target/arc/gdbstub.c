@@ -94,20 +94,20 @@ arc_aux_minimal_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
   uint32_t regval = 0;
   switch (regnum)
   {
-    case GDB_AUX_REG_PC:
+    case GDB_AUX_MIN_REG_PC:
       regval = env->pc;
       break;
-    case GDB_AUX_REG_LPS:
+    case GDB_AUX_MIN_REG_LPS:
       regval = env->lps;
       break;
-    case GDB_AUX_REG_LPE:
+    case GDB_AUX_MIN_REG_LPE:
       regval = env->lpe;
       break;
-    case GDB_AUX_REG_STATUS:
+    case GDB_AUX_MIN_REG_STATUS:
       regval = pack_status32(&env->stat);
       break;
     default:
-      assert(!"Unsupported auxiliary register is being read.");
+      assert(!"Unsupported minimal auxiliary register is being read.");
   }
   return gdb_get_reg32(mem_buf, regval);
 }
@@ -119,20 +119,82 @@ arc_aux_minimal_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
   uint16_t regval = ldl_p(mem_buf);
   switch (regnum)
   {
-    case GDB_AUX_REG_PC:
+    case GDB_AUX_MIN_REG_PC:
       env->pc = regval;
       break;
-    case GDB_AUX_REG_LPS:
+    case GDB_AUX_MIN_REG_LPS:
       env->lps = regval;
       break;
-    case GDB_AUX_REG_LPE:
+    case GDB_AUX_MIN_REG_LPE:
       env->lpe = regval;
       break;
-    case GDB_AUX_REG_STATUS:
+    case GDB_AUX_MIN_REG_STATUS:
       unpack_status32(&env->stat, regval);
       break;
     default:
-      assert(!"Unsupported auxiliary register is being written.");
+      assert(!"Unsupported minimal auxiliary register is being written.");
+  }
+  return 4;
+}
+
+
+static int
+arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
+{
+  uint32_t regval = 0;
+  switch (regnum)
+  {
+    case GDB_AUX_OTHER_REG_TIMER_CNT0:
+      regval = env->timer[0].T_Count;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CTRL0:
+      regval = env->timer[0].T_Cntrl;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_LIM0:
+      regval = env->timer[0].T_Limit;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CNT1:
+      regval = env->timer[1].T_Count;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CTRL1:
+      regval = env->timer[1].T_Cntrl;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_LIM1:
+      regval = env->timer[1].T_Limit;
+      break;
+    default:
+      assert(!"Unsupported other auxiliary register is being read.");
+  }
+  return gdb_get_reg32(mem_buf, regval);
+}
+
+
+static int
+arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
+{
+  uint16_t regval = ldl_p(mem_buf);
+  switch (regnum)
+  {
+    case GDB_AUX_OTHER_REG_TIMER_CNT0:
+      env->timer[0].T_Count = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CTRL0:
+      env->timer[0].T_Cntrl = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_LIM0:
+      env->timer[0].T_Limit = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CNT1:
+      env->timer[1].T_Count = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_CTRL1:
+      env->timer[1].T_Cntrl = regval;
+      break;
+    case GDB_AUX_OTHER_REG_TIMER_LIM1:
+      env->timer[1].T_Limit = regval;
+      break;
+    default:
+      assert(!"Unsupported other auxiliary register is being written.");
   }
   return 4;
 }
@@ -145,7 +207,14 @@ void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu)
     gdb_register_coprocessor(cs,
                              arc_aux_minimal_gdb_get_reg,    /* getter */
                              arc_aux_minimal_gdb_set_reg,    /* setter */
-                             GDB_AUX_REG_LAST,               /* number of registers */
+                             GDB_AUX_MIN_REG_LAST,           /* number of registers */
                              "arc-aux-minimal.xml",          /* feature file */
                              0);                             /* position in g packet */
+
+    gdb_register_coprocessor(cs,
+                             arc_aux_other_gdb_get_reg,
+                             arc_aux_other_gdb_set_reg,
+                             GDB_AUX_OTHER_REG_LAST,
+                             "arc-aux-other.xml",
+                             0);
 }

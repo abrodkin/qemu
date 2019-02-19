@@ -95,12 +95,22 @@ enum gdb_regs {
   GDB_REG_LAST
 };
 
-enum gdb_aux_regs {
-  GDB_AUX_REG_PC = 0, /* program counter */
-  GDB_AUX_REG_LPS,    /* loop body start */
-  GDB_AUX_REG_LPE,    /* loop body end */
-  GDB_AUX_REG_STATUS, /* status flag */
-  GDB_AUX_REG_LAST
+enum gdb_aux_min_regs {
+  GDB_AUX_MIN_REG_PC = 0, /* program counter */
+  GDB_AUX_MIN_REG_LPS,    /* loop body start */
+  GDB_AUX_MIN_REG_LPE,    /* loop body end */
+  GDB_AUX_MIN_REG_STATUS, /* status flag */
+  GDB_AUX_MIN_REG_LAST
+};
+
+enum gdb_aux_other_regs {
+  GDB_AUX_OTHER_REG_TIMER_CNT0 = 0, /* timer 0 counter */
+  GDB_AUX_OTHER_REG_TIMER_CTRL0,    /* timer 0 control */
+  GDB_AUX_OTHER_REG_TIMER_LIM0,     /* timer 0 limit   */
+  GDB_AUX_OTHER_REG_TIMER_CNT1,     /* timer 1 counter */
+  GDB_AUX_OTHER_REG_TIMER_CTRL1,    /* timer 1 control */
+  GDB_AUX_OTHER_REG_TIMER_LIM1,     /* timer 1 limit   */
+  GDB_AUX_OTHER_REG_LAST
 };
 
 #define CPU_GP(env)     ((env)->r[26])

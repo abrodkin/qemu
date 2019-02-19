@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2018 Free Software Foundation, Inc.
+     Copying and distribution of this file, with or without modification,
+     are permitted in any medium without royalty provided the copyright
+     notice and this notice are preserved.  -->
+
+<!DOCTYPE feature SYSTEM "gdb-target.dtd">
+<feature name="org.gnu.gdb.arc.aux-other">
+  <flags id="timer_ctrl_type" size="4">
+    <field name="IE" start="0" end="0"/>
+    <field name="NH" start="1" end="1"/>
+    <field name="W"  start="2" end="2"/>
+    <field name="IP" start="3" end="3"/>
+    <field name="PD" start="4" end="4"/>
+  </flags>
+  <!-- build registers -->
+  <!-- timer registers -->
+  <reg name="timer_count0" bitsize="32" regnum="40"                        group="general"/>
+  <reg name="timer_ctrl0"  bitsize="32" regnum="41" type="timer_ctrl_type" group="general"/>
+  <reg name="timer_limit0" bitsize="32" regnum="42"                        group="general"/>
+  <reg name="timer_count1" bitsize="32" regnum="43"                        group="general"/>
+  <reg name="timer_ctrl1"  bitsize="32" regnum="44" type="timer_ctrl_type" group="general"/>
+  <reg name="timer_limit1" bitsize="32" regnum="45"                        group="general"/>
+  <!-- mmu registers -->
+</feature>

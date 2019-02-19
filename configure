@@ -7637,7 +7637,7 @@ case "$target_name" in
     mttcg="yes"
   ;;
   arc)
-    gdb_xml_files="arc-core-v2.xml arc-aux-minimal.xml"
+    gdb_xml_files="arc-core-v2.xml arc-aux-minimal.xml arc-aux-other.xml"
   ;;
   arm|armeb)
     TARGET_ARCH=arm
