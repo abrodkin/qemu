@@ -99,6 +99,7 @@ static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 
   /* Set the IP bit.  */
   env->timer[timer & 0x01].T_Cntrl |= TMR_IP;
+  env->timer[timer & 0x01].T_Count = 0;
 }
 
 /* This callback should occur when the counter is exactly equal to the
