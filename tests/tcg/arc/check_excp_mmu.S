@@ -1,7 +1,8 @@
 .include "macros.inc"
 .include "mmu.inc"
 
-; courtesy of mmu.inc
+; courtesy of macros.inc and mmu.inc
+.extern REG_IVT_BASE
 .extern PAGE_NUMBER_MSK
 .extern REG_PD0_GLOBAL
 .extern REG_PD0_VALID

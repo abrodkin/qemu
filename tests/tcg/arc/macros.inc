@@ -179,11 +179,12 @@ tn_\name:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; STATUS register and its masks
-.equ REG_STAT, 0x0A     ; STATUS32 register
-.equ REG_STAT_V, 0x0100 ; mask for Over flow bit
-.equ REG_STAT_C, 0x0200 ; mask for Carry bit
-.equ REG_STAT_N, 0x0400 ; mask for Negative bit
-.equ REG_STAT_Z, 0x0800 ; mask for Zero bit
+.equ REG_STAT,     0x0A   ; STATUS32 register
+.equ REG_IVT_BASE, 0x25   ; Interrupt vector base
+.equ REG_STAT_V,   0x0100 ; mask for Over flow bit
+.equ REG_STAT_C,   0x0200 ; mask for Carry bit
+.equ REG_STAT_N,   0x0400 ; mask for Negative bit
+.equ REG_STAT_Z,   0x0800 ; mask for Zero bit
 
 ; macro:     assert_flag
 ; input:     reg_stat_flag - index to get the corresponding flag

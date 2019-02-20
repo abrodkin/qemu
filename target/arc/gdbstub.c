@@ -189,6 +189,39 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_TLB_CMD:
       regval = env->mmu.tlbcmd;
       break;
+    case GDB_AUX_OTHER_REG_IRQ_CTRL:
+      regval = env->aux_irq_ctrl;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_ACT:
+      regval = env->aux_irq_act;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
+      regval = env->irq_priority_pending;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_HINT:
+      regval = env->aux_irq_hint;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_SELECT:
+      regval = env->irq_select;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_ENABLE:
+      regval = env->irq_bank[env->irq_select & 0xff].enable;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_TRIGGER:
+      regval = env->irq_bank[env->irq_select & 0xff].trigger;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_STATUS:
+      regval = env->irq_bank[env->irq_select & 0xff].status;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PULSE:
+      regval = env->irq_bank[env->irq_select & 0xff].pulse_cancel;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PENDING:
+      regval = env->irq_bank[env->irq_select & 0xff].pending;
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PRIO:
+      regval = env->irq_bank[env->irq_select & 0xff].priority;
+      break;
     default:
       assert(!"Unsupported other auxiliary register is being read.");
   }
@@ -206,7 +239,18 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_IRQ_BUILD:
     case GDB_AUX_OTHER_REG_VECBASE_BUILD:
     case GDB_AUX_OTHER_REG_ISA_CONFIG:
-      /* builds/configs cannot be changed */
+    case GDB_AUX_OTHER_REG_IRQ_CTRL:
+    case GDB_AUX_OTHER_REG_IRQ_ACT:
+    case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
+    case GDB_AUX_OTHER_REG_IRQ_HINT:
+    case GDB_AUX_OTHER_REG_IRQ_SELECT:
+    case GDB_AUX_OTHER_REG_IRQ_ENABLE:
+    case GDB_AUX_OTHER_REG_IRQ_TRIGGER:
+    case GDB_AUX_OTHER_REG_IRQ_STATUS:
+    case GDB_AUX_OTHER_REG_IRQ_PULSE:
+    case GDB_AUX_OTHER_REG_IRQ_PENDING:
+    case GDB_AUX_OTHER_REG_IRQ_PRIO:
+      /* builds/configs/irqs cannot be changed */
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
       env->timer[0].T_Count = regval;

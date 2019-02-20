@@ -82,33 +82,33 @@ enum gdb_regs {
   GDB_REG_23,
   GDB_REG_24,
   GDB_REG_25,
-  GDB_REG_26,         /* GP */
-  GDB_REG_27,         /* FP */
-  GDB_REG_28,         /* SP */
-  GDB_REG_29,         /* ILINK */
-  GDB_REG_30,         /* R30 */
-  GDB_REG_31,         /* BLINK  */
+  GDB_REG_26,         /* GP                         */
+  GDB_REG_27,         /* FP                         */
+  GDB_REG_28,         /* SP                         */
+  GDB_REG_29,         /* ILINK                      */
+  GDB_REG_30,         /* R30                        */
+  GDB_REG_31,         /* BLINK                      */
   GDB_REG_58,         /* little_endian? ACCL : ACCH */
   GDB_REG_59,         /* little_endian? ACCH : ACCL */
-  GDB_REG_60,         /* LP */
-  GDB_REG_63,         /* Immediate */
+  GDB_REG_60,         /* LP                         */
+  GDB_REG_63,         /* Immediate                  */
   GDB_REG_LAST
 };
 
 enum gdb_aux_min_regs {
   GDB_AUX_MIN_REG_PC = 0, /* program counter */
   GDB_AUX_MIN_REG_LPS,    /* loop body start */
-  GDB_AUX_MIN_REG_LPE,    /* loop body end */
-  GDB_AUX_MIN_REG_STATUS, /* status flag */
+  GDB_AUX_MIN_REG_LPE,    /* loop body end   */
+  GDB_AUX_MIN_REG_STATUS, /* status flag     */
   GDB_AUX_MIN_REG_LAST
 };
 
 enum gdb_aux_other_regs {
   /* builds */
-  GDB_AUX_OTHER_REG_TIMER_BUILD = 0,  /* timer build */
-  GDB_AUX_OTHER_REG_IRQ_BUILD,        /* irq build */
+  GDB_AUX_OTHER_REG_TIMER_BUILD = 0,  /* timer build                */
+  GDB_AUX_OTHER_REG_IRQ_BUILD,        /* irq build                  */
   GDB_AUX_OTHER_REG_VECBASE_BUILD,    /* vector base address config */
-  GDB_AUX_OTHER_REG_ISA_CONFIG,       /* isa config */
+  GDB_AUX_OTHER_REG_ISA_CONFIG,       /* isa config                 */
   /* timers */
   GDB_AUX_OTHER_REG_TIMER_CNT0,       /* timer 0 counter */
   GDB_AUX_OTHER_REG_TIMER_CTRL0,      /* timer 0 control */
@@ -117,11 +117,24 @@ enum gdb_aux_other_regs {
   GDB_AUX_OTHER_REG_TIMER_CTRL1,      /* timer 1 control */
   GDB_AUX_OTHER_REG_TIMER_LIM1,       /* timer 1 limit   */
   /* mmu */
-  GDB_AUX_OTHER_REG_PID,              /* process identity */
+  GDB_AUX_OTHER_REG_PID,              /* process identity  */
   GDB_AUX_OTHER_REG_TLBPD0,           /* page descriptor 0 */
   GDB_AUX_OTHER_REG_TLBPD1,           /* page descriptor 1 */
-  GDB_AUX_OTHER_REG_TLB_INDEX,        /* tlb index */
-  GDB_AUX_OTHER_REG_TLB_CMD,          /* tlb command */
+  GDB_AUX_OTHER_REG_TLB_INDEX,        /* tlb index         */
+  GDB_AUX_OTHER_REG_TLB_CMD,          /* tlb command       */
+  /* irq */
+  GDB_AUX_OTHER_REG_IRQ_CTRL,         /* context saving control */
+  GDB_AUX_OTHER_REG_IRQ_ACT,          /* active                 */
+  GDB_AUX_OTHER_REG_IRQ_PRIO_PEND,    /* priority pending       */
+  GDB_AUX_OTHER_REG_IRQ_HINT,         /* hint                   */
+  GDB_AUX_OTHER_REG_IRQ_SELECT,       /* select                 */
+  GDB_AUX_OTHER_REG_IRQ_ENABLE,       /* enable                 */
+  GDB_AUX_OTHER_REG_IRQ_TRIGGER,      /* trigger                */
+  GDB_AUX_OTHER_REG_IRQ_STATUS,       /* status                 */
+  GDB_AUX_OTHER_REG_IRQ_PULSE,        /* pulse cancel           */
+  GDB_AUX_OTHER_REG_IRQ_PENDING,      /* pending                */
+  GDB_AUX_OTHER_REG_IRQ_PRIO,         /* priority               */
+
   GDB_AUX_OTHER_REG_LAST
 };
 

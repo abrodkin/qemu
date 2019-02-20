@@ -1,6 +1,5 @@
 
 ; auxilary registers
-.equ REG_IVT_BASE, 0x25   ; Interrupt vector base
 .equ REG_PD0     , 0x460  ; TLBPD0
 .equ REG_PD1     , 0x461  ; TLBPD1
 .equ REG_TLB_INDX, 0x464  ; TLB index

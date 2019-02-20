@@ -21,7 +21,7 @@
     <field name="P"       start="24" end="27"/>
     <field name="F"       start="28" end="28"/>
   </flags>
-  <flags id="vecbase_ac_build_type" size="4">
+  <flags id="vecbase_build_type" size="4">
     <field name="version" start="2"  end="9"/>
     <field name="addr"    start="10" end="31"/>
   </flags>
@@ -75,11 +75,28 @@
     <field name="S" start="29" end="29"/>
     <field name="T" start="31" end="31"/>
   </flags>
+  <flags id="irq_ctrl_type" size="4">
+    <field name="NR" start="0"  end="4"/>
+    <field name="B"  start="9"  end="9"/>
+    <field name="L"  start="10" end="10"/>
+    <field name="U"  start="11" end="11"/>
+    <field name="LP" start="13" end="13"/>
+  </flags>
+  <flags id="irq_act_type" size="4">
+    <field name="active" start="0" end="15"/>
+    <field name="U" start="31" end="31"/>
+  </flags>
+  <flags id="irq_status_type" size="4">
+    <field name="P"  start="0"  end="3"/>
+    <field name="E"  start="4"  end="4"/>
+    <field name="T"  start="5"  end="5"/>
+    <field name="IP" start="31" end="31"/>
+  </flags>
   <!-- build registers -->
-  <reg name="timer_build"   bitsize="32" regnum="40" type="timer_build_type"      group=""/>
-  <reg name="irq_build"     bitsize="32" regnum="41" type="irq_build_type"        group=""/>
-  <reg name="vecbase_build" bitsize="32" regnum="42" type="vecbase_ac_build_type" group=""/>
-  <reg name="isa_config"    bitsize="32" regnum="43" type="isa_config_type"       group=""/>
+  <reg name="timer_build"   bitsize="32" regnum="40" type="timer_build_type"   group=""/>
+  <reg name="irq_build"     bitsize="32" regnum="41" type="irq_build_type"     group=""/>
+  <reg name="vecbase_build" bitsize="32" regnum="42" type="vecbase_build_type" group=""/>
+  <reg name="isa_config"    bitsize="32" regnum="43" type="isa_config_type"    group=""/>
   <!-- timer registers -->
   <reg name="timer_count0" bitsize="32" regnum="44"                        group="general"/>
   <reg name="timer_ctrl0"  bitsize="32" regnum="45" type="timer_ctrl_type" group="general"/>
@@ -94,4 +111,15 @@
   <reg name="tlbindex" bitsize="32" regnum="53" type="tlbindex_type" group="general"/>
   <reg name="tlbcmd"   bitsize="32" regnum="54" type="tlbcmd_type"   group="general"/>
   <!-- irq registers -->
+  <reg name="aux_irq_ctrl"         bitsize="32" regnum="55" type="irq_ctrl_type"   group="general"/>
+  <reg name="aux_irq_act"          bitsize="32" regnum="56" type="irq_act_type"    group="general"/>
+  <reg name="irq_priority_pending" bitsize="32" regnum="57" type="uint16"          group="general"/>
+  <reg name="aux_irq_hint"         bitsize="32" regnum="58" type="uint8"           group="general"/>
+  <reg name="irq_select"           bitsize="32" regnum="59" type="uint8"           group="general"/>
+  <reg name="irq_enable"           bitsize="32" regnum="60" type="bool"            group="general"/>
+  <reg name="irq_trigger"          bitsize="32" regnum="61" type="bool"            group="general"/>
+  <reg name="irq_status"           bitsize="32" regnum="62" type="irq_status_type" group="general"/>
+  <reg name="irq_pulse_cancel"     bitsize="32" regnum="63" type="bool"            group="general"/>
+  <reg name="irq_pending"          bitsize="32" regnum="64" type="bool"            group="general"/>
+  <reg name="irq_priority"         bitsize="32" regnum="65" type="uint8"           group="general"/>
 </feature>
