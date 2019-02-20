@@ -31,6 +31,7 @@
 .equ TLB_CMD_GET_INDX, 0x03           ; get index
 .equ TLB_CMD_PROBE   , 0x04           ; probe
 .equ TLB_CMD_INSERT  , 0x07           ; insert
+.equ TLB_CMD_DELETE  , 0x08           ; delete
 
 
 .macro  extract_page_number   address
@@ -63,7 +64,7 @@
 ; macro:     mmu_tlb_insert
 ; regs used: r11
 ;
-; inserts (TLBPD0, TLBPD1) registers as an TLB entry
+; inserts (TLBPD0, TLBPD1) registers as a TLB entry
 .macro mmu_tlb_insert  PD0, PD1
   mov r11, \PD0
   sr  r11, [REG_PD0]
@@ -73,4 +74,17 @@
   sr  r11, [REG_TLB_CMD]
 .endm
 
+
+; macro:     mmu_tlb_delete
+; regs used: r11
+;
+; removes any entry with PD0 as page description
+.macro mmu_tlb_delete  PD0, PD1
+  mov r11, \PD0
+  sr  r11, [REG_PD0]
+  mov r11, \PD1
+  sr  r11, [REG_PD1]
+  mov r11, TLB_CMD_INSERT
+  sr  r11, [REG_TLB_CMD]
+.endm
 ; vim: set syntax=asm ts=2 sw=2 et:
