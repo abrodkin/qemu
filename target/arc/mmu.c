@@ -523,7 +523,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 
   vaddr = arc_mmu_page_address_for(vaddr);
   uint32_t paddr = vaddr;
-  if(vaddr < 0x80000000)
+  if(vaddr < 0x80000000 && env->mmu.enabled)
     {
       uint32_t index;
       paddr = arc_mmu_translate (env, vaddr, rwe, &index);
