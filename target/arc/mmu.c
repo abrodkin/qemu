@@ -281,8 +281,12 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  /* TODO: More verifications needed. */
 
 	   qemu_log_mask (CPU_LOG_MMU,
-			  "[MMU] Insert at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
-			  env->pc, pd0, pd1);
+			  "[MMU] Insert at 0x%08x, PID = %d, VPN = 0x%08x, "
+			  "PFN = 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
+			  env->pc,
+			  pd0 & 0xff,
+			  VPN(pd0), PFN(pd1),
+			  pd0, pd1);
 	}
   }
 
@@ -544,7 +548,28 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
     }
   else
     {
-      prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+      if(env->stat.Uf != 1)
+	prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+      else
+	{
+          cpu_restore_state(cs, retaddr, true);
+          env->efa = arc_mmu_page_address_for(vaddr);
+          env->eret = env->pc;
+          env->erbta = env->npc_helper;
+
+          qemu_log_mask (CPU_LOG_MMU, "[MMU_TLB_FILL] ProtV "
+			 "exception at 0x%08x. rwe = %s\n",
+			 env->pc,
+			 RWE_STRING(rwe));
+
+          cs->exception_index = EXCP_PROTV;
+          env->causecode = CAUSE_CODE(rwe);
+          env->param = 0x08;
+          cpu_loop_exit (cs);
+
+      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+	}
+
     }
 
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
