@@ -1,11 +1,6 @@
   .include "macros.inc"
-  .equ INT_VECT_ADDRESS, 0x80000000 ; physical address for IVT
 
   start
-
-  ; use physicall address range for handling exceptions (ivt)
-  mov r0, INT_VECT_ADDRESS
-  sr  r0, [REG_IVT_BASE]
 
   ; enable TIMER0 interrupts
   sr  0x01,[control0]
