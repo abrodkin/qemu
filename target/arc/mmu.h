@@ -132,7 +132,10 @@ struct arc_mmu {
   uint32_t scratch_data0;
 };
 
+
 struct CPUARCState;
+
+
 extern void
 arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 		       uint32_t val, void *data);
@@ -147,6 +150,8 @@ uint32_t
 arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t vaddr, enum mmu_access_type rwe,
 		  uint32_t *index);
+
+void arc_mmu_debug_tlb(struct CPUARCState *env);
 
 uint32_t arc_mmu_page_address_for(uint32_t vaddr);
 

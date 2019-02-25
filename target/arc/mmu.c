@@ -23,6 +23,7 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 
+
 uint32_t
 arc_mmu_aux_get(struct arc_aux_reg_detail *aux_reg_detail, void *data)
 {
@@ -116,8 +117,46 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 }
 
 // vaddr can't have top bit
-#define VPN(addr) (addr & (PAGE_MASK & (~0x80000000)))
-#define PFN(addr) (addr & PAGE_MASK)
+#define VPN(addr) ((addr) & (PAGE_MASK & (~0x80000000)))
+#define PFN(addr) ((addr) & PAGE_MASK)
+
+void
+arc_mmu_debug_tlb(CPUARCState *env)
+{
+  for(int i = 0; i < N_SETS; i++)
+    {
+      bool set_printed = false;
+      for(int j = 0; j < N_WAYS; j++)
+	{
+	  struct arc_tlb_e *tlb = &env->mmu.nTLB[i][j];
+
+	  if((tlb->pd0 & PD0_V) != 0)
+	    {
+	      if(set_printed == false)
+	        {
+		  printf("set %d\n", i);
+		  set_printed = true;
+		}
+	  printf("  tlppd0: %08x: vaddr=\t%08x %s %s%s asid=%02x\n",
+		 (unsigned int) tlb->pd0, (unsigned int) VPN(tlb->pd0),
+		 (char *) ((tlb->pd0 & PD0_SZ) != 0 ? "sz1" : "sz0"),
+		 (char *) ((tlb->pd0 & PD0_V) != 0 ? "V" : ""),
+		 (char *) ((tlb->pd0 & PD0_G) != 0 ? "g" : ""),
+		 tlb->pd0 & PD0_ASID);
+
+	  printf("  tlppd1: %08x: paddr=\t%08x k:%s%s%s u:%s%s%s f:%s\n",
+		 (unsigned int) tlb->pd1, (unsigned int) PFN(tlb->pd1),
+		 (char *) ((tlb->pd1 & PD1_RK) != 0 ? "R" : "r"),
+		 (char *) ((tlb->pd1 & PD1_WK) != 0 ? "W" : "w"),
+		 (char *) ((tlb->pd1 & PD1_XK) != 0 ? "X" : "x"),
+		 (char *) ((tlb->pd1 & PD1_RU) != 0 ? "R" : "r"),
+		 (char *) ((tlb->pd1 & PD1_WU) != 0 ? "W" : "w"),
+		 (char *) ((tlb->pd1 & PD1_XU) != 0 ? "X" : "x"),
+		 (char *) ((tlb->pd1 & PD1_FC) != 0 ? "C" : "c"));
+	    }
+	}
+    }
+}
 
 static struct arc_tlb_e *
 arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
