@@ -340,6 +340,7 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
       gen_goto_tb(dc, 0, cpu_lps);
       gen_set_label(label);
       gen_gotoi_tb(dc, 1, dc->npc);
+      dc->base.is_jmp = DISAS_NORETURN;
     }
 
   if(dc->base.is_jmp == DISAS_NORETURN)
