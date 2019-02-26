@@ -123,10 +123,14 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 void
 arc_mmu_debug_tlb(CPUARCState *env)
 {
-  for(int i = 0; i < N_SETS; i++)
+  int i;
+
+  for(i = 0; i < N_SETS; i++)
     {
       bool set_printed = false;
-      for(int j = 0; j < N_WAYS; j++)
+      int j;
+
+      for(j = 0; j < N_WAYS; j++)
 	{
 	  struct arc_tlb_e *tlb = &env->mmu.nTLB[i][j];
 
