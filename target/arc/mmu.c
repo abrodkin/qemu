@@ -568,8 +568,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   CPUARCState *env = &cpu->env;
   enum mmu_access_type rwe = (char) access_type;
 
-  vaddr = arc_mmu_page_address_for(vaddr);
-  uint32_t paddr = vaddr;
+  uint32_t paddr;
   if(vaddr < 0x80000000 && env->mmu.enabled)
     {
       uint32_t index;
@@ -615,5 +614,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 
     }
 
+  vaddr = arc_mmu_page_address_for(vaddr);
+  paddr = (paddr & PAGE_MASK);
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }
