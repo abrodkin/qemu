@@ -568,7 +568,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   CPUARCState *env = &cpu->env;
   enum mmu_access_type rwe = (char) access_type;
 
-  uint32_t paddr;
+  uint32_t paddr = vaddr;
   if(vaddr < 0x80000000 && env->mmu.enabled)
     {
       uint32_t index;
