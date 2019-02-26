@@ -122,7 +122,11 @@ enum gdb_aux_other_regs {
   GDB_AUX_OTHER_REG_TLBPD1,           /* page descriptor 1 */
   GDB_AUX_OTHER_REG_TLB_INDEX,        /* tlb index         */
   GDB_AUX_OTHER_REG_TLB_CMD,          /* tlb command       */
+  /* excpetions */
+  GDB_AUX_OTHER_REG_ERET,             /* exception return address */
+  GDB_AUX_OTHER_REG_EFA,              /* exception fault address  */
   /* irq */
+  GDB_AUX_OTHER_REG_ICAUSE,           /* interrupt cause        */
   GDB_AUX_OTHER_REG_IRQ_CTRL,         /* context saving control */
   GDB_AUX_OTHER_REG_IRQ_ACT,          /* active                 */
   GDB_AUX_OTHER_REG_IRQ_PRIO_PEND,    /* priority pending       */

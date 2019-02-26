@@ -189,6 +189,16 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_TLB_CMD:
       regval = env->mmu.tlbcmd;
       break;
+    case GDB_AUX_OTHER_REG_ERET:
+      regval = env->eret;
+      break;
+    case GDB_AUX_OTHER_REG_EFA:
+      regval = env->efa;
+      break;
+    case GDB_AUX_OTHER_REG_ICAUSE:
+      /* icause of current interrupt level */
+      regval = env->icause[__builtin_ctz(env->aux_irq_act & 0xffff)];
+      break;
     case GDB_AUX_OTHER_REG_IRQ_CTRL:
       regval = env->aux_irq_ctrl;
       break;
@@ -239,6 +249,9 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_IRQ_BUILD:
     case GDB_AUX_OTHER_REG_VECBASE_BUILD:
     case GDB_AUX_OTHER_REG_ISA_CONFIG:
+    case GDB_AUX_OTHER_REG_ERET:
+    case GDB_AUX_OTHER_REG_EFA:
+    case GDB_AUX_OTHER_REG_ICAUSE:
     case GDB_AUX_OTHER_REG_IRQ_CTRL:
     case GDB_AUX_OTHER_REG_IRQ_ACT:
     case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
@@ -250,7 +263,7 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_IRQ_PULSE:
     case GDB_AUX_OTHER_REG_IRQ_PENDING:
     case GDB_AUX_OTHER_REG_IRQ_PRIO:
-      /* builds/configs/irqs cannot be changed */
+      /* builds/configs/exceptions/irqs cannot be changed */
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
       env->timer[0].T_Count = regval;
