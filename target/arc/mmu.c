@@ -576,7 +576,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
       if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
         {
           cpu_restore_state(cs, retaddr, true);
-          env->efa = arc_mmu_page_address_for(vaddr);
+          env->efa = vaddr;
           env->eret = env->pc;
           env->erbta = env->npc_helper;
 
