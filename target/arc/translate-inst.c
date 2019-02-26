@@ -340,7 +340,9 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
 
       /* TODO: check for illegal instruction sequence */
 
+      tcg_gen_movi_tl(cpu_pc, ctx->npc);
       arc_decode (ctx);
+      tcg_gen_movi_tl(cpu_pc, ctx->cpc);
 
       assert (ctx->bstate == BS_NONE);
 
