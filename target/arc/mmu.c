@@ -431,33 +431,18 @@ arc_mmu_translate(struct CPUARCState *env,
       match = false;
     }
 
-  /* In case entry is not global.
-   * Logic from PRM, in TLBPD0 description, more precisely ASID one. */
-  //if((tlb->pd0 & PD0_G) == 0 && rwe != MMU_MEM_IRRELEVANT_TYPE)
-  //  {
-  //    /* ASID check against library.  */
-  //    if((tlb->pd0 & PD0_S) != 0
-  //       && (tlb->pd0 & PD0_ASID_MATCH) != (mmu->sasid0 & PD0_ASID_MATCH))
-  //    {
-  //      match = false;
-  //    } else {
-  //      /* Check if ASID matches with PID. */
-  //      if(mmu->pid_asid != (tlb->pd0 & PD0_PID_MATCH))
-  //        {
-  //          match = false;
-  //        }
-  //    }
-  //  }
-
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
 protv_exception:
-      qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x. rwe = %s, "
+      if(rwe != MMU_MEM_IRRELEVANT_TYPE)
+	{
+	  qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x. rwe = %s, "
 		     "tlb->pd0 = %08x, tlb->pd1 = %08x\n",
 		     env->pc,
 		     RWE_STRING(rwe),
 		     tlb->pd0, tlb->pd1);
-      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+	  SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+	}
       return 0;
     }
 
