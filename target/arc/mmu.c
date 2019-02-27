@@ -389,7 +389,8 @@ arc_mmu_translate(struct CPUARCState *env,
 
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
-  if(env->stat.Uf == true && vaddr >= 0x80000000)
+  if(rwe != MMU_MEM_IRRELEVANT_TYPE
+     && env->stat.Uf == true && vaddr >= 0x80000000)
     goto protv_exception;
 
   /* Check that we are not addressing an address above 0x80000000.
@@ -434,15 +435,13 @@ arc_mmu_translate(struct CPUARCState *env,
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
     {
 protv_exception:
-      if(rwe != MMU_MEM_IRRELEVANT_TYPE)
-	{
-	  qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x. rwe = %s, "
+      qemu_log_mask (CPU_LOG_MMU, "[MMU] ProtV exception at 0x%08x for 0x%08x. rwe = %s, "
 		     "tlb->pd0 = %08x, tlb->pd1 = %08x\n",
 		     env->pc,
+		     vaddr,
 		     RWE_STRING(rwe),
 		     tlb->pd0, tlb->pd1);
-	  SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
-	}
+      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
       return 0;
     }
 
