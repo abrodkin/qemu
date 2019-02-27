@@ -441,6 +441,7 @@ protv_exception:
 		     vaddr,
 		     RWE_STRING(rwe),
 		     tlb->pd0, tlb->pd1);
+
       SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
       return 0;
     }
@@ -457,10 +458,11 @@ protv_exception:
 tlb_miss_exception:
       if(rwe != MMU_MEM_IRRELEVANT_TYPE)
 	{
+	  /* To remove eventually, just fail safe to check kernel. */
 	  if(mmu->sasid0 != 0 || mmu->sasid1 != 0)
 	    assert(0);
 	  else
-	    mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | (mmu->pid_asid & PD0_ASID);
+	    mmu->tlbpd0 = (vaddr & (VPN(PD0_VPN))) | PD0_V | (mmu->pid_asid & PD0_ASID);
           if(rwe == MMU_MEM_FETCH)
 	    {
               qemu_log_mask (CPU_LOG_MMU, "[MMU] TLB_MissI exception at 0x%08x. rwe = %s, "
