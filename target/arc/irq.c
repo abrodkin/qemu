@@ -524,12 +524,14 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
 
 bool arc_rtie_interrupts (CPUARCState *env)
 {
+  ARCCPU *cpu = arc_env_get_cpu(env);
+
   if (env->stat.AEf || ((env->aux_irq_act & 0xffff) == 0))
     return false;
 
   /* FIXME! Reset RTC state.  */
 
-  if ((env->aux_irq_act & 0xffff) == 1 /* && cpu->cfg.firq_option*/ )
+  if ((env->aux_irq_act & 0xffff) == 1 && cpu->cfg.firq_option )
     arc_rtie_firq (env);
   else
     arc_rtie_irq (env);
