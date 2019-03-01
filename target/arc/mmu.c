@@ -141,6 +141,8 @@ arc_mmu_debug_tlb(CPUARCState *env)
 		  printf("set %d\n", i);
 		  set_printed = true;
 		}
+	      if(set_printed == true)
+		printf(" way %d\n", j);
 	  printf("  tlppd0: %08x: vaddr=\t%08x %s %s%s asid=%02x\n",
 		 (unsigned int) tlb->pd0, (unsigned int) VPN(tlb->pd0),
 		 (char *) ((tlb->pd0 & PD0_SZ) != 0 ? "sz1" : "sz0"),
@@ -292,7 +294,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	  num_finds--;
 	  qemu_log_mask (CPU_LOG_MMU,
 			 "[MMU] Delete at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
-			  env->pc, pd0, pd1);
+			  env->pc, tlb->pd0, tlb->pd1);
         }
       else
 	{
@@ -301,7 +303,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	      tlb->pd0 &= ~PD0_V;
 	      qemu_log_mask (CPU_LOG_MMU,
 			     "[MMU] Delete at 0x%08x, pd0 = 0x%08x, pd1 = 0x%08x\n",
-			     env->pc, pd0, pd1);
+			     env->pc, tlb->pd0, tlb->pd1);
 	      tlb = arc_mmu_lookup_tlb(pd0,
 				       (VPN(PD0_VPN) | PD0_V | PD0_SZ | PD0_G | PD0_S),
 				       mmu, &num_finds, NULL);
