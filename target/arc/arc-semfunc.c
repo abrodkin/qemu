@@ -7533,19 +7533,20 @@ arc2_gen_DMB (DisasCtxt *ctx, TCGv a)
   l_src1 = @src1;
   l_src2 = @src2;
   setDebugLD (1);
-  @dest = getMemory (address, ZZ);
+  new_dest = getMemory (address, ZZ);
   if(((AA == 1) || (AA == 2)))
     {
       @src1 = (l_src1 + l_src2);
     };
   if((getFlagX () == 1))
     {
-      @dest = SignExtend (@dest, ZZ);
+      new_dest = SignExtend (new_dest, ZZ);
     };
   if(NoFurtherLoadsPending ())
     {
       setDebugLD (0);
     };
+  @dest = new_dest;
 }
  */
 
@@ -7562,6 +7563,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv l_src2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv new_dest = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
   AA = getAAFlag ();
@@ -7610,7 +7612,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_movi_i32(temp_4, 1);
   setDebugLD(temp_4);
   temp_5 = getMemory(address, ZZ);
-  tcg_gen_mov_i32(dest, temp_5);
+  tcg_gen_mov_i32(new_dest, temp_5);
   if (((AA == 1) || (AA == 2)))
     {
     tcg_gen_add_i32(src1, l_src1, l_src2);
@@ -7622,7 +7624,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     }
   if ((getFlagX () == 1))
     {
-    tcg_gen_mov_i32(dest, SignExtend(dest, ZZ));
+    tcg_gen_mov_i32(new_dest, SignExtend(new_dest, ZZ));
 ;
     }
   else
@@ -7635,6 +7637,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_movi_i32(temp_6, 0);
   setDebugLD(temp_6);
   gen_set_label(done_1);
+  tcg_gen_mov_i32(dest, new_dest);
   tcg_temp_free(address);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_3);
@@ -7642,6 +7645,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_temp_free(l_src2);
   tcg_temp_free(temp_4);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
+  tcg_temp_free(new_dest);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_6);
 
@@ -7679,7 +7683,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   l_src1 = @src1;
   l_src2 = @src2;
   setDebugLD (1);
-  @dest = getMemory (address, LONG);
+  new_dest = getMemory (address, LONG);
   pair = nextReg (dest);
   pair = getMemory ((address + 4), LONG);
   if(((AA == 1) || (AA == 2)))
@@ -7690,6 +7694,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     {
       setDebugLD (0);
     };
+  @dest = new_dest;
 }
  */
 
@@ -7706,6 +7711,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv l_src2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv new_dest = tcg_temp_local_new_i32();
   TCGv pair = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = NULL /* REFERENCE */;
@@ -7757,7 +7763,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_movi_i32(temp_4, 1);
   setDebugLD(temp_4);
   temp_5 = getMemory(address, LONG);
-  tcg_gen_mov_i32(dest, temp_5);
+  tcg_gen_mov_i32(new_dest, temp_5);
   pair = nextReg (dest);
   tcg_gen_addi_i32(temp_7, address, 4);
   temp_6 = getMemory(temp_7, LONG);
@@ -7777,6 +7783,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_gen_movi_i32(temp_8, 0);
   setDebugLD(temp_8);
   gen_set_label(done_1);
+  tcg_gen_mov_i32(dest, new_dest);
   tcg_temp_free(address);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_3);
@@ -7784,6 +7791,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_temp_free(l_src2);
   tcg_temp_free(temp_4);
   if(temp_5 != NULL) tcg_temp_free(temp_5);
+  tcg_temp_free(new_dest);
   tcg_temp_free(temp_7);
   if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_1);
@@ -8057,8 +8065,9 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
  *    Functions: getMemory, getRegister, setRegister
 --- code ---
 {
-  @dest = getMemory (getRegister (R_SP), LONG);
+  new_dest = getMemory (getRegister (R_SP), LONG);
   setRegister (R_SP, (getRegister (R_SP) + 4));
+  @dest = new_dest;
 }
  */
 
@@ -8069,20 +8078,23 @@ arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
   TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_1 = NULL /* REFERENCE */;
+  TCGv new_dest = tcg_temp_local_new_i32();
   TCGv temp_6 = NULL /* REFERENCE */;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   temp_3 = getRegister(R_SP);
   tcg_gen_mov_i32(temp_2, temp_3);
   temp_1 = getMemory(temp_2, LONG);
-  tcg_gen_mov_i32(dest, temp_1);
+  tcg_gen_mov_i32(new_dest, temp_1);
   temp_6 = getRegister(R_SP);
   tcg_gen_mov_i32(temp_5, temp_6);
   tcg_gen_addi_i32(temp_4, temp_5, 4);
   setRegister(R_SP, temp_4);
+  tcg_gen_mov_i32(dest, new_dest);
   if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
   if(temp_1 != NULL) tcg_temp_free(temp_1);
+  tcg_temp_free(new_dest);
   if(temp_6 != NULL) tcg_temp_free(temp_6);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
@@ -8099,8 +8111,9 @@ arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
  *    Functions: setRegister, getRegister, setMemory
 --- code ---
 {
+  local_src = @src;
   setRegister (R_SP, (getRegister (R_SP) - 4));
-  setMemory (getRegister (R_SP), LONG, @src);
+  setMemory (getRegister (R_SP), LONG, local_src);
 }
  */
 
@@ -8108,18 +8121,21 @@ int
 arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
 {
   int ret = BS_NONE;
+  TCGv local_src = tcg_temp_local_new_i32();
   TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_5 = NULL /* REFERENCE */;
   TCGv temp_4 = tcg_temp_local_new_i32();
+  tcg_gen_mov_i32(local_src, src);
   temp_3 = getRegister(R_SP);
   tcg_gen_mov_i32(temp_2, temp_3);
   tcg_gen_subi_i32(temp_1, temp_2, 4);
   setRegister(R_SP, temp_1);
   temp_5 = getRegister(R_SP);
   tcg_gen_mov_i32(temp_4, temp_5);
-  setMemory(temp_4, LONG, src);
+  setMemory(temp_4, LONG, local_src);
+  tcg_temp_free(local_src);
   if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_1);
