@@ -1596,12 +1596,16 @@ arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned ch
       switch (ctx->insn.class)
 	{
 	case LOGICAL:
+#if 0
 	  qemu_log_mask(LOG_UNIMP,
 			"Make operand %d for %s one.\n", nop, opcode->name);
+#endif
 	  return ctx->one;
 	default:
-	  qemu_log_mask(LOG_UNIMP,
+#if 0
+          qemu_log_mask(LOG_UNIMP,
 			"Make operand %d for %s zero.\n", nop, opcode->name);
+#endif
 	  return ctx->zero;
 	}
     }
