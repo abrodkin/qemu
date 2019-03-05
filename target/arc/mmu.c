@@ -422,7 +422,7 @@ arc_mmu_translate(struct CPUARCState *env,
 
   bool match = true;
 
-  if(tlb == NULL)
+  if((tlb == NULL) || (num_matching_tlb == 0))
     {
       goto tlb_miss_exception;
     }
