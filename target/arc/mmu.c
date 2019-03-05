@@ -450,8 +450,8 @@ protv_exception:
 
   if(match == true) {
     if(rwe != MMU_MEM_IRRELEVANT_TYPE)
-      qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x\n",
-		     (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)));
+      qemu_log_mask (CPU_LOG_MMU, "[MMU] Translated to 0x%08x, pd0=0x%08x, pd1=0x%08x\n",
+		     (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK)), tlb->pd0, tlb->pd1);
 //    assert(((tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK))) >= 0x80000000);
     return (tlb->pd1 & PAGE_MASK) | (vaddr & (~PAGE_MASK));
   }
