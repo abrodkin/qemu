@@ -167,8 +167,8 @@ arc_mmu_debug_tlb(CPUARCState *env)
 static struct arc_tlb_e *
 arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
 {
-  uint32_t set = index / 4;
-  uint32_t bank = index % 4;
+  uint32_t set = index / N_WAYS;
+  uint32_t bank = index % N_WAYS;
   return &mmu->nTLB[set][bank];
 }
 
@@ -211,7 +211,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	if(num_finds != NULL)
 	  *num_finds += 1;
 	if(index != NULL)
-	  *index = (set << 2) + w;
+	  *index = (set * N_WAYS) + w;
       }
     }
 
@@ -222,7 +222,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 
       // TODO: Replace by something more significant.
       if(index != NULL)
-        *index = (set << 2) + way;
+        *index = (set * N_WAYS) + way;
 
       mmu->way_sel[set] = (mmu->way_sel[set] + 1) & (N_WAYS - 1);
     }
