@@ -70,7 +70,7 @@ static void hsdk_init(MachineState *machine)
     memory_region_init_io(system_io, NULL, NULL, NULL, "arc.io", HSDK_IO_SIZE);
     memory_region_add_subregion(system_memory, HSDK_IO_BASE, system_io);
 
-    serial_mm_init(system_io, HSDK_UART0_OFFSET, 2, cpu->env.irq[46],
+    serial_mm_init(system_io, HSDK_UART0_OFFSET, 2, cpu->env.irq[30],
                    115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
 
     arc_load_kernel(cpu, HSDK_RAM_BASE, HSDK_RAM_SIZE, kernel_filename);
