@@ -107,7 +107,7 @@
   <!-- mmu registers -->
   <reg name="pid"      bitsize="32" regnum="50" type="pid_type"      group="general"/>
   <reg name="tlbpd0"   bitsize="32" regnum="51" type="tlbpd0_type"   group="general"/>
-  <reg name="tlppd1"   bitsize="32" regnum="52" type="tlbpd1_type"   group="general"/>
+  <reg name="tlbpd1"   bitsize="32" regnum="52" type="tlbpd1_type"   group="general"/>
   <reg name="tlbindex" bitsize="32" regnum="53" type="tlbindex_type" group="general"/>
   <reg name="tlbcmd"   bitsize="32" regnum="54" type="tlbcmd_type"   group="general"/>
   <!-- exception registers -->

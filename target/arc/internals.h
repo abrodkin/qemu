@@ -30,4 +30,8 @@
 /* add auxiliary registers to set of supported registers for GDB */
 void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu);
 
+/* these are the helper functions used both by translation and gdbstub */
+target_ulong helper_lr(CPUARCState *env, uint32_t aux);
+void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux);
+
 #endif

@@ -22,8 +22,13 @@
 #include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
+#include "arc-common.h"
+#include "arc-regs.h"
 #include "internals.h"
 #include "irq.h"
+
+/* gets the register address for a particular processor */
+#define REG_ADDR(reg, processor_type) arc_aux_reg_address_for((reg), (processor_type))
 
 
 int arc_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
@@ -91,17 +96,20 @@ int arc_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
 static int
 arc_aux_minimal_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
+  /* TODO: processor type must be set according to configuration */
+  static const int processor = ARC_OPCODE_ARCv2HS;
   uint32_t regval = 0;
+
   switch (regnum)
   {
     case GDB_AUX_MIN_REG_PC:
-      regval = env->pc;
+      regval = env->pc & 0xfffffffe;
       break;
     case GDB_AUX_MIN_REG_LPS:
-      regval = env->lps;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_lp_start, processor));
       break;
     case GDB_AUX_MIN_REG_LPE:
-      regval = env->lpe;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_lp_end, processor));
       break;
     case GDB_AUX_MIN_REG_STATUS:
       regval = pack_status32(&env->stat);
@@ -116,17 +124,19 @@ arc_aux_minimal_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 static int
 arc_aux_minimal_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
-  uint16_t regval = ldl_p(mem_buf);
+  /* TODO: processor type must be set according to configuration */
+  static const int processor = ARC_OPCODE_ARCv2HS;
+  uint32_t regval = ldl_p(mem_buf);
   switch (regnum)
   {
     case GDB_AUX_MIN_REG_PC:
-      env->pc = regval;
+      env->pc = regval & 0xfffffffe;
       break;
     case GDB_AUX_MIN_REG_LPS:
-      env->lps = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_lp_start, processor));
       break;
     case GDB_AUX_MIN_REG_LPE:
-      env->lpe = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_lp_end, processor));
       break;
     case GDB_AUX_MIN_REG_STATUS:
       unpack_status32(&env->stat, regval);
@@ -141,14 +151,16 @@ arc_aux_minimal_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 static int
 arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
+  /* TODO: processor type must be set according to configuration */
+  static const int processor = ARC_OPCODE_ARCv2HS;
   uint32_t regval = 0;
   switch (regnum)
   {
     case GDB_AUX_OTHER_REG_TIMER_BUILD:
-      regval = env->timer_build;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_timer_build, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_BUILD:
-      regval = env->irq_build;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_build, processor));
       break;
     case GDB_AUX_OTHER_REG_VECBASE_BUILD:
       regval = env->vecbase_build;
@@ -157,81 +169,80 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
       regval = env->isa_config;
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
-      regval = env->timer[0].T_Count;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_count0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CTRL0:
-      regval = env->timer[0].T_Cntrl;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_control0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_LIM0:
-      regval = env->timer[0].T_Limit;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_limit0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT1:
-      regval = env->timer[1].T_Count;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_count1, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CTRL1:
-      regval = env->timer[1].T_Cntrl;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_control1, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_LIM1:
-      regval = env->timer[1].T_Limit;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_limit1, processor));
       break;
     case GDB_AUX_OTHER_REG_PID:
-      regval = (env->mmu.enabled << 31) | env->mmu.pid_asid;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_pid, processor));
       break;
     case GDB_AUX_OTHER_REG_TLBPD0:
-      regval = env->mmu.tlbpd0;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_tlbpd0, processor));
       break;
     case GDB_AUX_OTHER_REG_TLBPD1:
-      regval = env->mmu.tlbpd1;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_tlbpd1, processor));
       break;
     case GDB_AUX_OTHER_REG_TLB_INDEX:
-      regval = env->mmu.tlbindex;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_tlbindex, processor));
       break;
     case GDB_AUX_OTHER_REG_TLB_CMD:
-      regval = env->mmu.tlbcmd;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_tlbcommand, processor));
       break;
     case GDB_AUX_OTHER_REG_ERET:
-      regval = env->eret;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_eret, processor));
       break;
     case GDB_AUX_OTHER_REG_EFA:
-      regval = env->efa;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_efa, processor));
       break;
     case GDB_AUX_OTHER_REG_ICAUSE:
-      /* icause of current interrupt level */
-      regval = env->icause[__builtin_ctz(env->aux_irq_act & 0xffff)];
+      regval = helper_lr(env, REG_ADDR(AUX_ID_icause, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_CTRL:
-      regval = env->aux_irq_ctrl;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_aux_irq_ctrl, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_ACT:
-      regval = env->aux_irq_act;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_aux_irq_act, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
       regval = env->irq_priority_pending;
       break;
     case GDB_AUX_OTHER_REG_IRQ_HINT:
-      regval = env->aux_irq_hint;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_aux_irq_hint, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_SELECT:
-      regval = env->irq_select;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_select, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_ENABLE:
       regval = env->irq_bank[env->irq_select & 0xff].enable;
-      break;
+       break;
     case GDB_AUX_OTHER_REG_IRQ_TRIGGER:
-      regval = env->irq_bank[env->irq_select & 0xff].trigger;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_trigger, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_STATUS:
-      regval = env->irq_bank[env->irq_select & 0xff].status;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_status, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_PULSE:
       regval = env->irq_bank[env->irq_select & 0xff].pulse_cancel;
-      break;
+       break;
     case GDB_AUX_OTHER_REG_IRQ_PENDING:
-      regval = env->irq_bank[env->irq_select & 0xff].pending;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_pending, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_PRIO:
-      regval = env->irq_bank[env->irq_select & 0xff].priority;
-      break;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_irq_priority, processor));
+     break;
     default:
       assert(!"Unsupported other auxiliary register is being read.");
   }
@@ -242,62 +253,81 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 static int
 arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
 {
-  uint16_t regval = ldl_p(mem_buf);
+  /* TODO: processor type must be set according to configuration */
+  static const int processor = ARC_OPCODE_ARCv2HS;
+  uint32_t regval = ldl_p(mem_buf);
   switch (regnum)
   {
     case GDB_AUX_OTHER_REG_TIMER_BUILD:
     case GDB_AUX_OTHER_REG_IRQ_BUILD:
     case GDB_AUX_OTHER_REG_VECBASE_BUILD:
     case GDB_AUX_OTHER_REG_ISA_CONFIG:
-    case GDB_AUX_OTHER_REG_ERET:
     case GDB_AUX_OTHER_REG_EFA:
     case GDB_AUX_OTHER_REG_ICAUSE:
-    case GDB_AUX_OTHER_REG_IRQ_CTRL:
-    case GDB_AUX_OTHER_REG_IRQ_ACT:
     case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
-    case GDB_AUX_OTHER_REG_IRQ_HINT:
-    case GDB_AUX_OTHER_REG_IRQ_SELECT:
-    case GDB_AUX_OTHER_REG_IRQ_ENABLE:
-    case GDB_AUX_OTHER_REG_IRQ_TRIGGER:
     case GDB_AUX_OTHER_REG_IRQ_STATUS:
-    case GDB_AUX_OTHER_REG_IRQ_PULSE:
     case GDB_AUX_OTHER_REG_IRQ_PENDING:
-    case GDB_AUX_OTHER_REG_IRQ_PRIO:
       /* builds/configs/exceptions/irqs cannot be changed */
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT0:
-      env->timer[0].T_Count = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_count0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CTRL0:
-      env->timer[0].T_Cntrl = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_control0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_LIM0:
-      env->timer[0].T_Limit = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_limit0, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CNT1:
-      env->timer[1].T_Count = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_count1, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_CTRL1:
-      env->timer[1].T_Cntrl = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_control1, processor));
       break;
     case GDB_AUX_OTHER_REG_TIMER_LIM1:
-      env->timer[1].T_Limit = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_limit1, processor));
       break;
     case GDB_AUX_OTHER_REG_PID:
-      env->mmu.enabled  = (regval & 0x80000000) >> 31;
-      env->mmu.pid_asid = (regval & 0x7fffffff);
+      helper_sr(env, regval, REG_ADDR(AUX_ID_pid, processor));
       break;
     case GDB_AUX_OTHER_REG_TLBPD0:
-      env->mmu.tlbpd0 = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_tlbpd0, processor));
       break;
     case GDB_AUX_OTHER_REG_TLBPD1:
-      env->mmu.tlbpd1 = regval;
-      break;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_tlbpd1, processor));
+       break;
     case GDB_AUX_OTHER_REG_TLB_INDEX:
-      env->mmu.tlbindex = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_tlbindex, processor));
       break;
     case GDB_AUX_OTHER_REG_TLB_CMD:
-      env->mmu.tlbcmd = regval;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_tlbcommand, processor));
+      break;
+    case GDB_AUX_OTHER_REG_ERET:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_eret, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_CTRL:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_aux_irq_ctrl, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_ACT:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_aux_irq_act, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_HINT:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_aux_irq_hint, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_SELECT:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_irq_select, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_ENABLE:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_irq_enable, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_TRIGGER:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_irq_trigger, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PULSE:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_irq_pulse_cancel, processor));
+      break;
+    case GDB_AUX_OTHER_REG_IRQ_PRIO:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_irq_priority, processor));
       break;
     default:
       assert(!"Unsupported other auxiliary register is being written.");
