@@ -187,6 +187,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
   for (w = 0; w < N_WAYS; w++, tlb++)
     {
       uint32_t match = vaddr & compare_mask;
+      uint32_t final_compare_mask = compare_mask;
 
       if((tlb->pd0 & PD0_G) == 0)
       {
@@ -201,11 +202,11 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	  } else {
 	    /* Match to a process. */
 	    match |= mmu->pid_asid & PD0_PID_MATCH;
-	    compare_mask |= PD0_PID_MATCH;
+	    final_compare_mask |= PD0_PID_MATCH;
 	  }
       }
 
-      if(match == (tlb->pd0 & compare_mask) && general_match)
+      if(match == (tlb->pd0 & final_compare_mask) && general_match)
       {
 	ret = tlb;
 	if(num_finds != NULL)
@@ -422,9 +423,9 @@ arc_mmu_translate(struct CPUARCState *env,
 
   bool match = true;
 
-  if((tlb == NULL) || (num_matching_tlb == 0))
+  if(num_matching_tlb == 0)
     {
-      goto tlb_miss_exception;
+      match = false;
     }
 
   /* Check if entry if related to this address */
@@ -432,6 +433,25 @@ arc_mmu_translate(struct CPUARCState *env,
     {
       /* Call the interrupt. */
       match = false;
+    }
+
+  if(match == true)
+    {
+      if((tlb->pd0 & PD0_G) == 0)
+      {
+	if((tlb->pd0 & PD0_S) != 0)
+	  {
+	    /* Match to a shared library. */
+	    uint8_t position = tlb->pd0 & PD0_ASID_MATCH;
+            uint32_t m1 = mmu->sasid0 & (1 << (position & (32-1)));
+            uint32_t m2 = mmu->sasid1 & (1 << ((position-32) & (32-1)));
+	    if(m1 == 0 && m2 == 0)
+	      match = false;
+	  } else if((tlb->pd0 & PD0_ASID_MATCH) != (mmu->pid_asid & PD0_ASID_MATCH)) {
+	    /* Match to a process. */
+	    match = false;
+	  }
+      }
     }
 
   if(match == true && !arc_mmu_have_permission(env, tlb, rwe))
