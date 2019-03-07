@@ -120,6 +120,7 @@ static uint32_t irq_pop (CPUARCState *env, const char *str)
 static void arc_rtie_irq (CPUARCState *env)
 {
   uint32_t tmp;
+  ARCCPU *cpu = arc_env_get_cpu(env);
 
   assert ((env->aux_irq_act & 0xFFFF) != 0);
   assert (env->stat.AEf == 0);
@@ -170,14 +171,15 @@ static void arc_rtie_irq (CPUARCState *env)
 
   /* Pop EI_BASE, JLI_BASE, LDI_BASE if LP bit is set and Code Density
      feature is enabled.  FIXME!*/
-#if 0
   if (cpu->cfg.code_density && (env->aux_irq_ctrl & (1 << 13)))
     {
-      /* env->aux_ei_base  = irq_pop (env); */
-      /* env->aux_ldi_base = irq_pop (env); */
-      /* env->aux_jli_base = irq_pop (env); */
+      /* FIXME! env->aux_ei_base  = irq_pop (env); */
+      /* FIXME! env->aux_ldi_base = irq_pop (env); */
+      /* FIXME! env->aux_jli_base = irq_pop (env); */
+      irq_pop (env, "dummy EI_BASE");
+      irq_pop (env, "dummy LDI_BASE");
+      irq_pop (env, "dummy JLI_BASE");
     }
-#endif
 
   CPU_ILINK (env) = irq_pop (env, "PC"); /* CPU PC*/
   uint32_t tmp_stat = irq_pop (env, "STATUS32"); /* status. */
@@ -263,6 +265,9 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
       /* FIXME! irq_push (env, env->aux_jli_base, "JLI_BASE"); */
       /* FIXME! irq_push (env, env->aux_ldi_base, "LDI_BASE""); */
       /* FIXME! irq_push (env, env->aux_ei_base, "EI_BASE"); */
+      irq_push (env, 0xdeadbeef, "dummy JLI_BASE");
+      irq_push (env, 0xdeadbeef, "dummy LDI_BASE");
+      irq_push (env, 0xdeadbeef, "dummy EI_BASE");
     }
 
   /* Push LP_COUNT, LP_START, LP_END registers if required.  */
