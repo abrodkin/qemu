@@ -235,7 +235,7 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
       regval = helper_lr(env, REG_ADDR(AUX_ID_irq_status, processor));
       break;
     case GDB_AUX_OTHER_REG_IRQ_PULSE:
-      regval = env->irq_bank[env->irq_select & 0xff].pulse_cancel;
+      regval = 0; /* write only for clearing the pulse triggered interrupt */
        break;
     case GDB_AUX_OTHER_REG_IRQ_PENDING:
       regval = helper_lr(env, REG_ADDR(AUX_ID_irq_pending, processor));
