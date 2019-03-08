@@ -8156,12 +8156,12 @@ arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
 
 /* PUSH
  *    Variables: @src
- *    Functions: setRegister, getRegister, setMemory
+ *    Functions: setMemory, getRegister, setRegister
 --- code ---
 {
   local_src = @src;
+  setMemory ((getRegister (R_SP) - 4), LONG, local_src);
   setRegister (R_SP, (getRegister (R_SP) - 4));
-  setMemory (getRegister (R_SP), LONG, local_src);
 }
  */
 
@@ -8173,21 +8173,24 @@ arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
   TCGv temp_3 = NULL /* REFERENCE */;
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_5 = NULL /* REFERENCE */;
+  TCGv temp_6 = NULL /* REFERENCE */;
+  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(local_src, src);
   temp_3 = getRegister(R_SP);
   tcg_gen_mov_i32(temp_2, temp_3);
   tcg_gen_subi_i32(temp_1, temp_2, 4);
-  setRegister(R_SP, temp_1);
-  temp_5 = getRegister(R_SP);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  setMemory(temp_4, LONG, local_src);
+  setMemory(temp_1, LONG, local_src);
+  temp_6 = getRegister(R_SP);
+  tcg_gen_mov_i32(temp_5, temp_6);
+  tcg_gen_subi_i32(temp_4, temp_5, 4);
+  setRegister(R_SP, temp_4);
   tcg_temp_free(local_src);
   if(temp_3 != NULL) tcg_temp_free(temp_3);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_1);
-  if(temp_5 != NULL) tcg_temp_free(temp_5);
+  if(temp_6 != NULL) tcg_temp_free(temp_6);
+  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
 
   return ret;
