@@ -161,6 +161,7 @@ static void arc_cpu_reset(CPUState *s)
   arcc->parent_reset(s);
 
   memset(env->r, 0, sizeof(env->r));
+  env->lock_lf_var = 0;
 }
 
 static void arc_cpu_disas_set_info(CPUState *cs, disassemble_info *info)

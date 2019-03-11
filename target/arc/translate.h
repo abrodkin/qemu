@@ -161,6 +161,7 @@ extern TCGv     cpu_debug_FH;
 extern TCGv     cpu_debug_SS;
 
 extern TCGv     cpu_npc_helper;
+extern TCGv	cpu_lock_lf_var;
 
 //extern TCGv	cpu_aux_regs[AUX_REG_SIZE];
 

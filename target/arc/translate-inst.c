@@ -28,16 +28,15 @@
 #include "translate-inst.h"
 #include "arc-decoder.h"
 
-TCGv
-arc_gen_verifyCCFlag(DisasCtxt *ctx)
+void
+arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  TCGv c1 = tcg_temp_local_new_i32();
+  TCGv c1 = tcg_temp_new_i32();
 
-  TCGv nZ = tcg_temp_local_new_i32();
-  TCGv nN = tcg_temp_local_new_i32();
-  TCGv nV = tcg_temp_local_new_i32();
-  TCGv nC = tcg_temp_local_new_i32();
+  TCGv nZ = tcg_temp_new_i32();
+  TCGv nN = tcg_temp_new_i32();
+  TCGv nV = tcg_temp_new_i32();
+  TCGv nC = tcg_temp_new_i32();
 
   switch(ctx->insn.cc)
     {
@@ -160,54 +159,20 @@ arc_gen_verifyCCFlag(DisasCtxt *ctx)
   tcg_temp_free_i32(nN);
   tcg_temp_free_i32(nV);
   tcg_temp_free_i32(nC);
-
-  return ret;
-}
-
-TCGv
-arc_gen_getMSB(DisasCtxt *ctx, TCGv src)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-
-  tcg_gen_shri_tl(ret, src, 31);
-
-  return ret;
 }
 
 void
-arc2_gen_setCarry(TCGv elem)
-{
-  // TODO: Check type of elem and set sign bit accordingly.
-  tcg_gen_mov_tl(cpu_Cf, elem);
-}
-
-TCGv
-arc_gen_getCarry(DisasCtxt *ctx)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_mov_tl(ret, cpu_Cf);
-  return ret;
-}
-
-TCGv
-arc_gen_verifyFFlag(DisasCtxt *ctx)
-{
-  return tcg_const_i32 ((int) ctx->insn.f != 0);
-}
-
-TCGv
 to_implement(DisasCtxt *ctx)
 {
   abort();
-  return ctx->zero;
 }
 
 
 
-TCGv
+void
 to_implement_wo_abort(DisasCtxt *ctx)
 {
-  return ctx->zero;
+  return;
 }
 
 void
@@ -250,10 +215,9 @@ arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_e
     }
 }
 
-TCGv
-arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
+void
+arc2_gen_get_memory (DisasCtxt *ctx, TCGv dest, TCGv vaddr, int size, bool sign_extend)
 {
-  TCGv dest = tcg_temp_local_new_i32();
   tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
 
   switch (size)
@@ -280,40 +244,12 @@ arc2_gen_get_memory (DisasCtxt *ctx, TCGv vaddr, int size, bool sign_extend)
 	assert(!"reserved");
 	break;
     }
-
-  return dest;
 }
 
-bool
-arc2_get_flag_x (DisasCtxt *ctx)
+void
+arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret)
 {
-  return ctx->insn.x;
-}
-
-int
-arc2_get_flag_zz (DisasCtxt *ctx)
-{
-  return ctx->insn.zz;
-}
-
-int
-arc2_get_flag_aa (DisasCtxt *ctx)
-{
-  return ctx->insn.aa;
-}
-
-TCGv
-arc2_gen_sign_extend(DisasCtxt *ctx, TCGv value, int size)
-{
-  // NOTE: This is just a place holder.
-  // Sign extension is already performed in getMemory and setMemory.
-  return value;
-}
-
-TCGv
-arc2_gen_no_further_loads_pending(DisasCtxt *ctx)
-{
-  return ctx->one;
+  tcg_gen_movi_tl(ret, 1);
 }
 
 void
@@ -366,7 +302,7 @@ bool
 arc2_gen_should_execute_delayslot(DisasCtxt *ctx)
 {
   return ctx->insn.d != 0;
-  //TCGv ret = tcg_temp_local_new_i32();
+  //TCGv ret = tcg_temp_new_i32();
   //tcg_gen_movi_tl(ret, ctx->insn.d != 0);
   //return ret;
 }
@@ -375,10 +311,6 @@ void arc2_gen_setNFlag(TCGv elem)
 {
   // TODO: Check type of elem and set sign bit accordingly.
   tcg_gen_shri_tl(cpu_Nf, elem, 31);
-}
-TCGv arc2_gen_getNFlag(void)
-{
-  return cpu_Nf;
 }
 
 void
@@ -405,65 +337,33 @@ arc2_get_tcgv_value(TCGv elem)
   //return GET_TCGV_I32(elem);
 }
 
-TCGv
-arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx)
-{
-  return tcg_const_i32 (ctx->dpc);
-}
-
-TCGv
-arc2_get_next_insn_address(DisasCtxt *ctx)
-{
-  return tcg_const_i32 (ctx->npc);
-}
-
-TCGv
-arc2_gen_get_pcl(DisasCtxt *ctx)
-{
-  return tcg_const_i32 (ctx->pcl);
-}
-
 void
-arc2_set_pc(DisasCtxt *ctx, TCGv new_pc)
+arc2_gen_add_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2)
 {
-  gen_goto_tb(ctx, 1, new_pc);
-}
+  gen_helper_carry_add_flag(ret, dest, src1, src2);
+    //TCGv t1 = tcg_temp_new_i32();
+    //TCGv t2 = tcg_temp_new_i32();
+    //TCGv t3 = tcg_temp_new_i32();
 
-void
-arc2_set_blink(DisasCtxt *ctx, TCGv blink_addr)
-{
-  tcg_gen_mov_i32(cpu_blink, blink_addr);
-}
+    //tcg_gen_and_tl(t1, src1, src2); /*  t1 = src1 & src2                    */
+    //tcg_gen_andc_tl(t2, src1, dest);/*  t2 = src1 & ~dest                   */
+    //tcg_gen_andc_tl(t3, src2, dest);/*  t3 = src2 & ~dest                   */
+    //tcg_gen_or_tl(t1, t1, t2);      /*  t1 = t1 | t2 | t3                   */
+    //tcg_gen_or_tl(t1, t1, t3);
 
-TCGv
-arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
-{
-    TCGv t1 = tcg_temp_local_new_i32();
-    TCGv t2 = tcg_temp_local_new_i32();
-    TCGv t3 = tcg_temp_local_new_i32();
-    TCGv ret = tcg_temp_local_new_i32();
+    //tcg_gen_shri_tl(ret, t1, 31);/*  Cf = t1(31)                         */
 
-    tcg_gen_and_tl(t1, src1, src2); /*  t1 = src1 & src2                    */
-    tcg_gen_andc_tl(t2, src1, dest);/*  t2 = src1 & ~dest                   */
-    tcg_gen_andc_tl(t3, src2, dest);/*  t3 = src2 & ~dest                   */
-    tcg_gen_or_tl(t1, t1, t2);      /*  t1 = t1 | t2 | t3                   */
-    tcg_gen_or_tl(t1, t1, t3);
-
-    tcg_gen_shri_tl(ret, t1, 31);/*  Cf = t1(31)                         */
-
-    tcg_temp_free_i32(t3);
-    tcg_temp_free_i32(t2);
-    tcg_temp_free_i32(t1);
-
-    return ret;
+    //tcg_temp_free_i32(t3);
+    //tcg_temp_free_i32(t2);
+    //tcg_temp_free_i32(t1);
 }
 
 //TCGv
 //arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
 //{
-//    TCGv t1 = tcg_temp_local_new_i32();
-//    TCGv t2 = tcg_temp_local_new_i32();
-//    TCGv ret = tcg_temp_local_new_i32();
+//    TCGv t1 = tcg_temp_new_i32();
+//    TCGv t2 = tcg_temp_new_i32();
+//    TCGv ret = tcg_temp_new_i32();
 //
 //    /*
 //
@@ -483,14 +383,12 @@ arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2)
 //}
 /* dest = T0 + T1. Compute C, N, V and Z flags */
 
-TCGv
-arc2_gen_add_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
+void
+arc2_gen_add_Vf(TCGv ret, TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-  TCGv ret = tcg_temp_local_new_i32();
   gen_helper_overflow_add_flag(ret, dest, t0, t1);
-  return ret;
-  //  TCGv ret = tcg_temp_local_new_i32();
-  //  TCGv_i32 tmp = tcg_temp_local_new_i32();
+  //  TCGv ret = tcg_temp_new_i32();
+  //  TCGv_i32 tmp = tcg_temp_new_i32();
 
   //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
   //  tcg_gen_xor_i32(tmp, t0, t1);
@@ -501,13 +399,12 @@ arc2_gen_add_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 }
 
 /* dest = src1 - src2. Compute C, N, V and Z flags */
-TCGv
-arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
+void
+arc2_gen_sub_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2)
 {
-  TCGv t1 = tcg_temp_local_new_i32();
-  TCGv t2 = tcg_temp_local_new_i32();
-  TCGv t3 = tcg_temp_local_new_i32();
-  TCGv ret = tcg_temp_local_new_i32();
+  TCGv t1 = tcg_temp_new_i32();
+  TCGv t2 = tcg_temp_new_i32();
+  TCGv t3 = tcg_temp_new_i32();
 
   tcg_gen_not_tl(t1, src1);       /*  t1 = ~src1                          */
   tcg_gen_and_tl(t2, t1, src2);   /*  t2 = ~src1 & src2                   */
@@ -521,16 +418,14 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
   tcg_temp_free_i32(t3);
   tcg_temp_free_i32(t2);
   tcg_temp_free_i32(t1);
-
-  return ret;
 }
 
 //TCGv
 //arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
 //{
-//    TCGv t1 = tcg_temp_local_new_i32();
-//    TCGv t2 = tcg_temp_local_new_i32();
-//    TCGv ret = tcg_temp_local_new_i32();
+//    TCGv t1 = tcg_temp_new_i32();
+//    TCGv t2 = tcg_temp_new_i32();
+//    TCGv ret = tcg_temp_new_i32();
 //
 //    /*
 //	t1 = src1 & ~src2 & ~dest
@@ -547,14 +442,12 @@ arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2)
 //    return ret;
 //}
 /* dest = T0 - T1. Compute C, N, V and Z flags */
-TCGv
-arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
+void
+arc2_gen_sub_Vf(TCGv ret, TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
 {
-  TCGv ret = tcg_temp_local_new_i32();
   gen_helper_overflow_sub_flag(ret, dest, t0, t1);
-  return ret;
-  //  TCGv ret = tcg_temp_local_new_i32();
-  //  TCGv_i32 tmp = tcg_temp_local_new_i32();
+  //  TCGv ret = tcg_temp_new_i32();
+  //  TCGv_i32 tmp = tcg_temp_new_i32();
 
   //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
   //  tcg_gen_xor_i32(tmp, t0, t1);
@@ -565,143 +458,54 @@ arc2_gen_sub_Vf(TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
   //  return ret;
 }
 
-TCGv
-arc2_gen_unsigned_LT(TCGv b, TCGv c)
+void
+arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos)
 {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_LTU, ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_unsigned_GE(TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_setcond_i32(TCG_COND_GEU, ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_logical_shift_right (TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_shr_i32 (ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_logical_shift_left (TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_shl_i32 (ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_arithmetic_shift_right (TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_sar_i32 (ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_rotate_left (TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_rotl_i32 (ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_rotate_right (TCGv b, TCGv c)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_rotr_i32 (ret, b, c);
-  return ret;
-}
-
-TCGv
-arc2_gen_get_bit (TCGv a, TCGv pos)
-{
-  TCGv ret = tcg_temp_local_new_i32();
   tcg_gen_rotr_i32 (ret, a, pos);
   tcg_gen_andi_tl(ret, ret, 1);
-  return ret;
 }
-
-TCGv
-arc2_gen_get_aux_reg_index(enum arc_registers reg_id)
-{
-  return tcg_const_i32 ((int) reg_id);
-}
-
-TCGv
-arc2_gen_read_aux_reg (TCGv reg_id)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  gen_helper_lr(ret, cpu_env, reg_id);
-  return ret;
-}
-
-void
-arc2_gen_write_aux_reg (TCGv reg_id, TCGv b)
-{
-  gen_helper_sr(cpu_env, b, reg_id);
-}
-
-
-void
-tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
-{
-  TCGv tmp = tcg_temp_local_new_i32();
-  tcg_gen_movi_i32 (tmp, b);
-  tcg_gen_shl_i32 (a, tmp, c);
-  tcg_temp_free (tmp);
-}
-
 
 /* accumulator += b32 * c32 */
-TCGv
-arc2_gen_mac(TCGv_i32 b32, TCGv_i32 c32)
+void
+arc2_gen_mac(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
 {
   TCGv_i32 plo = tcg_temp_new_i32();
-  TCGv_i32 phi = tcg_temp_local_new_i32();
   tcg_gen_muls2_i32(plo, phi, b32, c32);
 
   /* adding the product to the accumulator */
   tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
   tcg_temp_free(plo);
-
-  /* return the high_part of multiplication ==> used for overflow detection */
-  return phi;
 }
 
 
 /* unsigned version */
-TCGv
-arc2_gen_macu(TCGv_i32 b32, TCGv_i32 c32)
+void
+arc2_gen_macu(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
 {
   TCGv_i32 plo = tcg_temp_new_i32();
-  TCGv_i32 phi = tcg_temp_local_new_i32();
   tcg_gen_mulu2_i32(plo, phi, b32, c32);
 
   /* adding the product to the accumulator */
   tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
   tcg_temp_free(plo);
-
-  /* return the high_part of multiplication ==> used for overflow detection */
-  return phi;
 }
 
 
 
-TCGv
-arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
-{
-  TCGv ret = tcg_temp_local_new_i32();
 
-  TCGv tmp1 = tcg_temp_local_new_i32();
+void
+tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
+{
+  TCGv tmp = tcg_temp_new_i32();
+  tcg_gen_movi_i32 (tmp, b);
+  tcg_gen_shl_i32 (a, tmp, c);
+  tcg_temp_free (tmp);
+}
+
+void
+arc2_gen_extract_bits (TCGv ret, TCGv a, TCGv start, TCGv end)
+{
+  TCGv tmp1 = tcg_temp_new_i32();
 
   tcg_gen_shr_i32 (ret, a, end);
 
@@ -713,14 +517,12 @@ arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end)
   tcg_gen_and_i32 (ret, ret, tmp1);
 
   tcg_temp_free (tmp1);
-  return ret;
 }
 
 
-TCGv
-arc2_gen_get_register(enum arc_registers reg)
+void
+arc2_gen_get_register(TCGv ret, enum arc_registers reg)
 {
-  TCGv ret = tcg_temp_local_new_i32();
   switch(reg)
   {
     case R_SP:
@@ -738,7 +540,6 @@ arc2_gen_get_register(enum arc_registers reg)
     default:
       assert(!"Should not be reached");
   }
-  return ret;
 }
 void
 arc2_gen_set_register(enum arc_registers reg, TCGv value)
@@ -761,6 +562,13 @@ arc2_gen_set_register(enum arc_registers reg, TCGv value)
       assert(!"Should not be reached");
   }
 }
+
+/* TODO: Get this from props ... */
+void arc2_has_interrupts(DisasCtxt *ctx, TCGv ret) {
+  tcg_gen_movi_i32(ret, 1);
+}
+
+/* Statically infered return function */
 
 TCGv
 arc2_gen_next_reg(TCGv reg)
@@ -794,48 +602,3 @@ bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop)
   return (operand.type & ARC_OPERAND_IR) != 0;
 }
 
-TCGv arc2_gen_div_signed(TCGv src1, TCGv src2)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_div_i32(ret, src1, src2);
-  return ret;
-}
-
-TCGv arc2_gen_div_unsigned(TCGv src1, TCGv src2)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_divu_i32(ret, src1, src2);
-  return ret;
-}
-TCGv arc2_gen_div_remaining_signed(TCGv src1, TCGv src2)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_rem_i32(ret, src1, src2);
-  return ret;
-}
-
-TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_remu_i32(ret, src1, src2);
-  return ret;
-}
-
-/* TODO: Get this from props ... */
-TCGv arc2_has_interrupts(DisasCtxt *ctx) {
-  TCGv ret = tcg_temp_local_new_i32();
-  tcg_gen_movi_i32(ret, 1);
-  return ret;
-}
-
-TCGv arc2_gen_get_lf(void)
-{
-  TCGv ret = tcg_temp_local_new_i32();
-  gen_helper_get_lf(ret);
-  return ret;
-}
-
-void arc2_gen_set_lf(TCGv value)
-{
-  gen_helper_set_lf(value);
-}

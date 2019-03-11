@@ -32,13 +32,11 @@ DEF_HELPER_1(flush, void, env)
 DEF_HELPER_4(raise_exception, noreturn, env, i32, i32, i32)
 DEF_HELPER_2(set_status32, void, env, i32)
 DEF_HELPER_1(get_status32, i32, env)
+DEF_HELPER_3(carry_add_flag, i32, i32, i32, i32)
 DEF_HELPER_3(overflow_add_flag, i32, i32, i32, i32)
 DEF_HELPER_3(overflow_sub_flag, i32, i32, i32, i32)
 
 DEF_HELPER_3(mpymu, i32, env, i32, i32)
 DEF_HELPER_3(mpym, i32, env, i32, i32)
-
-DEF_HELPER_0(get_lf, i32)
-DEF_HELPER_1(set_lf, void, i32)
 
 DEF_HELPER_3(repl_mask, i32, i32, i32, i32)

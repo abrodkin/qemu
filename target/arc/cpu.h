@@ -241,6 +241,8 @@ typedef struct CPUARCState {
   /* Fake register to keep track of the next pc. */
   uint32_t        npc_helper;
 
+  uint32_t	  lock_lf_var;
+
   struct {
     uint32_t    LD;     /*  load pending bit        */
     uint32_t    SH;     /*  self halt               */

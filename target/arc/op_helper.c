@@ -404,6 +404,17 @@ void helper_set_status32(CPUARCState *env, uint32_t value)
   set_status32(env, value);
 }
 
+uint32_t helper_carry_add_flag(uint32_t dest, uint32_t b, uint32_t c)
+{
+  uint32_t t1, t2, t3;
+
+  t1 = b & c;
+  t2 = b & (~dest);
+  t3 = c & (~dest);
+  t1 = t1 | t2 | t3;
+  return (t1 >> 31) & 1;
+}
+
 uint32_t helper_overflow_add_flag(uint32_t dest, uint32_t b, uint32_t c)
 {
   dest >>= 31;
@@ -453,6 +464,7 @@ uint32_t helper_mpym(CPUARCState *env, uint32_t b, uint32_t c)
   return ((_b * _c) >> 32);
 }
 
+/*
 uint32_t lf_variable = 0;
 uint32_t helper_get_lf(void)
 {
@@ -462,6 +474,7 @@ void helper_set_lf(uint32_t v)
 {
   lf_variable = v;
 }
+*/
 
 /* Local variables:
    eval: (c-set-style "gnu")

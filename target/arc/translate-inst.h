@@ -201,46 +201,43 @@ enum target_options {
   gen_helper_repl_mask (DEST, DEST, SRC, MASK)
 
 
-TCGv arc_gen_verifyCCFlag(DisasCtxt *ctx);
-#define getCCFlag() arc_gen_verifyCCFlag(ctx)
-TCGv arc_gen_getCarry(DisasCtxt *ctx);
-#define getCFlag() arc_gen_getCarry(ctx)
-TCGv arc_gen_verifyFFlag(DisasCtxt *ctx);
-#define getFFlag() arc_gen_verifyFFlag(ctx)
-TCGv to_implement(DisasCtxt *ctx);
-TCGv to_implement_wo_abort(DisasCtxt *ctx);
-TCGv arc_gen_getMSB(DisasCtxt *ctx, TCGv src);
-#define Carry(A) arc_gen_getMSB(ctx, A)
+void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret);
+#define getCCFlag(R) arc_gen_verifyCCFlag(ctx, R)
+
+#define getFFlag(R) tcg_gen_movi_tl(R, (int) ctx->insn.f != 0)
+
+void to_implement(DisasCtxt *ctx);
+void to_implement_wo_abort(DisasCtxt *ctx);
+
 void no_semantics(DisasCtxt *ctx);
 #define killDelaySlot() no_semantics(ctx)
 void arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend);
 #define setMemory(ADDRESS, SIZE, VALUE) arc2_gen_set_memory (ctx, ADDRESS, SIZE, VALUE, getFlagX())
-TCGv arc2_gen_get_memory (DisasCtxt *ctx, TCGv addr, int size, bool sign_extend);
-#define getMemory(ADDRESS, SIZE) arc2_gen_get_memory (ctx, ADDRESS, SIZE, getFlagX())
-bool arc2_get_flag_x (DisasCtxt *ctx);
-#define getFlagX() arc2_get_flag_x (ctx)
-int arc2_get_flag_zz (DisasCtxt *ctx);
-#define getZZFlag() arc2_get_flag_zz (ctx)
-int arc2_get_flag_aa (DisasCtxt *ctx);
-#define getAAFlag() arc2_get_flag_aa (ctx)
-TCGv arc2_gen_sign_extend(DisasCtxt *ctx, TCGv value, int size);
-#define SignExtend(VALUE, SIZE) arc2_gen_sign_extend (ctx, VALUE, SIZE)
-TCGv arc2_gen_no_further_loads_pending(DisasCtxt *ctx);
-#define NoFurtherLoadsPending() to_implement_wo_abort(ctx)
+void arc2_gen_get_memory (DisasCtxt *ctx, TCGv ret, TCGv addr, int size, bool sign_extend);
+#define getMemory(R, ADDRESS, SIZE) arc2_gen_get_memory (ctx, R, ADDRESS, SIZE, getFlagX())
+
+#define getFlagX() (ctx->insn.x)
+#define getZZFlag() (ctx->insn.zz)
+#define getAAFlag() (ctx->insn.aa)
+
+#define SignExtend(VALUE, SIZE) VALUE
+//#define SignExtend(VALUE, SIZE) arc2_gen_sign_extend (ctx, VALUE, SIZE)
+void arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret);
+#define NoFurtherLoadsPending(R) arc2_gen_no_further_loads_pending(ctx, R)
 void arc2_gen_set_debug(DisasCtxt *ctx, bool value);
 #define setDebugLD(A) arc2_gen_set_debug(ctx, A)
 void arc2_gen_execute_delayslot(DisasCtxt *ctx);
 #define executeDelaySlot() arc2_gen_execute_delayslot(ctx)
 bool arc2_gen_should_execute_delayslot(DisasCtxt *ctx);
 #define shouldExecuteDelaySlot() arc2_gen_should_execute_delayslot(ctx)
+
 void arc2_gen_setNFlag(TCGv elem);
 #define setNFlag(ELEM) arc2_gen_setNFlag(ELEM)
-TCGv arc2_gen_getNFlag(void);
-#define getNFlag() arc2_gen_getNFlag()
+#define getNFlag(R) cpu_Nf
 
+#define setCFlag(ELEM) tcg_gen_mov_tl(cpu_Cf, ELEM)
+#define getCFlag(R)    tcg_gen_mov_tl(R, cpu_Cf)
 
-void arc2_gen_setCarry(TCGv elem);
-#define setCFlag(ELEM) arc2_gen_setCarry(ELEM)
 void arc2_gen_setVFlag(TCGv elem);
 #define setVFlag(ELEM) arc2_gen_setVFlag(ELEM)
 void arc2_gen_set_zflag(TCGv elem);
@@ -248,100 +245,99 @@ void arc2_gen_set_zflag(TCGv elem);
 
 int arc2_get_tcgv_value(TCGv elem);
 
-TCGv arc2_get_next_insn_address_after_delayslot(DisasCtxt *ctx);
-#define nextInsnAddressAfterDelaySlot() arc2_get_next_insn_address_after_delayslot (ctx)
-TCGv arc2_get_next_insn_address(DisasCtxt *ctx);
-#define nextInsnAddress() arc2_get_next_insn_address (ctx)
-TCGv arc2_gen_get_pcl(DisasCtxt *ctx);
-#define getPCL() arc2_gen_get_pcl(ctx)
-void arc2_set_pc(DisasCtxt *ctx, TCGv new_pc);
+#define nextInsnAddressAfterDelaySlot(R) tcg_gen_movi_tl(R, ctx->dpc);
+
+#define nextInsnAddress(R) tcg_gen_movi_tl(R, ctx->npc)
+#define getPCL(R) tcg_gen_movi_tl(R, ctx->pcl)
+
 #define setPC(NEW_PC) \
-  arc2_set_pc(ctx, NEW_PC); \
+  gen_goto_tb(ctx, 1, NEW_PC); \
   ret = ret == BS_NONE ? BS_BRANCH : ret
-void arc2_set_blink(DisasCtxt *ctx, TCGv blink_addr);
-#define setBLINK(BLINK_ADDR) arc2_set_blink(ctx, BLINK_ADDR);
-TCGv arc2_gen_add_Cf(TCGv dest, TCGv src1, TCGv src2);
-#define CarryADD(A, B, C) arc2_gen_add_Cf(A, B, C)
-TCGv arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2);
-#define OverflowADD(A, B, C) arc2_gen_add_Vf(A, B, C)
-TCGv arc2_gen_sub_Cf(TCGv dest, TCGv src1, TCGv src2);
-#define CarrySUB(A, B, C) arc2_gen_sub_Cf(A, B, C)
 
-TCGv arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2);
-#define OverflowSUB(A, B, C) arc2_gen_sub_Vf(A, B, C)
+#define setBLINK(BLINK_ADDR) tcg_gen_mov_i32(cpu_blink, BLINK_ADDR);
 
-TCGv arc2_gen_unsigned_LT(TCGv b, TCGv c);
-#define unsignedLT(B, C) arc2_gen_unsigned_LT (B, C)
-TCGv arc2_gen_unsigned_GE(TCGv b, TCGv c);
-#define unsignedGE(B, C) arc2_gen_unsigned_GE (B, C)
-TCGv arc2_gen_logical_shift_right (TCGv b, TCGv c);
-#define logicalShiftRight(B, C) \
-  arc2_gen_logical_shift_right (B, C)
-TCGv arc2_gen_logical_shift_left (TCGv b, TCGv c);
-#define logicalShiftLeft(B, C) \
-  arc2_gen_logical_shift_left (B, C)
-TCGv arc2_gen_arithmetic_shift_right (TCGv b, TCGv c);
-#define arithmeticShiftRight(B, C) \
-  arc2_gen_arithmetic_shift_right (B, C)
-TCGv arc2_gen_rotate_left (TCGv b, TCGv c);
-#define rotateLeft(B, C) \
-  arc2_gen_rotate_left (B, C)
-TCGv arc2_gen_rotate_right (TCGv b, TCGv c);
-#define rotateRight(B, C) \
-  arc2_gen_rotate_right (B, C)
+#define Carry(R, A) tcg_gen_shri_tl(R, A, 31);
+void arc2_gen_add_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
+#define CarryADD(R, A, B, C) arc2_gen_add_Cf(R, A, B, C)
+void arc2_gen_add_Vf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
+#define OverflowADD(R, A, B, C) arc2_gen_add_Vf(R, A, B, C)
+void arc2_gen_sub_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
+#define CarrySUB(R, A, B, C) arc2_gen_sub_Cf(R, A, B, C)
 
-TCGv arc2_gen_get_bit (TCGv a, TCGv pos);
-#define getBit(A, POS) \
-  arc2_gen_get_bit(A, POS)
+void arc2_gen_sub_Vf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
+#define OverflowSUB(R, A, B, C) arc2_gen_sub_Vf(R, A, B, C)
 
-TCGv arc2_gen_get_aux_reg_index(enum arc_registers reg_id);
-#define getRegIndex(ID) \
-  arc2_gen_get_aux_reg_index(ID)
-TCGv arc2_gen_read_aux_reg (TCGv reg_id);
-#define readAuxReg(A) \
-  arc2_gen_read_aux_reg(A)
-void arc2_gen_write_aux_reg (TCGv reg_id, TCGv b);
-#define writeAuxReg(NAME, B) \
-  arc2_gen_write_aux_reg(NAME, B)
-void tcg_gen_shlfi_i32(TCGv a, int b, TCGv c);
-TCGv arc2_gen_mac(TCGv_i32 b, TCGv_i32 c);
-#define MAC(B, C) \
-  arc2_gen_mac(B, C)
-TCGv arc2_gen_macu(TCGv_i32 b, TCGv_i32 c);
-#define MACU(B, C) \
-  arc2_gen_macu(B, C)
-TCGv arc2_gen_extract_bits (TCGv a, TCGv start, TCGv end);
-#define extractBits(ELEM, START, END) \
-  arc2_gen_extract_bits(ELEM, START, END)
-TCGv arc2_gen_get_register(enum arc_registers reg);
-#define getRegister(REG) \
-  arc2_gen_get_register(REG)
+//void arc2_gen_unsigned_LT(TCGv ret, TCGv b, TCGv c);
+#define unsignedLT(R, B, C) tcg_gen_setcond_i32(TCG_COND_LTU, R, B, C);
+//#define unsignedLT(R, B, C) arc2_gen_unsigned_LT (R, B, C)
+
+//TCGv arc2_gen_unsigned_GE(TCGv ret, TCGv b, TCGv c);
+//#define unsignedGE(R, B, C) arc2_gen_unsigned_GE (R, B, C)
+#define unsignedGE(R, B, C) tcg_gen_setcond_i32(TCG_COND_GEU, R, B, C)
+
+//TCGv arc2_gen_logical_shift_right (TCGv ret, TCGv b, TCGv c);
+#define logicalShiftRight(R, B, C) tcg_gen_shr_i32(R, B, C)
+
+//TCGv arc2_gen_logical_shift_left (TCGv ret, TCGv b, TCGv c);
+#define logicalShiftLeft(R, B, C) tcg_gen_shl_i32(R, B, C)
+
+//TCGv arc2_gen_arithmetic_shift_right (TCGv ret, TCGv b, TCGv c);
+#define arithmeticShiftRight(R, B, C) tcg_gen_sar_i32 (R, B, C)
+
+//TCGv arc2_gen_rotate_left (TCGv ret, TCGv b, TCGv c);
+#define rotateLeft(R, B, C) tcg_gen_rotl_i32 (R, B, C)
+
+//TCGv arc2_gen_rotate_right (TCGv ret, TCGv b, TCGv c);
+#define rotateRight(R, B, C) tcg_gen_rotr_i32 (R, B, C)
+
+void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
+#define getBit(R, A, POS) arc2_gen_get_bit(R, A, POS)
+
+#define getRegIndex(R, ID) tcg_gen_movi_tl(R, (int) ID)
+
+#define readAuxReg(R, A) gen_helper_lr(R, cpu_env, A)
+#define writeAuxReg(NAME, B) gen_helper_sr(cpu_env, B, NAME)
+
+void arc2_gen_mac(TCGv phi, TCGv_i32 b, TCGv_i32 c);
+#define MAC(R, B, C) \
+  arc2_gen_mac(R, B, C)
+void arc2_gen_macu(TCGv phi, TCGv_i32 b, TCGv_i32 c);
+#define MACU(R, B, C) \
+  arc2_gen_macu(R, B, C)
+
+
+void arc2_gen_extract_bits (TCGv ret, TCGv a, TCGv start, TCGv end);
+#define extractBits(R, ELEM, START, END) \
+  arc2_gen_extract_bits(R, ELEM, START, END)
+void arc2_gen_get_register(TCGv ret, enum arc_registers reg);
+#define getRegister(R, REG) \
+  arc2_gen_get_register(R, REG)
 void arc2_gen_set_register(enum arc_registers reg, TCGv value);
 #define setRegister(REG, VALUE) \
   arc2_gen_set_register(REG, VALUE)
 
-TCGv arc2_gen_next_reg(TCGv reg);
-#define nextReg(R) \
-  arc2_gen_next_reg(R)
-
-TCGv arc2_gen_div_signed(TCGv src1, TCGv src2);
-#define divSigned(SRC1, SRC2) arc2_gen_div_signed(SRC1, SRC2)
-TCGv arc2_gen_div_unsigned(TCGv src1, TCGv src2);
-#define divUnsigned(SRC1, SRC2) arc2_gen_div_unsigned(SRC1, SRC2)
-
-TCGv arc2_gen_div_remaining_signed(TCGv src1, TCGv src2);
-#define divRemainingSigned(SRC1, SRC2) arc2_gen_div_remaining_signed(SRC1, SRC2)
-TCGv arc2_gen_div_remaining_unsigned(TCGv src1, TCGv src2);
-#define divRemainingUnsigned(SRC1, SRC2) arc2_gen_div_remaining_unsigned(SRC1, SRC2)
+#define divSigned(R, SRC1, SRC2) tcg_gen_div_i32(R, SRC1, SRC2)
+#define divUnsigned(R, SRC1, SRC2) tcg_gen_divu_i32(R, SRC1, SRC2)
+#define divRemainingSigned(R, SRC1, SRC2) tcg_gen_rem_i32(R, SRC1, SRC2)
+#define divRemainingUnsigned(R, SRC1, SRC2) tcg_gen_remu_i32(R, SRC1, SRC2)
 
 #define Halt() \
   to_implement_wo_abort(ctx)
 
-TCGv arc2_has_interrupts(DisasCtxt *);
-#define hasInterrupts() \
-  arc2_has_interrupts(ctx)
-
+void arc2_has_interrupts(DisasCtxt *ctx, TCGv ret);
+#define hasInterrupts(R) arc2_has_interrupts(ctx, R)
 #define doNothing()
+
+#define setLF(VALUE) tcg_gen_mov_tl(cpu_lock_lf_var, VALUE)
+#define getLF(R) tcg_gen_mov_tl(R, cpu_lock_lf_var)
+
+/* Statically infered return function */
+
+TCGv arc2_gen_next_reg(TCGv reg);
+#define nextReg(A) \
+  arc2_gen_next_reg(A)
+
+#define Zero() (ctx->zero)
 
 bool arc2_target_has_option(enum target_options option);
 #define targetHasOption(OPTION) \
@@ -351,11 +347,7 @@ bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop);
 #define instructionHasRegisterOperandIn(NOP) \
    arc_is_instruction_operand_a_register(ctx, NOP)
 
-void arc2_gen_set_lf(TCGv value);
-#define setLF(VALUE) arc2_gen_set_lf(VALUE)
-TCGv arc2_gen_get_lf(void);
-#define getLF(VALUE) arc2_gen_get_lf()
-
-#define Zero() (ctx->zero)
+void tcg_gen_shlfi_i32(TCGv a, int b, TCGv c);
 
 #endif /* __TRANSLATE_INST_H__ */
+
