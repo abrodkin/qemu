@@ -73,6 +73,12 @@ static void hsdk_init(MachineState *machine)
     serial_mm_init(system_io, HSDK_UART0_OFFSET, 2, cpu->env.irq[30],
                    115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
 
+    sysbus_create_simple("virtio-mmio", 0xf0100000, cpu->env.irq[31]);
+    sysbus_create_simple("virtio-mmio", 0xf0101000, cpu->env.irq[32]);
+    sysbus_create_simple("virtio-mmio", 0xf0102000, cpu->env.irq[33]);
+    sysbus_create_simple("virtio-mmio", 0xf0103000, cpu->env.irq[34]);
+    sysbus_create_simple("virtio-mmio", 0xf0104000, cpu->env.irq[35]);
+
     arc_load_kernel(cpu, HSDK_RAM_BASE, HSDK_RAM_SIZE, kernel_filename);
 }
 
