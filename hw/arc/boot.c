@@ -27,7 +27,7 @@ void arc_load_kernel(ARCCPU *cpu, ram_addr_t ddr_base, ram_addr_t ram_size,
     hwaddr entry;
 
     if (kernel_filename && !qtest_enabled()) {
-        kernel_size = load_elf(kernel_filename, NULL, NULL,
+        kernel_size = load_elf(kernel_filename, NULL, NULL, NULL,
                                &elf_entry, NULL, NULL, 0, cpu->env.family > 2 ?
                                EM_ARC_COMPACT2 : EM_ARC_COMPACT,
                                1, 0);
