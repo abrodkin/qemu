@@ -68,6 +68,8 @@ typedef struct DisasContext {
     enum insn_return_state bstate;
     uint16_t buffer[2];
 
+    uint8_t mem_idx;
+
 } DisasContext;
 
 

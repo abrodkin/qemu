@@ -48,6 +48,7 @@ static target_ulong get_status32 (CPUARCState *env)
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
+  ARCCPU *cpu = arc_env_get_cpu(env);
   /* TODO: Implement debug mode. */
   bool debug_mode = false;
   if(env->stat.Uf == 1)
@@ -59,6 +60,8 @@ static void set_status32(CPUARCState *env, target_ulong value)
       value &= 0xffff6f3f;
     }
 
+  if(((env->stat.Uf >> 7)  & 0x1) != ((value >> 7)  & 0x1))
+    tlb_flush(cpu);
 
   unpack_status32(&env->stat, value);
 }

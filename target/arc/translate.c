@@ -270,6 +270,8 @@ static void arc_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
 {
   DisasContext *dc = container_of(dcbase, DisasContext, base);
   dc->bstate = BS_NONE;
+
+  dc->mem_idx = dc->base.tb->flags & 1;
 }
 static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
 {

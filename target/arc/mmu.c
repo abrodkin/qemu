@@ -116,9 +116,48 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
   }
 }
 
-// vaddr can't have top bit
+/* vaddr can't have top bit */
 #define VPN(addr) ((addr) & (PAGE_MASK & (~0x80000000)))
 #define PFN(addr) ((addr) & PAGE_MASK)
+
+static void
+arc_mmu_debug_tlb_for_set(CPUARCState *env, int set)
+{
+  int j;
+  bool set_printed = false;
+
+  for(j = 0; j < N_WAYS; j++)
+    {
+      struct arc_tlb_e *tlb = &env->mmu.nTLB[set][j];
+
+      if((tlb->pd0 & PD0_V) != 0)
+	{
+	  if(set_printed == false)
+	    {
+	      printf("set %d\n", set);
+	      set_printed = true;
+	    }
+	  if(set_printed == true)
+	    printf(" way %d\n", j);
+      printf("  tlppd0: %08x: vaddr=\t%08x %s %s%s asid=%02x\n",
+	     (unsigned int) tlb->pd0, (unsigned int) VPN(tlb->pd0),
+	     (char *) ((tlb->pd0 & PD0_SZ) != 0 ? "sz1" : "sz0"),
+	     (char *) ((tlb->pd0 & PD0_V) != 0 ? "V" : ""),
+	     (char *) ((tlb->pd0 & PD0_G) != 0 ? "g" : ""),
+	     tlb->pd0 & PD0_ASID);
+
+      printf("  tlppd1: %08x: paddr=\t%08x k:%s%s%s u:%s%s%s f:%s\n",
+	     (unsigned int) tlb->pd1, (unsigned int) PFN(tlb->pd1),
+	     (char *) ((tlb->pd1 & PD1_RK) != 0 ? "R" : "r"),
+	     (char *) ((tlb->pd1 & PD1_WK) != 0 ? "W" : "w"),
+	     (char *) ((tlb->pd1 & PD1_XK) != 0 ? "X" : "x"),
+	     (char *) ((tlb->pd1 & PD1_RU) != 0 ? "R" : "r"),
+	     (char *) ((tlb->pd1 & PD1_WU) != 0 ? "W" : "w"),
+	     (char *) ((tlb->pd1 & PD1_XU) != 0 ? "X" : "x"),
+	     (char *) ((tlb->pd1 & PD1_FC) != 0 ? "C" : "c"));
+	}
+    }
+}
 
 void
 arc_mmu_debug_tlb(CPUARCState *env)
@@ -127,42 +166,16 @@ arc_mmu_debug_tlb(CPUARCState *env)
 
   for(i = 0; i < N_SETS; i++)
     {
-      bool set_printed = false;
-      int j;
-
-      for(j = 0; j < N_WAYS; j++)
-	{
-	  struct arc_tlb_e *tlb = &env->mmu.nTLB[i][j];
-
-	  if((tlb->pd0 & PD0_V) != 0)
-	    {
-	      if(set_printed == false)
-	        {
-		  printf("set %d\n", i);
-		  set_printed = true;
-		}
-	      if(set_printed == true)
-		printf(" way %d\n", j);
-	  printf("  tlppd0: %08x: vaddr=\t%08x %s %s%s asid=%02x\n",
-		 (unsigned int) tlb->pd0, (unsigned int) VPN(tlb->pd0),
-		 (char *) ((tlb->pd0 & PD0_SZ) != 0 ? "sz1" : "sz0"),
-		 (char *) ((tlb->pd0 & PD0_V) != 0 ? "V" : ""),
-		 (char *) ((tlb->pd0 & PD0_G) != 0 ? "g" : ""),
-		 tlb->pd0 & PD0_ASID);
-
-	  printf("  tlppd1: %08x: paddr=\t%08x k:%s%s%s u:%s%s%s f:%s\n",
-		 (unsigned int) tlb->pd1, (unsigned int) PFN(tlb->pd1),
-		 (char *) ((tlb->pd1 & PD1_RK) != 0 ? "R" : "r"),
-		 (char *) ((tlb->pd1 & PD1_WK) != 0 ? "W" : "w"),
-		 (char *) ((tlb->pd1 & PD1_XK) != 0 ? "X" : "x"),
-		 (char *) ((tlb->pd1 & PD1_RU) != 0 ? "R" : "r"),
-		 (char *) ((tlb->pd1 & PD1_WU) != 0 ? "W" : "w"),
-		 (char *) ((tlb->pd1 & PD1_XU) != 0 ? "X" : "x"),
-		 (char *) ((tlb->pd1 & PD1_FC) != 0 ? "C" : "c"));
-	    }
-	}
+      arc_mmu_debug_tlb_for_set(env, i);
     }
 }
+void
+arc_mmu_debug_tlb_for_vaddr(CPUARCState *env, uint32_t vaddr)
+{
+  uint32_t set = (vaddr >> PAGE_SHIFT) & (N_SETS - 1);
+  arc_mmu_debug_tlb_for_set(env, set);
+}
+
 
 static struct arc_tlb_e *
 arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
@@ -240,6 +253,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 		       uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
+  CPUState *cs = CPU(arc_env_get_cpu(env));
   struct arc_mmu *mmu = &env->mmu;
   uint32_t pd0 = mmu->tlbpd0;
   uint32_t pd1 = mmu->tlbpd1;
@@ -275,6 +289,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
     }
   if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
     {
+      tlb_flush_page_by_mmuidx(cs, VPN(pd0), 0);
 
       if((pd0 & PD0_G) != 0)
 	matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
@@ -393,8 +408,10 @@ arc_mmu_translate(struct CPUARCState *env,
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
 
   if(rwe != MMU_MEM_IRRELEVANT_TYPE
-     && env->stat.Uf == true && vaddr >= 0x80000000)
+     && env->stat.Uf != 0 && vaddr >= 0x80000000)
+  {
     goto protv_exception;
+  }
 
   /* Check that we are not addressing an address above 0x80000000.
    * Return the same address in that case. */
@@ -576,6 +593,10 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   CPUARCState *env = &cpu->env;
   enum mmu_access_type rwe = (char) access_type;
 
+  bool trigger_exception = false;
+
+  //if(vaddr >= 0x80000000 && env->stat.Uf != 0)
+  //  printf("HERE\n");
   uint32_t paddr = vaddr;
   if(vaddr < 0x80000000 && env->mmu.enabled)
     {
@@ -598,12 +619,14 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
     }
   else
     {
-      if(env->stat.Uf != 1)
-	prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+      if(mmu_idx == 0)
+	{
+	  prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+	}
       else
 	{
           cpu_restore_state(cs, retaddr, true);
-          env->efa = arc_mmu_page_address_for(vaddr);
+          env->efa = vaddr;
           env->eret = env->pc;
           env->erbta = env->npc_helper;
 
@@ -617,12 +640,19 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
           env->param = 0x08;
           cpu_loop_exit (cs);
 
-      SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+	  return;
+	  //SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
 	}
 
     }
 
+  assert(mmu_idx == 0 || (mmu_idx == 1 && vaddr < 0x80000000));
+
   vaddr = arc_mmu_page_address_for(vaddr);
   paddr = (paddr & PAGE_MASK);
+
+  //if(mmu_idx == 1)
+  //  tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, 0, page_size);
+
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }

@@ -37,7 +37,7 @@
 #define TARGET_PAGE_BITS            13
 #define TARGET_PHYS_ADDR_SPACE_BITS 32
 #define TARGET_VIRT_ADDR_SPACE_BITS 32
-#define NB_MMU_MODES                1
+#define NB_MMU_MODES                2
 
 #define ARC_CPU_TYPE_SUFFIX "-" TYPE_ARC_CPU
 #define ARC_CPU_TYPE_NAME(model) model ARC_CPU_TYPE_SUFFIX
@@ -431,7 +431,13 @@ static inline void  arc_set_feature(CPUARCState *env, int feature)
 
 static inline int cpu_mmu_index(CPUARCState *env, bool ifetch)
 {
-    return  0;
+  return env->stat.Uf != 0 ? 1 : 0;
+  //return 0;
+
+  //if(env->stat.Uf != 0)
+  //  return env->mmu.pid_asid;
+  //else
+  //  return 0x100;
 }
 
 void arc_translate_init(void);
@@ -458,7 +464,11 @@ static inline void cpu_get_tb_cpu_state(CPUARCState *env, target_ulong *pc,
 {
     *pc = env->pc;
     *cs_base = 0;
-    *pflags = 0;
+#ifdef CONFIG_USER_ONLY
+    *pflags = TB_FLAGS_FP_ENABLE;
+#else
+    *pflags = cpu_mmu_index(env, 0);
+#endif
 }
 
 static inline int cpu_interrupts_enabled(CPUARCState *env1)

@@ -134,6 +134,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
 
   /* 7. CPU is switched to kernel mode.  */
   env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
+  //tlb_flush(cpu);
   if (env->stat_er.Uf)
     switchSP (env);
 

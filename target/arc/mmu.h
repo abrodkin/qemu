@@ -152,6 +152,7 @@ arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t *index);
 
 void arc_mmu_debug_tlb(struct CPUARCState *env);
+void arc_mmu_debug_tlb_for_vaddr(struct CPUARCState *env, uint32_t vaddr);
 
 uint32_t arc_mmu_page_address_for(uint32_t vaddr);
 

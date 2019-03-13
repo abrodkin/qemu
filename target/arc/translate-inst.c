@@ -181,7 +181,7 @@ no_semantics(DisasCtxt *ctx)
   return;
 }
 
-#define MEMIDX 0
+#define MEMIDX (ctx->mem_idx)
 
 void
 arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_extend)

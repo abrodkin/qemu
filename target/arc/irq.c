@@ -220,6 +220,7 @@ static void arc_enter_firq (ARCCPU *cpu, uint32_t vector)
   env->stat.ESf = 0;
   env->stat.DZf = 0;
   env->stat.DEf = 0;
+  //tlb_flush(cpu);
 
   /* Set .RB to 1 if additional register banks are specified.  */
   if (cpu->cfg.rgf_num_banks > 0)
@@ -234,7 +235,10 @@ static void irq_push (CPUARCState *env, uint32_t regval, const char *str)
   CPU_SP (env) -= 4;
   qemu_log_mask (CPU_LOG_INT, "[IRQ] Push [SP:0x%08x] <= 0x%08x (%s)\n",
 		 CPU_SP (env), regval, str ? str : "unk");
+  uint32_t uf = env->stat.Uf;
+  env->stat.Uf = 0;
   cpu_stl_data (env, CPU_SP (env), regval);
+  env->stat.Uf = uf;
 }
 
 static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
@@ -310,6 +314,7 @@ static void arc_enter_irq (ARCCPU *cpu, uint32_t vector)
   env->stat.DZf = 0;
   env->stat.DEf	 = 0;
   env->stat.Uf = 0;
+  //tlb_flush(cpu);
 }
 
 /* Function implementation for reading/writing aux regs.  */
