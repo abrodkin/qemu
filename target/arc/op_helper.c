@@ -61,7 +61,7 @@ static void set_status32(CPUARCState *env, target_ulong value)
     }
 
   if(((env->stat.Uf >> 7)  & 0x1) != ((value >> 7)  & 0x1))
-    tlb_flush(cpu);
+    tlb_flush(CPU(cpu));
 
   unpack_status32(&env->stat, value);
 }
