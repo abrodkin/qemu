@@ -1574,7 +1574,6 @@ arc_map_opcode (const struct arc_opcode *opcode)
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
 
-  assert(0);
   return MAP_NONE;
 }
 
@@ -1828,12 +1827,10 @@ int arc_decode (DisasCtxt *ctx)
     }
   else
     {
-      // FIXME! enable it when we have full support.
-      //gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
+      gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
       arc_debug_opcode(opcode, ctx, "Could not identify opcode");
-      assert(0);
       ret = BS_NONE;
-      should_stop = true;
+      //should_stop = true;
     }
 
 #ifdef DEBUG_TCG
