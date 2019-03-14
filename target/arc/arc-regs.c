@@ -53,6 +53,15 @@ struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST] = {
 #undef AUX_REG
 };
 
+const char *arc_aux_reg_name[ARC_AUX_REGS_DETAIL_LAST] =
+{
+#define AUX_REG(NAME, GET, SET) #NAME,
+#include "arc-regs.def"
+#undef AUX_REG
+  "last_invalid_aux_reg"
+};
+
+
 void arc_aux_regs_init(void)
 {
   int i;

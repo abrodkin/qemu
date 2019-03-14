@@ -57,6 +57,7 @@ enum arc_aux_reg_detail_enum
 };
 #endif
 
+
 struct arc_aux_regs_data;
 struct arc_aux_reg_detail {
 
@@ -101,6 +102,7 @@ struct arc_aux_reg {
 
 extern struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST];
 extern struct arc_aux_reg arc_aux_regs[ARC_AUX_REGS_LAST];
+extern const char *arc_aux_reg_name[ARC_AUX_REGS_DETAIL_LAST];
 
 void arc_aux_regs_init(void);
 int arc_aux_reg_address_for(enum arc_aux_reg_enum, int);

@@ -389,6 +389,11 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
   const uint32_t irq = env->irq_select;
   arc_irq_t *irq_bank = &env->irq_bank[irq];
 
+  qemu_log_mask (CPU_LOG_INT, "[IRQ] set aux_reg: %s, with 0x%08x\n",
+		 arc_aux_reg_name[aux_reg_detail->id],
+		 val);
+
+
   switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_select:
