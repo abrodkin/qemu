@@ -28,7 +28,7 @@ extern "C" {
 typedef enum
 {
   NADA = 0,
-  ACL,
+  ARC_ACL,
   ARITH,
   AUXREG,
   BBIT0,
@@ -46,7 +46,7 @@ typedef enum
   DSP,
   EI,
   ENTER,
-  FLOAT,
+  ARC_FLOAT,
   INVALID,
   JLI,
   JUMP,
