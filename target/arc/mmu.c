@@ -285,7 +285,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
       mmu->tlbpd0 = tlb->pd0;
       mmu->tlbpd1 = tlb->pd1;
 
-      mmu->tlbindex &= ~(TLBINDEX_E || TLBINDEX_RC);
+      mmu->tlbindex &= ~(TLBINDEX_E | TLBINDEX_RC);
     }
   if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
     {
