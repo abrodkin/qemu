@@ -403,6 +403,7 @@ arc_mmu_translate(struct CPUARCState *env,
 		  uint32_t *index)
 {
   struct arc_mmu *mmu = &(env->mmu);
+  struct arc_tlb_e *tlb = NULL;
   int num_matching_tlb = 0;
 
   SET_MMU_EXCEPTION(env, EXCP_NO_EXCEPTION, 0, 0);
@@ -423,10 +424,8 @@ arc_mmu_translate(struct CPUARCState *env,
 		   env->pc, vaddr, mmu->pid_asid, RWE_STRING(rwe));
 
   uint32_t match_pd0 = (VPN(vaddr) | PD0_V);
-  struct arc_tlb_e *tlb = arc_mmu_lookup_tlb(match_pd0,
-					     (VPN(PD0_VPN) | PD0_V),
-					     mmu,
-					     &num_matching_tlb, index);
+  tlb = arc_mmu_lookup_tlb(match_pd0, (VPN(PD0_VPN) | PD0_V), mmu,
+                            &num_matching_tlb, index);
 
   /* Check for multiple matches in nTLB, and return machine check exception. */
   if(num_matching_tlb > 1)

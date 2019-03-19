@@ -578,6 +578,9 @@ arc2_gen_next_reg(TCGv reg)
     if(reg == cpu_r[i])
       return cpu_r[i+1];
   assert(!"Should not reach here!");
+
+  /* We never get here but to accommodate -Werror ... */
+  return NULL;
 }
 
 bool

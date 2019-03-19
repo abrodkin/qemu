@@ -88,6 +88,9 @@ arc_aux_reg_address_for(enum arc_aux_reg_enum aux_reg_def,
     detail = detail->next;
   }
   assert(0);
+
+  /* We never get here but to accommodate -Werror ... */
+  return 0;
 }
 
 struct arc_aux_reg_detail *
