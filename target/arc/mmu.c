@@ -494,7 +494,6 @@ protv_exception:
   }
   else
     {
-tlb_miss_exception:
       if(rwe != MMU_MEM_IRRELEVANT_TYPE)
 	{
 	  /* To remove eventually, just fail safe to check kernel. */
@@ -592,8 +591,6 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
   ARCCPU *cpu = ARC_CPU(cs);
   CPUARCState *env = &cpu->env;
   enum mmu_access_type rwe = (char) access_type;
-
-  bool trigger_exception = false;
 
   //if(vaddr >= 0x80000000 && env->stat.Uf != 0)
   //  printf("HERE\n");
