@@ -496,6 +496,7 @@ DEF (0xff, ARC_OPCODE_DEFAULT,  NONE, unimp_bcr)
 
 /* Actual BCR implementations */
 
+DEF (0x6d, ARC_OPCODE_ARCv2HS,  NONE, mpu_build)
 DEF (0x6f, ARC_OPCODE_ARCv2HS,  NONE, mmu_build)
 DEF (0x75,  ARC_OPCODE_ARCALL,  NONE, timer_build)
 DEF (0xf3,  ARC_OPCODE_ARCV2,   NONE, irq_build)

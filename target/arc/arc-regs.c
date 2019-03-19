@@ -23,6 +23,7 @@
 #include "qemu/error-report.h"
 #include "arc-regs.h"
 #include "mmu.h"
+#include "mpu.h"
 #include "irq.h"
 #include "arc_timer.h"
 #include "arc-cache.h"

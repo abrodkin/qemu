@@ -1,13 +1,7 @@
   .include "macros.inc"
 
   start
-
-  lr  r0, [status32]
-  or  r0, r0, 128      ; set the STATUS32.U
-  sr  r0, [erstatus]
-  mov r0, @user_mode
-  sr  r0, [eret]
-  rtie
+  enter_user_mode @user_mode
 
 user_mode:
   nop

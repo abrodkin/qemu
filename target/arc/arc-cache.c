@@ -135,7 +135,7 @@ uint32_t arc_cache_aux_get(struct arc_aux_reg_detail *aux_reg_detail,
              /* SB - Success Bit: Success of last cache operation: 1 - succeded (immediately) */
              (1 << 2) |
              /* IM - Invalidate Mode: Selects the invalidate type */
-             (cache->dc_inv_mode & 1) << 6; 
+             (cache->dc_inv_mode & 1) << 6;
         break;
 
     case AUX_ID_dc_endr:

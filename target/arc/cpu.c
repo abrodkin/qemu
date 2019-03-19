@@ -25,6 +25,7 @@
 #include "migration/vmstate.h"
 #include "exec/log.h"
 #include "mmu.h"
+#include "mpu.h"
 #include "hw/qdev-properties.h"
 #include "irq.h"
 #include "hw/arc/cpudevs.h"
@@ -72,7 +73,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("fpu", ARCCPU, cfg.has_fpu, false),
  DEFINE_PROP_BOOL ("has-irq", ARCCPU, cfg.has_interrupts, true),
  DEFINE_PROP_BOOL ("has-mmu", ARCCPU, cfg.has_mmu, true),
- DEFINE_PROP_BOOL ("has-mpu", ARCCPU, cfg.has_mpu, false),
+ DEFINE_PROP_BOOL ("has-mpu", ARCCPU, cfg.has_mpu, true),
  DEFINE_PROP_BOOL ("timer0", ARCCPU, cfg.has_timer_0, true),
  DEFINE_PROP_BOOL ("timer1", ARCCPU, cfg.has_timer_1, true),
  DEFINE_PROP_BOOL ("has-pct", ARCCPU, cfg.has_pct, false),
@@ -80,7 +81,7 @@ static Property arc_properties[] =
  DEFINE_PROP_BOOL ("has-smart", ARCCPU, cfg.has_smart, false),
  DEFINE_PROP_UINT32 ("intv-base", ARCCPU, cfg.intvbase_preset, 0x0),
  DEFINE_PROP_UINT32 ("lpc-size", ARCCPU, cfg.lpc_size, 32),
- DEFINE_PROP_UINT8 ("mpu-numreg", ARCCPU, cfg.mpu_num_regions, -1),
+ DEFINE_PROP_UINT8 ("mpu-numreg", ARCCPU, cfg.mpu_num_regions, 0),
  DEFINE_PROP_UINT8 ("mpy-option", ARCCPU, cfg.mpy_option, 2),
  DEFINE_PROP_UINT32 ("mmu-pagesize0", ARCCPU, cfg.mmu_page_size_sel0, -1),
  DEFINE_PROP_UINT32 ("mmu-pagesize1", ARCCPU, cfg.mmu_page_size_sel1, -1),
@@ -155,8 +156,10 @@ static void arc_cpu_reset(CPUState *s)
   /* Initialize mmu/reset it. */
   arc_mmu_init(&env->mmu);
 
-  arc_resetTIMER (cpu);
-  arc_resetIRQ (cpu);
+  arc_mpu_init(cpu);
+
+  arc_resetTIMER(cpu);
+  arc_resetIRQ(cpu);
 
   arcc->parent_reset(s);
 

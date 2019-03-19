@@ -4087,7 +4087,7 @@ arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 
 
 /* NOP
- *    Variables: 
+ *    Variables:
  *    Functions: doNothing
 --- code ---
 {
@@ -4108,7 +4108,7 @@ arc2_gen_NOP (DisasCtxt *ctx)
 
 
 /* PREALLOC
- *    Variables: 
+ *    Variables:
  *    Functions: doNothing
 --- code ---
 {
@@ -7407,7 +7407,7 @@ arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
 
 /* DMB
  *    Variables: @a
- *    Functions: 
+ *    Functions:
 --- code ---
 {
   @a = @a;

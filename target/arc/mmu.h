@@ -104,7 +104,7 @@ struct arc_tlb_e {
 
 struct arc_mmu {
   uint32_t enabled;
-  struct {
+  struct mmu_exception {
     int32_t number;
     uint8_t causecode;
     uint8_t parameter;

@@ -6,6 +6,11 @@
 .equ REG_TLB_CMD , 0x465  ; TLB command
 .equ REG_PID     , 0x468  ; Process Identity
 
+; exceptions (ecr values)
+.equ PROTV_FETCH_MMU, 0x060008
+.equ PROTV_READ_MMU , 0x060108
+.equ PROTV_WRITE_MMU, 0x060208
+.equ PROTV_RW_MMU   , 0x060308
 
 ; PID register bit masks
 .equ REG_PID_TLB_SET, 0x80000000       ; TLB enable bit in PID

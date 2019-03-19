@@ -5,7 +5,7 @@ CROSS = arc-elf32-
 
 SIM = ../../../arc-softmmu/qemu-system-arc
 SIM_FLAGS = -M arc-sim -m 3G -nographic -no-reboot -monitor none \
-	-serial stdio -kernel
+	-serial stdio -global cpu.mpu-numreg=8 -kernel
 #SIM_FLAGS=-cpu archs
 TST_PATH = $(SRC_PATH)/tests/tcg/arc
 
@@ -67,6 +67,7 @@ TESTCASES += check_ldaw_mmu.tst
 TESTCASES += check_manip_mmu.tst
 TESTCASES += check_rtie_user.tst
 TESTCASES += check_rtc.tst
+TESTCASES += check_mpu.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o

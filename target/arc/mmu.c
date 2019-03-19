@@ -578,77 +578,153 @@ arc_mmu_get_prot_for_index(uint32_t index, CPUARCState *env)
   return ret;
 }
 
+static void QEMU_NORETURN raise_mem_exception(
+        CPUState *cs, target_ulong addr, uintptr_t host_pc,
+        int32_t excp_idx, uint8_t excp_cause_code, uint8_t excp_param)
+{
+    CPUARCState *env = &(ARC_CPU(cs)->env);
+    cpu_restore_state(cs, host_pc, true);
+    env->efa = addr;
+    env->eret = env->pc;
+    env->erbta = env->npc_helper;
+
+    cs->exception_index = excp_idx;
+    env->causecode = excp_cause_code;
+    env->param = excp_param;
+    cpu_loop_exit(cs);
+}
+
+/* MMU range */
+static const uint32_t MMU_VA_START=0x00000000;  /* inclusive */
+static const uint32_t MMU_VA_END=0x80000000;    /* exclusive */
+
+typedef enum {
+    DIRECT_ACTION,
+    MPU_ACTION,
+    MMU_ACTION,
+    EXCEPTION_ACTION
+} ACTION;
+
+/*
+ * Applying the following logic
+ * ,-----.-----.-----------.---------.---------------.
+ * | MMU | MPU | MMU range | mmu_idx |     action    |
+ * |-----+-----+-----------+---------+---------------|
+ * | dis | dis |     x     |    x    | phys = virt   |
+ * |-----+-----+-----------+---------+---------------|
+ * | dis | ena |     x     |    x    | mpu_translate |
+ * |-----+-----+-----------+---------+---------------|
+ * | ena | dis |   true    |    x    | mmu_translate |
+ * |-----+-----+-----------+---------+---------------|
+ * | ena | dis |   false   |    0    | phys = virt   |
+ * |-----+-----+-----------+---------+---------------|
+ * | ena | dis |   false   |    1    | exception     |
+ * |-----+-----+-----------+---------+---------------|
+ * | ena | ena |   false   |    x    | mpu_translate |
+ * |-----+-----+-----------+---------+---------------|
+ * | ena | ena |   true    |    x    | mmu_translate |
+ * `-----^-----^-----------^---------^---------------'
+ */
+static int decide_action(const CPUARCState *env,
+                         target_ulong       addr,
+                         int                mmu_idx)
+{
+    static ACTION table[2][2][2][2] = { };
+    static bool is_initialized = false;
+    const bool is_user = (mmu_idx == 1);
+    const bool is_mmu_range = ((addr >= MMU_VA_START) && (addr < MMU_VA_END));
+
+    if (!is_initialized) {
+        /* Both MMU and MPU disabled */
+        table[false][false][false][false] = DIRECT_ACTION;
+        table[false][false][false][true ] = DIRECT_ACTION;
+        table[false][false][true ][false] = DIRECT_ACTION;
+        table[false][false][true ][true ] = DIRECT_ACTION;
+
+        /* Only MPU */
+        table[false][true ][false][false] = MPU_ACTION;
+        table[false][true ][false][true ] = MPU_ACTION;
+        table[false][true ][true ][false] = MPU_ACTION;
+        table[false][true ][true ][true ] = MPU_ACTION;
+
+        /* Only MMU; non-mmu range; kernel access */
+        table[true ][false][false][false] = DIRECT_ACTION;
+        /* Only MMU; non-mmu range; user access */
+        table[true ][false][false][true ] = EXCEPTION_ACTION;
+
+        /* Only MMU; mmu range; both modes access */
+        table[true ][false][true ][false] = MMU_ACTION;
+        table[true ][false][true ][true ] = MMU_ACTION;
+
+        /* Both MMU and MPU enabled; non-mmu range */
+        table[true ][true ][false][false] = MPU_ACTION;
+        table[true ][true ][false][true ] = MPU_ACTION;
+
+        /* Both MMU and MPU enabled; mmu range */
+        table[true ][true ][true ][false] = MMU_ACTION;
+        table[true ][true ][true ][true ] = MMU_ACTION;
+
+        is_initialized = true;
+    }
+
+    return table[env->mmu.enabled][env->mpu.enabled][is_mmu_range][is_user];
+}
+
+
 /* Softmmu support function for MMU. */
 void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
-	      MMUAccessType access_type,
-	      int mmu_idx, uintptr_t retaddr)
+              MMUAccessType access_type, int mmu_idx, uintptr_t retaddr)
 {
-  int prot = 0;
-  MemTxAttrs attrs = {};
-  target_ulong page_size = TARGET_PAGE_SIZE;
+    /* TODO: this rwe should go away when the TODO below is done */
+    enum mmu_access_type rwe = (char) access_type;
+    CPUARCState *env = &((ARC_CPU(cs))->env);
+    int action = decide_action(env, vaddr, mmu_idx);
 
-  ARCCPU *cpu = ARC_CPU(cs);
-  CPUARCState *env = &cpu->env;
-  enum mmu_access_type rwe = (char) access_type;
-
-  //if(vaddr >= 0x80000000 && env->stat.Uf != 0)
-  //  printf("HERE\n");
-  uint32_t paddr = vaddr;
-  if(vaddr < 0x80000000 && env->mmu.enabled)
-    {
-      uint32_t index;
-      paddr = arc_mmu_translate (env, vaddr, rwe, &index);
-      if((enum exception_code_list) env->mmu.exception.number != EXCP_NO_EXCEPTION)
-        {
-          cpu_restore_state(cs, retaddr, true);
-          env->efa = vaddr;
-          env->eret = env->pc;
-          env->erbta = env->npc_helper;
-
-          cs->exception_index = env->mmu.exception.number;
-          env->causecode = env->mmu.exception.causecode;
-          env->param = env->mmu.exception.parameter;
-          cpu_loop_exit (cs);
-      }
-      else
-	prot = arc_mmu_get_prot_for_index(index, env);
+    switch (action) {
+    case DIRECT_ACTION:
+        tlb_set_page(cs, vaddr & PAGE_MASK, vaddr & PAGE_MASK,
+                     PAGE_READ | PAGE_WRITE | PAGE_EXEC,
+                     mmu_idx, TARGET_PAGE_SIZE);
+        break;
+    case MPU_ACTION:
+        if (arc_mpu_translate(env, vaddr, access_type, mmu_idx)) {
+            MPUException *mpu_excp = &env->mpu.exception;
+            raise_mem_exception(cs, vaddr, retaddr,
+                    mpu_excp->number, mpu_excp->code, mpu_excp->param);
+        }
+        break;
+    case MMU_ACTION: {
+        /*
+         * TODO: these lines must go inside arc_mmu_translate and it
+         * should only signal a failure or success --> generate an
+         * exception or not
+         */
+        uint32_t index;
+        target_ulong paddr = arc_mmu_translate(env, vaddr, rwe, &index);
+        if ((enum exception_code_list) env->mmu.exception.number !=
+                EXCP_NO_EXCEPTION) {
+            const struct mmu_exception *mmu_excp = &env->mmu.exception;
+            raise_mem_exception(cs, vaddr, retaddr,
+                    mmu_excp->number, mmu_excp->causecode, mmu_excp->parameter);
+        }
+        else {
+            int prot = arc_mmu_get_prot_for_index(index, env);
+            vaddr = arc_mmu_page_address_for(vaddr);
+            tlb_set_page(cs, vaddr, paddr & PAGE_MASK, prot,
+                         mmu_idx, TARGET_PAGE_SIZE);
+        }
+        break;
     }
-  else
-    {
-      if(mmu_idx == 0 || !env->mmu.enabled)
-	{
-	  prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
-	}
-      else
-	{
-          cpu_restore_state(cs, retaddr, true);
-          env->efa = vaddr;
-          env->eret = env->pc;
-          env->erbta = env->npc_helper;
-
-          qemu_log_mask (CPU_LOG_MMU, "[MMU_TLB_FILL] ProtV "
-			 "exception at 0x%08x. rwe = %s\n",
-			 env->pc,
-			 RWE_STRING(rwe));
-
-          cs->exception_index = EXCP_PROTV;
-          env->causecode = CAUSE_CODE(rwe);
-          env->param = 0x08;
-          cpu_loop_exit (cs);
-
-	  return;
-	  //SET_MMU_EXCEPTION(env, EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
-	}
-
+    case EXCEPTION_ACTION:
+        /* TODO: like TODO above, this must move inside mmu */
+        qemu_log_mask(CPU_LOG_MMU, "[MMU_TLB_FILL] ProtV "
+                      "exception at 0x%08x. rwe = %s\n",
+                      env->pc, RWE_STRING(rwe));
+        raise_mem_exception(cs, vaddr, retaddr,
+                            EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
+        break;
+    default:
+        g_assert_not_reached();
     }
 
-  assert(mmu_idx == 0 || !env->mmu.enabled || (mmu_idx == 1 && vaddr < 0x80000000));
-
-  if(env->mmu.enabled)
-    vaddr = arc_mmu_page_address_for(vaddr);
-  else
-    vaddr = (vaddr & PAGE_MASK);
-  paddr = (paddr & PAGE_MASK);
-
-  tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }

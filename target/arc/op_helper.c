@@ -147,52 +147,59 @@ report_aux_reg_error(uint32_t aux)
 
 void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
 {
-  struct arc_aux_reg_detail *aux_reg_detail =
-    arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+    struct arc_aux_reg_detail *aux_reg_detail =
+        arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
 
-  if(aux_reg_detail == NULL)
-    report_aux_reg_error(aux);
+    if(aux_reg_detail == NULL) {
+        report_aux_reg_error(aux);
+    }
 
-  switch (aux_reg_detail->id)
-    {
+    /* saving return address in case an exception must be raised later */
+    env->host_pc = GETPC();
+
+    switch (aux_reg_detail->id) {
     case AUX_ID_lp_start:
-      env->lps = val;
-      break;
+        env->lps = val;
+        break;
 
     case AUX_ID_lp_end:
-      env->lpe = val;
-      break;
+        env->lpe = val;
+        break;
 
     case AUX_ID_status32:
-      //printf("Status 32 changed by aux_reg\n");
-      set_status32(env, val);
-      break;
+        //printf("Status 32 changed by aux_reg\n");
+        set_status32(env, val);
+        break;
 
     case AUX_ID_eret:
-      env->eret = val;
-      break;
+        env->eret = val;
+        break;
 
     case AUX_ID_erbta:
-      env->erbta = val;
-      break;
+        env->erbta = val;
+        break;
 
     case AUX_ID_erstatus:
-      unpack_status32(&env->stat_er, val);
-      break;
+        unpack_status32(&env->stat_er, val);
+        break;
 
     case AUX_ID_ecr:
-      env->ecr = val;
-      break;
+        env->ecr = val;
+        break;
 
     default:
-      if(aux_reg_detail->aux_reg->set_func != NULL)
-        aux_reg_detail->aux_reg->set_func (aux_reg_detail, val, (void *) env);
-      else {
-	/* TODO: are lr and sr possible delayslot instructions ? */
-	assert(0);
-        do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
-      }
-      break;
+        if (aux_reg_detail->aux_reg->set_func != NULL) {
+            aux_reg_detail->aux_reg->set_func(aux_reg_detail, val,
+                                              (void *) env);
+        }
+        else {
+            /* setting a register that does not provide one is not allowed */
+            arc_raise_exception(env, EXCP_INST_ERROR);
+            /* TODO: are lr and sr possible delayslot instructions ? */
+            /* TODO: what is this? can it be removed? */
+            do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
+        }
+        break;
     }
     cpu_outl(aux, val);
 }
@@ -243,96 +250,105 @@ static target_ulong get_identity(CPUARCState *env)
 
 target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 {
-  target_ulong result = 0;
+    target_ulong result = 0;
 
-  struct arc_aux_reg_detail *aux_reg_detail =
-    arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
+    struct arc_aux_reg_detail *aux_reg_detail =
+        arc_aux_reg_struct_for_address(aux, ARC_OPCODE_ARCv2HS);
 
-  if(aux_reg_detail == NULL)
-    report_aux_reg_error(aux);
-
-  switch (aux_reg_detail->id)
-    {
-    case AUX_ID_aux_volatile:
-      result = 0xc0000000;
-      break;
-
-    case AUX_ID_lp_start:
-      result = env->lps;
-      break;
-
-    case AUX_ID_lp_end:
-      result = env->lpe;
-      break;
-
-    case AUX_ID_identity:
-      result = get_identity(env);
-      break;
-
-    case AUX_ID_exec_ctrl:
-      result = 0;
-      break;
-
-    case AUX_ID_debug:
-      result = get_debug(env);
-      break;
-
-    case AUX_ID_pc:
-      result = env->pc & 0xfffffffe;
-      break;
-
-    case AUX_ID_status32:
-      result = get_status32(env);
-      break;
-
-    case AUX_ID_isa_config:
-      result = env->isa_config;
-      break;
-
-    case AUX_ID_eret:
-      result = env->eret;
-      break;
-
-    case AUX_ID_erbta:
-      result = env->erbta;
-      break;
-
-    case AUX_ID_erstatus:
-      result = pack_status32 (&env->stat_er);
-      break;
-
-    case AUX_ID_ecr:
-      result = env->ecr;
-      break;
-
-    case AUX_ID_efa:
-      result = env->efa;
-      break;
-
-    case AUX_ID_bta:
-      result = env->bta;
-      break;
-
-    case AUX_ID_bta_l1:
-      result = env->bta_l1;
-      break;
-
-    case AUX_ID_bta_l2:
-      result = env->bta_l2;
-      break;
-
-    default:
-      if(aux_reg_detail->aux_reg->get_func != NULL)
-	result = aux_reg_detail->aux_reg->get_func (aux_reg_detail, (void *) env);
-      else {
-	/* TODO: is lr and sr possible delayslot instructions ? */
-	assert(0);
-        do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
-      }
-      break;
+    if(aux_reg_detail == NULL) {
+        report_aux_reg_error(aux);
     }
 
-  return  result;
+    /* saving return address in case an exception must be raised later */
+    env->host_pc = GETPC();
+
+    switch (aux_reg_detail->id) {
+    case AUX_ID_aux_volatile:
+        result = 0xc0000000;
+        break;
+
+    case AUX_ID_lp_start:
+        result = env->lps;
+        break;
+
+    case AUX_ID_lp_end:
+        result = env->lpe;
+        break;
+
+    case AUX_ID_identity:
+        result = get_identity(env);
+        break;
+
+    case AUX_ID_exec_ctrl:
+        result = 0;
+        break;
+
+    case AUX_ID_debug:
+        result = get_debug(env);
+        break;
+
+    case AUX_ID_pc:
+        result = env->pc & 0xfffffffe;
+        break;
+
+    case AUX_ID_status32:
+        result = get_status32(env);
+        break;
+
+    case AUX_ID_isa_config:
+        result = env->isa_config;
+        break;
+
+    case AUX_ID_eret:
+        result = env->eret;
+        break;
+
+    case AUX_ID_erbta:
+        result = env->erbta;
+        break;
+
+    case AUX_ID_erstatus:
+        if (is_user_mode(env)) {
+            arc_raise_exception(env, EXCP_PRIVILEGEV);
+        }
+        result = pack_status32 (&env->stat_er);
+        break;
+
+    case AUX_ID_ecr:
+        result = env->ecr;
+        break;
+
+    case AUX_ID_efa:
+        result = env->efa;
+        break;
+
+    case AUX_ID_bta:
+        result = env->bta;
+        break;
+
+    case AUX_ID_bta_l1:
+        result = env->bta_l1;
+        break;
+
+    case AUX_ID_bta_l2:
+        result = env->bta_l2;
+        break;
+
+    default:
+        if(aux_reg_detail->aux_reg->get_func != NULL) {
+            result = aux_reg_detail->aux_reg->get_func (aux_reg_detail,
+                                                        (void *) env);
+        }
+        else {
+            /* TODO: is lr and sr possible delayslot instructions ? */
+            assert(0);
+            arc_raise_exception(env, EXCP_INST_ERROR);
+            do_exception_no_delayslot(env, EXCP_INST_ERROR, 0, 0);
+        }
+        break;
+    }
+
+    return result;
 }
 
 void QEMU_NORETURN helper_halt(CPUARCState *env)
@@ -340,7 +356,7 @@ void QEMU_NORETURN helper_halt(CPUARCState *env)
   CPUState *cs = CPU (arc_env_get_cpu (env));
   if (env->stat.Uf)
     {
-      cs->exception_index = EXCP_PRIVILRGEV;
+      cs->exception_index = EXCP_PRIVILEGEV;
       env->causecode = 0;
       env->param = 0;
        /* Restore PC such that we point at the faulty instruction.  */
@@ -360,7 +376,7 @@ void helper_rtie (CPUARCState *env)
   CPUState *cs = CPU (arc_env_get_cpu (env));
   if (env->stat.Uf)
     {
-      cs->exception_index = EXCP_PRIVILRGEV;
+      cs->exception_index = EXCP_PRIVILEGEV;
       env->causecode = 0;
       env->param = 0;
        /* Restore PC such that we point at the faulty instruction.  */

@@ -129,7 +129,7 @@ tn_\name:
 ; macro:     assert_eq
 ; input:     a, b     - two values/registers to be compared
 ;            test_num - optional: printed error number, default is 1.
-;                       valid range is: [0 ... 9]
+;                       valid range is: any BCD number
 ; regs used: r11, r12
 ; example:   assert_eq 12, r2
 ;            assert_eq r1, 8
@@ -156,8 +156,41 @@ tn_\name:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; macro:     auxreg_write_read
+; input:     reg      - the register we are talking about
+;            write    - value to write
+;            read     - value expected to be read
+;            test_num - the number of test which will be printed in
+;                       case of error.
+; regs used: r11, r12
+; exampel:   auxreg_write_read mpuen, 0xffffffff, 0x400001f8, 0x12
+;
+; description:
+;   Not always, "write" and "read" values are the same. This true about
+;   the registers who have reserved bits or read as zero in user mode,
+;   etc.
+;   Be careful, what is the result of you writing to to "reg". It may
+;   have consequences like enabling page protection or so.
+.macro auxreg_write_read reg, write, read, test_num=1
+  mov r11, \write
+  sr  r11, [\reg]
+  ; using a different register to reduce the chande of false equality
+  lr  r12, [\reg]
+  assert_eq \read, r12, \test_num
+.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Auxilary registers
 .equ REG_IRQ_SELECT, 0x40B
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Exceptions
+.equ INSTRUCTION_ERROR  , 0x00020000
+.equ MACHINE_CHECK      , 0x00030000
+.equ PRIVILEGE_VIOLATION, 0x00070000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -210,6 +243,25 @@ tn_\name:
   ; if bit=0 then checking if r11 == 0
   ; if bit=1 then checking if r11 == bit_mask
   assert_eq r11, \bit*\reg_stat_flag, \test_num
+.endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; macro:     enter_user_mode
+; input:     user_space - where the user code begins
+;
+; regs used: r11
+; example:   enter_user_mode @my_user_space_entry
+;
+; description:
+;  this piece of code sets the user flag and jumps to given address
+.macro enter_user_mode user_space
+  lr  r11, [status32]
+  or  r11, r11, 0x80       ; set the STATUS32.U
+  sr  r11, [erstatus]
+  mov r11, \user_space
+  sr  r11, [eret]
+  rtie
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

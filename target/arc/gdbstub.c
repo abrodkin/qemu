@@ -201,12 +201,40 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_TLB_CMD:
       regval = helper_lr(env, REG_ADDR(AUX_ID_tlbcommand, processor));
       break;
+    /* MPU */
+    case GDB_AUX_OTHER_REG_MPU_BUILD:
+      regval = helper_lr(env, REG_ADDR(AUX_ID_mpu_build, processor));
+      break;
+    case GDB_AUX_OTHER_REG_MPU_EN:
+      regval = helper_lr(env, REG_ADDR(AUX_ID_mpuen, processor));
+      break;
+    case GDB_AUX_OTHER_REG_MPU_ECR:
+      regval = helper_lr(env, REG_ADDR(AUX_ID_mpuic, processor));
+      break;
+    case GDB_AUX_OTHER_REG_MPU_BASE0 ... GDB_AUX_OTHER_REG_MPU_BASE15: {
+      const uint8_t index = regnum - GDB_AUX_OTHER_REG_MPU_BASE0;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_mpurdb0 + index, processor));
+      break;
+    }
+    case GDB_AUX_OTHER_REG_MPU_PERM0 ... GDB_AUX_OTHER_REG_MPU_PERM15: {
+      const uint8_t index = regnum - GDB_AUX_OTHER_REG_MPU_PERM0;
+      regval = helper_lr(env, REG_ADDR(AUX_ID_mpurdp0 + index, processor));
+      break;
+    }
+    /* exceptions */
+    case GDB_AUX_OTHER_REG_ERSTATUS:
+      regval = helper_lr(env, REG_ADDR(AUX_ID_erstatus, processor));
+      break;
+    case GDB_AUX_OTHER_REG_ECR:
+      regval = helper_lr(env, REG_ADDR(AUX_ID_ecr, processor));
+      break;
     case GDB_AUX_OTHER_REG_ERET:
       regval = helper_lr(env, REG_ADDR(AUX_ID_eret, processor));
       break;
     case GDB_AUX_OTHER_REG_EFA:
       regval = helper_lr(env, REG_ADDR(AUX_ID_efa, processor));
       break;
+    /* interrupt */
     case GDB_AUX_OTHER_REG_ICAUSE:
       regval = helper_lr(env, REG_ADDR(AUX_ID_icause, processor));
       break;
@@ -262,7 +290,8 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_IRQ_BUILD:
     case GDB_AUX_OTHER_REG_VECBASE_BUILD:
     case GDB_AUX_OTHER_REG_ISA_CONFIG:
-    case GDB_AUX_OTHER_REG_EFA:
+    case GDB_AUX_OTHER_REG_MPU_BUILD:
+    case GDB_AUX_OTHER_REG_MPU_ECR:
     case GDB_AUX_OTHER_REG_ICAUSE:
     case GDB_AUX_OTHER_REG_IRQ_PRIO_PEND:
     case GDB_AUX_OTHER_REG_IRQ_STATUS:
@@ -302,9 +331,34 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_TLB_CMD:
       helper_sr(env, regval, REG_ADDR(AUX_ID_tlbcommand, processor));
       break;
+    /* MPU */
+    case GDB_AUX_OTHER_REG_MPU_EN:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_mpuen, processor));
+      break;
+    case GDB_AUX_OTHER_REG_MPU_BASE0 ... GDB_AUX_OTHER_REG_MPU_BASE15: {
+      const uint8_t index = regnum - GDB_AUX_OTHER_REG_MPU_BASE0;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_mpurdb0 + index, processor));
+      break;
+    }
+    case GDB_AUX_OTHER_REG_MPU_PERM0 ... GDB_AUX_OTHER_REG_MPU_PERM15: {
+      const uint8_t index = regnum - GDB_AUX_OTHER_REG_MPU_PERM0;
+      helper_sr(env, regval, REG_ADDR(AUX_ID_mpurdp0 + index, processor));
+      break;
+    }
+    /* exceptions */
+    case GDB_AUX_OTHER_REG_ERSTATUS:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_erstatus, processor));
+      break;
+    case GDB_AUX_OTHER_REG_ECR:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_ecr, processor));
+      break;
     case GDB_AUX_OTHER_REG_ERET:
       helper_sr(env, regval, REG_ADDR(AUX_ID_eret, processor));
       break;
+    case GDB_AUX_OTHER_REG_EFA:
+      helper_sr(env, regval, REG_ADDR(AUX_ID_efa, processor));
+      break;
+    /* interrupt */
     case GDB_AUX_OTHER_REG_IRQ_CTRL:
       helper_sr(env, regval, REG_ADDR(AUX_ID_aux_irq_ctrl, processor));
       break;
