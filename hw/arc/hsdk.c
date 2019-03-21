@@ -28,21 +28,19 @@
 #define HSDK_IO_SIZE		0x10000000
 #define HSDK_UART0_OFFSET	0x5000
 
-static void main_cpu_reset(void *opaque)
-{
-    ARCCPU *cpu = opaque;
-
-    cpu_reset(CPU(cpu));
-}
-
 static void hsdk_init(MachineState *machine)
 {
-    const char *kernel_filename = machine->kernel_filename;
+    static struct arc_boot_info boot_info;
     MemoryRegion *system_memory = get_system_memory();
     MemoryRegion *system_ram;
     MemoryRegion *system_io;
     ARCCPU *cpu = NULL;
     int n;
+
+    boot_info.ram_start = HSDK_RAM_BASE;
+    boot_info.ram_size = HSDK_RAM_SIZE;
+    boot_info.kernel_filename = machine->kernel_filename;
+    boot_info.kernel_cmdline = machine->kernel_cmdline;
 
     for (n = 0; n < smp_cpus; n++) {
 	cpu = ARC_CPU (cpu_create ("archs-" TYPE_ARC_CPU));
@@ -55,8 +53,7 @@ static void hsdk_init(MachineState *machine)
         cpu_arc_pic_init (cpu);
         cpu_arc_clock_init (cpu);
 
-        qemu_register_reset(main_cpu_reset, cpu);
-        main_cpu_reset(cpu);
+        qemu_register_reset(arc_cpu_reset, cpu);
     }
 
     /* Init system DDR */
@@ -79,7 +76,7 @@ static void hsdk_init(MachineState *machine)
     sysbus_create_simple("virtio-mmio", 0xf0103000, cpu->env.irq[34]);
     sysbus_create_simple("virtio-mmio", 0xf0104000, cpu->env.irq[35]);
 
-    arc_load_kernel(cpu, HSDK_RAM_BASE, HSDK_RAM_SIZE, kernel_filename);
+    arc_load_kernel(cpu, &boot_info);
 }
 
 static void hsdk_machine_init(MachineClass *mc)

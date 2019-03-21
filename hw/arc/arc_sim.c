@@ -30,13 +30,6 @@
 #include "hw/arc/cpudevs.h"
 #include "boot.h"
 
-static void main_cpu_reset(void *opaque)
-{
-    ARCCPU *cpu = opaque;
-
-    cpu_reset(CPU(cpu));
-}
-
 static void arc_sim_net_init(MemoryRegion *address_space,
                              hwaddr base,
                              hwaddr descriptors,
@@ -83,12 +76,16 @@ static const MemoryRegionOps arc_io_ops = {
 
 static void arc_sim_init(MachineState *machine)
 {
+    static struct arc_boot_info boot_info;
     ram_addr_t ram_base = 0;
     ram_addr_t ram_size = machine->ram_size;
-    const char *kernel_filename = machine->kernel_filename;
     ARCCPU *cpu = NULL;
     MemoryRegion *ram, *system_io;
     int n;
+
+    boot_info.ram_start = ram_base;
+    boot_info.ram_size = ram_size;
+    boot_info.kernel_filename = machine->kernel_filename;
 
     for (n = 0; n < smp_cpus; n++) {
         cpu = ARC_CPU (object_new (machine->cpu_type));
@@ -106,8 +103,7 @@ static void arc_sim_init(MachineState *machine)
         cpu_arc_pic_init (cpu);
         cpu_arc_clock_init (cpu);
 
-        qemu_register_reset(main_cpu_reset, cpu);
-        main_cpu_reset(cpu);
+        qemu_register_reset(arc_cpu_reset, cpu);
     }
 
     ram = g_new(MemoryRegion, 1);
@@ -127,7 +123,7 @@ static void arc_sim_init(MachineState *machine)
                               0x92000400, cpu->env.irq[4], nd_table);
     }
 
-    arc_load_kernel(cpu, ram_base, ram_size, kernel_filename);
+    arc_load_kernel(cpu, &boot_info);
 }
 
 static void arc_sim_machine_init(MachineClass *mc)

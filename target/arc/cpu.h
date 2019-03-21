@@ -55,6 +55,15 @@ enum arc_features {
   no_features,
 };
 
+enum arc_endianess {
+    ARC_ENDIANNESS_LE = 0,
+    ARC_ENDIANNESS_BE,
+};
+
+/* U-Boot - kernel ABI */
+#define ARC_UBOOT_CMDLINE 1
+#define ARC_UBOOT_DTB     2
+
 enum gdb_regs {
   GDB_REG_0 = 0,
   GDB_REG_1,
@@ -312,6 +321,7 @@ typedef struct CPUARCState {
   uint32_t vecbase_build; /* Interrupt Vector Base Address Configuration.  */
   uint32_t isa_config; /* Instruction Set Configuration Register.  */
 
+  const struct arc_boot_info *boot_info;
 } CPUARCState;
 
 /**

@@ -28,20 +28,18 @@
 #define NSIM_RAM_SIZE		0x40000000
 #define NSIM_ARC_UART_OFFSET	0xc0fc1000
 
-static void main_cpu_reset(void *opaque)
-{
-    ARCCPU *cpu = opaque;
-
-    cpu_reset(CPU(cpu));
-}
-
 static void nsim_init(MachineState *machine)
 {
-    const char *kernel_filename = machine->kernel_filename;
+    static struct arc_boot_info boot_info;
     MemoryRegion *system_memory = get_system_memory();
     MemoryRegion *system_ram;
     ARCCPU *cpu = NULL;
     int n;
+
+    boot_info.ram_start = NSIM_RAM_BASE;
+    boot_info.ram_size = NSIM_RAM_SIZE;
+    boot_info.kernel_filename = machine->kernel_filename;
+    boot_info.kernel_cmdline = machine->kernel_cmdline;
 
     for (n = 0; n < smp_cpus; n++) {
         cpu = ARC_CPU (cpu_create ("archs-" TYPE_ARC_CPU));
@@ -54,8 +52,7 @@ static void nsim_init(MachineState *machine)
         cpu_arc_pic_init (cpu);
         cpu_arc_clock_init (cpu);
 
-        qemu_register_reset(main_cpu_reset, cpu);
-        main_cpu_reset(cpu);
+        qemu_register_reset(arc_cpu_reset, cpu);
     }
 
     /* Init system DDR */
@@ -67,7 +64,7 @@ static void nsim_init(MachineState *machine)
     /* Init ARC UART */
     arc_uart_create(get_system_memory(), NSIM_ARC_UART_OFFSET, serial_hd(0), cpu->env.irq[24]);
 
-    arc_load_kernel(cpu, NSIM_RAM_BASE, NSIM_RAM_SIZE, kernel_filename);
+    arc_load_kernel(cpu, &boot_info);
 }
 
 static void nsim_machine_init(MachineClass *mc)

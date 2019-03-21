@@ -17,36 +17,71 @@
 #include "boot.h"
 #include "elf.h"
 #include "hw/loader.h"
-#include "sysemu/qtest.h"
+#include "qemu/error-report.h"
+#include "qemu/units.h"
 
-void arc_load_kernel(ARCCPU *cpu, ram_addr_t ddr_base, ram_addr_t ram_size,
-                     const char *kernel_filename)
+void arc_cpu_reset(void *opaque)
 {
-    uint64_t elf_entry;
-    long kernel_size;
-    hwaddr entry;
+    ARCCPU *cpu = opaque;
+    CPUARCState *env = &cpu->env;
+    const struct arc_boot_info *info = env->boot_info;
 
-    if (kernel_filename && !qtest_enabled()) {
-        kernel_size = load_elf(kernel_filename, NULL, NULL, NULL,
-                               &elf_entry, NULL, NULL, 0, cpu->env.family > 2 ?
-                               EM_ARC_COMPACT2 : EM_ARC_COMPACT,
-                               1, 0);
-        entry = elf_entry;
-        if (kernel_size < 0) {
-            kernel_size = load_uimage(kernel_filename,
-                                      &entry, NULL, NULL, NULL, NULL);
-        }
-        if (kernel_size < 0) {
-            kernel_size = load_image_targphys(kernel_filename, ddr_base,
-                                              ram_size);
-            entry = ddr_base;
-        }
+    cpu_reset(CPU(cpu));
 
-        if (kernel_size < 0) {
-            fprintf(stderr, "QEMU: couldn't load the kernel '%s'\n",
-                    kernel_filename);
-            exit(1);
-        }
-        cpu->env.pc = entry;
+    /*
+     * Right before start CPU gets reset wiping out everything
+     * but PC which we set on Elf load.
+     *
+     * And if we still want to pass something like U-Boot data
+     * via CPU registers we have to do it here.
+     */
+
+    if (info->kernel_cmdline && strlen(info->kernel_cmdline)) {
+        /*
+         * Load "cmdline" far enough from the kernel image.
+         * Round by MAX page size for ARC - 16 KiB.
+         */
+        hwaddr cmdline_addr = info->ram_start + QEMU_ALIGN_UP(info->ram_size / 2, 16 * KiB);
+        cpu_physical_memory_write(cmdline_addr, info->kernel_cmdline, strlen(info->kernel_cmdline));
+
+        /* We're passing "cmdline" */
+        cpu->env.r[0] = ARC_UBOOT_CMDLINE;
+        cpu->env.r[2] = cmdline_addr;
     }
+}
+
+
+void arc_load_kernel(ARCCPU *cpu, struct arc_boot_info *info)
+{
+    hwaddr entry;
+    int kernel_size;
+
+    if (!info->kernel_filename) {
+        error_report("missing kernel file");
+        exit(EXIT_FAILURE);
+    }
+
+    kernel_size = load_elf(info->kernel_filename, NULL, NULL, NULL,
+                           &entry, NULL, NULL, ARC_ENDIANNESS_LE,
+                           cpu->env.family > 2 ? EM_ARC_COMPACT2 : EM_ARC_COMPACT, 1, 0);
+
+    if (kernel_size < 0) {
+        int is_linux;
+
+        kernel_size = load_uimage(info->kernel_filename, &entry, NULL, &is_linux, NULL, NULL);
+        if (!is_linux) {
+            error_report("Wrong U-Boot image, only Linux kernel is supported");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (kernel_size < 0) {
+        error_report("No kernel image found");
+        exit(EXIT_FAILURE);
+    }
+
+    cpu->env.boot_info = info;
+
+    /* Set CPU's PC to point to the entry-point */
+    cpu->env.pc = entry;
 }
