@@ -1719,6 +1719,7 @@ static void gen_sleep (DisasCtxt *ctx, TCGv opa)
 
 static void gen_rtie (DisasCtxt *ctx)
 {
+  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
   gen_helper_rtie (cpu_env);
   tcg_gen_mov_tl (cpu_pc, cpu_pcl);
   gen_goto_tb (ctx, 1, cpu_pc);

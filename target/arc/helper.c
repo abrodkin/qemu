@@ -132,9 +132,28 @@ void arc_cpu_do_interrupt (CPUState *cs)
   env->ecr |= (env->causecode & 0xFF) << 8;
   env->ecr |= (env->param & 0xFF);
 
+  /* 6. Set the EFA if available.  */
+  if (cpu->cfg.has_mmu)
+    switch (cs->exception_index)
+      {
+      case EXCP_DCERROR:
+      case EXCP_DIVZERO:
+      case EXCP_EXTENSION:
+      case EXCP_TRAP:
+      case EXCP_SWI:
+      case EXCP_PRIVILRGEV:
+      case EXCP_MACHINE_CHECK:
+      case EXCP_INST_ERROR:
+      case EXCP_RESET:
+        env->efa = env->pc;
+        break;
+      default:
+        break;
+      }
+
   /* 7. CPU is switched to kernel mode.  */
-  env->stat.Uf = 0; /* FIXME! do switch to kernel mode.  */
-  //tlb_flush(cpu);
+  env->stat.Uf = 0;
+
   if (env->stat_er.Uf)
     switchSP (env);
 
