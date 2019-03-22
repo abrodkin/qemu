@@ -1,16 +1,18 @@
   .include "macros.inc"
 
   start
-  
+
   lr  r0, [status32]
   or  r0, r0, 128      ; set the STATUS32.U
-  sr  r0, [erstatus] 
+  sr  r0, [erstatus]
   mov r0, @user_mode
   sr  r0, [eret]
   rtie
 
 user_mode:
+  nop
   ; must cause privilege violation exception
+faulty:
   rtie
 
 good:
@@ -22,10 +24,13 @@ good:
   .type EV_PrivilegeV, @function
 EV_PrivilegeV:
   lr r0, [eret]
-  breq r0, @user_mode, @return
-    print "Life sucks. Get over it!\n"
-    end
-return:
+  brne r0, @faulty, @sucks
+  lr r0, [efa]
+  brne r0, @faulty, @sucks
   mov r0, @good
   sr  r0, [eret]
   rtie
+
+sucks:
+  print "Life sucks. Get over it!\n"
+  end
