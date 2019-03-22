@@ -615,7 +615,7 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
     }
   else
     {
-      if(mmu_idx == 0)
+      if(mmu_idx == 0 || !env->mmu.enabled)
 	{
 	  prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
 	}
@@ -642,13 +642,13 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
 
     }
 
-  assert(mmu_idx == 0 || (mmu_idx == 1 && vaddr < 0x80000000));
+  assert(mmu_idx == 0 || !env->mmu.enabled || (mmu_idx == 1 && vaddr < 0x80000000));
 
-  vaddr = arc_mmu_page_address_for(vaddr);
+  if(env->mmu.enabled)
+    vaddr = arc_mmu_page_address_for(vaddr);
+  else
+    vaddr = (vaddr & PAGE_MASK);
   paddr = (paddr & PAGE_MASK);
-
-  //if(mmu_idx == 1)
-  //  tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, 0, page_size);
 
   tlb_set_page_with_attrs(cs, vaddr, paddr, attrs, prot, mmu_idx, page_size);
 }

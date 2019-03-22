@@ -351,6 +351,18 @@ void QEMU_NORETURN helper_halt(CPUARCState *env)
 
 void helper_rtie (CPUARCState *env)
 {
+  CPUState *cs = CPU (arc_env_get_cpu (env));
+  if (env->stat.Uf)
+    {
+      cs->exception_index = EXCP_PRIVILRGEV;
+      env->causecode = 0;
+      env->param = 0;
+       /* Restore PC such that we point at the faulty instruction.  */
+      env->eret = env->pc;
+      cpu_loop_exit (cs);
+      return;
+    }
+
   if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) == 0)
     {
       assert (env->stat.Uf == 0);
