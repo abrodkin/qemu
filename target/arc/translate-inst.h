@@ -204,7 +204,7 @@ enum target_options {
 void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret);
 #define getCCFlag(R) arc_gen_verifyCCFlag(ctx, R)
 
-#define getFFlag(R) tcg_gen_movi_tl(R, (int) ctx->insn.f != 0)
+#define getFFlag(R) ((int) ctx->insn.f)
 
 void to_implement(DisasCtxt *ctx);
 void to_implement_wo_abort(DisasCtxt *ctx);
