@@ -134,13 +134,13 @@ static void cpu_rtc_count_update (CPUARCState *env)
   assert ((env->timer_build & TB_RTC) && env->cpu_rtc);
   now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
 
-  if (!(env->aux_irq_ctrl & 0x01))
+  if (!(env->aux_rtc_ctrl & 0x01))
     return;
 
   llreg = ((now - env->last_clk_rtc) / TIMER_PERIOD (env->freq_hz));
   llreg += env->aux_rtc_low + ((uint64_t)env->aux_rtc_high << 32);
-  env->aux_rtc_low = llreg >> 32;
-  env->aux_rtc_high = (uint32_t) llreg;
+  env->aux_rtc_high = llreg >> 32;
+  env->aux_rtc_low = (uint32_t) llreg;
 
   env->last_clk_rtc = now;
   qemu_log_mask(LOG_UNIMP, "[RTC] RTC count-regs update\n");
@@ -155,7 +155,7 @@ static void cpu_rtc_update (CPUARCState *env)
   assert (env->cpu_rtc);
   now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
 
-  if (!(env->aux_irq_ctrl & 0x01))
+  if (!(env->aux_rtc_ctrl & 0x01))
     return;
 
   period = TIMER_PERIOD (env->freq_hz);
@@ -260,10 +260,10 @@ static void arc_rtc_ctrl_set (CPUARCState *env, uint32_t val)
     timer_del (env->cpu_rtc); // Stop the timer
 
   /* Restart RTC, update last clock.  */
-  if ((env->aux_irq_ctrl & 0x01) == 0 && (val & 0x01))
+  if ((env->aux_rtc_ctrl & 0x01) == 0 && (val & 0x01))
     env->last_clk_rtc = qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL);
 
-  env->aux_irq_ctrl = 0xc0000000 | (val & 0x01);
+  env->aux_rtc_ctrl = 0xc0000000 | (val & 0x01);
   cpu_rtc_update (env);
 }
 

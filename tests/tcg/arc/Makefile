@@ -65,6 +65,7 @@ TESTCASES += check_mac.tst
 TESTCASES += check_ldaw_mmu.tst
 TESTCASES += check_manip_mmu.tst
 TESTCASES += check_rtie_user.tst
+TESTCASES += check_rtc.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o

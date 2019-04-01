@@ -97,6 +97,8 @@ static void arc_sim_init(MachineState *machine)
         /* Set the initial CPU properties.  */
         object_property_set_uint (OBJECT (cpu), 1000000, "freq_hz",
                                   &error_fatal);
+        object_property_set_bool (OBJECT (cpu), true, "rtc-opt",
+                                  &error_fatal);
         object_property_set_bool(OBJECT (cpu), true, "realized", &error_fatal);
 
         /* Initialize internal devices.  */
