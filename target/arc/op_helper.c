@@ -29,6 +29,8 @@
 #include "hw/arc/cpudevs.h"
 #include "qemu/main-loop.h"
 #include "irq.h"
+#include "sysemu/sysemu.h"
+
 
 static target_ulong get_status32 (CPUARCState *env)
 {
@@ -64,6 +66,10 @@ static void set_status32(CPUARCState *env, target_ulong value)
     tlb_flush(CPU(cpu));
 
   unpack_status32(&env->stat, value);
+
+  /* Implement HALT functionality.  */
+  if (value & 0x01)
+    qemu_system_shutdown_request(SHUTDOWN_CAUSE_GUEST_SHUTDOWN);
 }
 
 static void
