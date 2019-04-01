@@ -1647,7 +1647,8 @@ arc2_gen_CMP (DisasCtxt *ctx, TCGv b, TCGv c)
   if((cc_flag == true))
     {
       @a = (@b & @c);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1664,6 +1665,7 @@ arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -1671,7 +1673,8 @@ arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_and_i32(a, b, c);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -1703,7 +1706,8 @@ arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   if((cc_flag == true))
     {
       @a = (@b | @c);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1720,6 +1724,7 @@ arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -1727,7 +1732,8 @@ arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_or_i32(a, b, c);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -1759,7 +1765,8 @@ arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   if((cc_flag == true))
     {
       @a = (@b ^ @c);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1776,6 +1783,7 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -1783,7 +1791,8 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_xor_i32(a, b, c);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -1815,7 +1824,8 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   if((cc_flag == true))
     {
       @a = @b;
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1832,6 +1842,7 @@ arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -1839,7 +1850,8 @@ arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(a, b);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -1873,7 +1885,8 @@ arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
       lb = @b;
       lc = (@c & 31);
       @a = (lb << lc);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1900,6 +1913,7 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
@@ -1915,7 +1929,8 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_mov_i32(lb, b);
   tcg_gen_andi_i32(lc, c, 31);
   tcg_gen_shl_i32(a, lb, lc);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -1971,7 +1986,8 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
       lb = @b;
       lc = (@c & 31);
       @a = arithmeticShiftRight (lb, lc);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -1999,6 +2015,7 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
@@ -2015,7 +2032,8 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_andi_i32(lc, c, 31);
   arithmeticShiftRight(temp_6, lb, lc);
   tcg_gen_mov_i32(a, temp_6);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2071,7 +2089,8 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
     {
       lb = @b;
       @a = arithmeticShiftRight (lb, 8);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2091,6 +2110,7 @@ arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
   TCGv lb = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2101,7 +2121,8 @@ arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
   tcg_gen_movi_i32(temp_5, 8);
   arithmeticShiftRight(temp_4, lb, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2137,7 +2158,8 @@ arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
     {
       lb = @b;
       @a = arithmeticShiftRight (lb, 16);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2157,6 +2179,7 @@ arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
   TCGv lb = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2167,7 +2190,8 @@ arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
   tcg_gen_movi_i32(temp_5, 16);
   arithmeticShiftRight(temp_4, lb, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2202,7 +2226,8 @@ arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
   if((cc_flag == true))
     {
       @a = logicalShiftLeft (@b, 16);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2221,6 +2246,7 @@ arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2230,7 +2256,8 @@ arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
   tcg_gen_movi_i32(temp_5, 16);
   logicalShiftLeft(temp_4, b, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2264,7 +2291,8 @@ arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
   if((cc_flag == true))
     {
       @a = logicalShiftLeft (@b, 8);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2283,6 +2311,7 @@ arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2292,7 +2321,8 @@ arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
   tcg_gen_movi_i32(temp_5, 8);
   logicalShiftLeft(temp_4, b, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2328,7 +2358,8 @@ arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
       lb = @b;
       lc = (@c & 31);
       @a = logicalShiftRight (lb, lc);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2356,6 +2387,7 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv lb = tcg_temp_local_new_i32();
   TCGv lc = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
@@ -2372,7 +2404,8 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   tcg_gen_andi_i32(lc, c, 31);
   logicalShiftRight(temp_6, lb, lc);
   tcg_gen_mov_i32(a, temp_6);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2427,7 +2460,8 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   if((cc_flag == true))
     {
       @a = logicalShiftRight (@b, 16);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2446,6 +2480,7 @@ arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2455,7 +2490,8 @@ arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
   tcg_gen_movi_i32(temp_5, 16);
   logicalShiftRight(temp_4, b, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2489,7 +2525,8 @@ arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
   if((cc_flag == true))
     {
       @a = logicalShiftRight (@b, 8);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2508,6 +2545,7 @@ arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2517,7 +2555,8 @@ arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
   tcg_gen_movi_i32(temp_5, 8);
   logicalShiftRight(temp_4, b, temp_5);
   tcg_gen_mov_i32(a, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2551,7 +2590,8 @@ arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
   if((cc_flag == true))
     {
       @a = (@b & ~@c);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2569,6 +2609,7 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2577,7 +2618,8 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_not_i32(temp_4, c);
   tcg_gen_and_i32(a, b, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2611,7 +2653,8 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
     {
       tmp = (1 << (@c & 31));
       @a = (@b & ~tmp);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2631,6 +2674,7 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2641,7 +2685,8 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_shlfi_i32(tmp, 1, temp_4);
   tcg_gen_not_i32(temp_5, tmp);
   tcg_gen_and_i32(a, b, temp_5);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2685,7 +2730,8 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
           tmp2 = ((1 << tmp1) - 1);
         };
       @a = (@b & tmp2);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2708,6 +2754,7 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_5);
   tcg_gen_mov_i32(cc_flag, temp_5);
   TCGLabel *done_1 = gen_new_label();
@@ -2728,7 +2775,8 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_subi_i32(tmp2, temp_7, 1);
   gen_set_label(done_2);
   tcg_gen_and_i32(a, b, tmp2);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2775,7 +2823,8 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
           tmp2 = ((1 << tmp1) - 1);
         };
       @a = (@b & ~tmp2);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2799,6 +2848,7 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   TCGv tmp2 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_5);
   tcg_gen_mov_i32(cc_flag, temp_5);
   TCGLabel *done_1 = gen_new_label();
@@ -2820,7 +2870,8 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   gen_set_label(done_2);
   tcg_gen_not_i32(temp_8, tmp2);
   tcg_gen_and_i32(a, b, temp_8);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2860,7 +2911,8 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
     {
       tmp = (1 << (@c & 31));
       @a = (@b | tmp);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2879,6 +2931,7 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2888,7 +2941,8 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_andi_i32(temp_4, c, 31);
   tcg_gen_shlfi_i32(tmp, 1, temp_4);
   tcg_gen_or_i32(a, b, tmp);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2923,7 +2977,8 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
     {
       tmp = (1 << @c);
       @a = (@b ^ tmp);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@a);
           setNFlag (@a);
@@ -2941,6 +2996,7 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -2949,7 +3005,8 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_shlfi_i32(tmp, 1, c);
   tcg_gen_xor_i32(a, b, tmp);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(a);
   setNFlag(a);
@@ -2984,7 +3041,8 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
       lsrc = @src;
       ln = (@n & 31);
       @dest = rotateLeft (lsrc, ln);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3005,6 +3063,7 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv ln = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
@@ -3019,7 +3078,8 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   tcg_gen_andi_i32(ln, n, 31);
   rotateLeft(temp_4, lsrc, ln);
   tcg_gen_mov_i32(dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3065,7 +3125,8 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
       lsrc = @src;
       ln = (@n & 31);
       @dest = rotateRight (lsrc, ln);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3086,6 +3147,7 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv ln = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
@@ -3100,7 +3162,8 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   tcg_gen_andi_i32(ln, n, 31);
   rotateRight(temp_4, lsrc, ln);
   tcg_gen_mov_i32(dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3146,7 +3209,8 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
       lsrc = @src;
       @dest = (lsrc << 1);
       @dest = (@dest | getCFlag ());
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3167,6 +3231,7 @@ arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
@@ -3182,7 +3247,8 @@ arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
   getCFlag(temp_5);
   tcg_gen_mov_i32(temp_4, temp_5);
   tcg_gen_or_i32(dest, dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3228,7 +3294,8 @@ arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
       lsrc = @src;
       @dest = (lsrc >> 1);
       @dest = (@dest | (getCFlag () << 31));
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3250,6 +3317,7 @@ arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   TCGv temp_10 = tcg_temp_local_new_i32();
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
@@ -3266,7 +3334,8 @@ arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_gen_mov_i32(temp_5, temp_6);
   tcg_gen_shli_i32(temp_4, temp_5, 31);
   tcg_gen_or_i32(dest, dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3311,7 +3380,8 @@ arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
   if((cc_flag == true))
     {
       @dest = arithmeticShiftRight ((@src << 24), 24);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3331,6 +3401,7 @@ arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -3341,7 +3412,8 @@ arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
   tcg_gen_shli_i32(temp_5, src, 24);
   arithmeticShiftRight(temp_4, temp_5, temp_6);
   tcg_gen_mov_i32(dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3376,7 +3448,8 @@ arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
   if((cc_flag == true))
     {
       @dest = arithmeticShiftRight ((@src << 16), 16);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3396,6 +3469,7 @@ arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -3406,7 +3480,8 @@ arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
   tcg_gen_shli_i32(temp_5, src, 16);
   arithmeticShiftRight(temp_4, temp_5, temp_6);
   tcg_gen_mov_i32(dest, temp_4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3441,7 +3516,8 @@ arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
   if((cc_flag == true))
     {
       @dest = (@src & 255);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3458,6 +3534,7 @@ arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -3465,7 +3542,8 @@ arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_andi_i32(dest, src, 255);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -3497,7 +3575,8 @@ arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
   if((cc_flag == true))
     {
       @dest = (@src & 65535);
-      if((getFFlag () == true))
+      f_flag = getFFlag ();
+      if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
@@ -3514,6 +3593,7 @@ arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
+  int f_flag;
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -3521,7 +3601,8 @@ arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_andi_i32(dest, src, 65535);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -5379,7 +5460,8 @@ arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
   tmp1 = (@src << 16);
   tmp2 = ((@src >> 16) & 65535);
   @dest = (tmp1 | tmp2);
-  if((getFFlag () == true))
+  f_flag = getFFlag ();
+  if((f_flag == true))
     {
       setZFlag (@dest);
       setNFlag (@dest);
@@ -5394,11 +5476,13 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
+  int f_flag;
   tcg_gen_shli_i32(tmp1, src, 16);
   tcg_gen_shri_i32(temp_1, src, 16);
   tcg_gen_andi_i32(tmp2, temp_1, 65535);
   tcg_gen_or_i32(dest, tmp1, tmp2);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -5429,7 +5513,8 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
   tmp3 = ((@src >> 8) & 65280);
   tmp4 = ((@src >> 24) & 255);
   @dest = (((tmp1 | tmp2) | tmp3) | tmp4);
-  if((getFFlag () == true))
+  f_flag = getFFlag ();
+  if((f_flag == true))
     {
       setZFlag (@dest);
       setNFlag (@dest);
@@ -5451,6 +5536,7 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv tmp4 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
+  int f_flag;
   tcg_gen_shli_i32(temp_1, src, 24);
   tcg_gen_andi_i32(tmp1, temp_1, 4278190080);
   tcg_gen_shli_i32(temp_2, src, 8);
@@ -5462,7 +5548,8 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
   tcg_gen_or_i32(temp_6, tmp1, tmp2);
   tcg_gen_or_i32(temp_5, temp_6, tmp3);
   tcg_gen_or_i32(dest, temp_5, tmp4);
-  if ((getFFlag () == true))
+  f_flag = getFFlag ();
+  if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
@@ -5496,7 +5583,8 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
 --- code ---
 {
   @dest = ~@src;
-  if((getFFlag () == true))
+  f_flag = getFFlag ();
+  if((f_flag == true))
     {
       setZFlag (@dest);
       setNFlag (@dest);
@@ -5508,6 +5596,19 @@ int
 arc2_gen_NOT (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = BS_NONE;
+  int f_flag;
+  tcg_gen_not_i32(dest, src);
+  f_flag = getFFlag ();
+  if ((f_flag == true))
+    {
+    setZFlag(dest);
+  setNFlag(dest);
+;
+    }
+  else
+    {
+  ;
+    }
 
   return ret;
 }

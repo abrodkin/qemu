@@ -210,7 +210,7 @@ void to_implement(DisasCtxt *ctx);
 void to_implement_wo_abort(DisasCtxt *ctx);
 
 void no_semantics(DisasCtxt *ctx);
-#define killDelaySlot() no_semantics(ctx)
+#define killDelaySlot()
 void arc2_gen_set_memory (DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend);
 #define setMemory(ADDRESS, SIZE, VALUE) arc2_gen_set_memory (ctx, ADDRESS, SIZE, VALUE, getFlagX())
 void arc2_gen_get_memory (DisasCtxt *ctx, TCGv ret, TCGv addr, int size, bool sign_extend);
