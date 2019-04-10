@@ -98,7 +98,7 @@ arc_aux_reg_struct_for_address(int address, int isa_mask)
 {
   int i;
   bool has_default = false;
-  struct arc_aux_reg_detail *default_ret;
+  struct arc_aux_reg_detail *default_ret = NULL;
 
   /* TODO: Make this a binary search or something faster. */
   for(i = 0; i < ARC_AUX_REGS_DETAIL_LAST; i++) {
