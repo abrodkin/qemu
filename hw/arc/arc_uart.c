@@ -57,7 +57,7 @@ static void arc_uart_update_irq(ARC_UART_State *s)
 {
     int cond = 0;
 
-    if (s->rx_ie && s->rx_fifo_len)
+    if ((s->rx_ie && s->rx_fifo_len) || s->tx_ie)
         cond = 1;
 
     if (cond)
@@ -94,6 +94,13 @@ static void arc_status_set(ARC_UART_State *s, char value)
         s->tx_ie = true;
     else
         s->tx_ie = false;
+
+    /*
+     * Tx IRQ is active if (TXIE && TXEMPTY), but since in QEMU we
+     * transmit data immediately TXEMPTY is permanently set, thus
+     * for TX IRQ state we need to check TXIE only which we do here.
+     */
+    arc_uart_update_irq(s);
 
     if (value & UART_RX_IE)
         s->rx_ie = true;
