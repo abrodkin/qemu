@@ -58,6 +58,7 @@ TESTCASES += check_timer0_sleep.tst
 TESTCASES += check_timerX_freq.tst
 TESTCASES += check_swirq.tst
 TESTCASES += check_swirq1.tst
+TESTCASES += check_swirq3.tst
 TESTCASES += check_mpyw.tst
 TESTCASES += check_subf.tst
 TESTCASES += check_prefetch.tst
