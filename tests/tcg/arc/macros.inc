@@ -223,6 +223,6 @@ tn_\name:
 
 .macro end
 1:
-  st 1, [0xf0000008]
+  flag 1
   b @1b
 .endm
