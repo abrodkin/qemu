@@ -331,7 +331,7 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
   switch (aux_reg_detail->id)
     {
     case AUX_ID_irq_pending:
-      return irq_bank->pending | (env->aux_irq_hint == irq);
+      return irq_bank->pending | (irq > 15 ? (env->aux_irq_hint == irq) : 0);
 
     case AUX_ID_irq_select:
       return env->irq_select;
@@ -346,7 +346,8 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
       return (irq_bank->priority
 	      | irq_bank->enable << 4
 	      | irq_bank->trigger << 5
-	      | (irq_bank->pending | (env->aux_irq_hint == irq)) << 31);
+	      | (irq_bank->pending
+                 | (irq > 15 ? ((env->aux_irq_hint == irq) << 31) : 0)));
 
     case AUX_ID_aux_irq_act:
       return env->aux_irq_act;
@@ -409,9 +410,11 @@ aux_irq_set (struct arc_aux_reg_detail *aux_reg_detail, uint32_t val, void *data
       qemu_mutex_lock_iothread ();
       if (val == 0)
 	qemu_irq_lower (env->irq[env->aux_irq_hint]);
-      else
-	qemu_irq_raise (env->irq[val]);
-      env->aux_irq_hint = val;
+      else if (val >= 16)
+        {
+          qemu_irq_raise (env->irq[val]);
+          env->aux_irq_hint = val;
+        }
       qemu_mutex_unlock_iothread ();
       break;
 
