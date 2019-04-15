@@ -496,6 +496,7 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
       for (vectno = 0;
            vectno < cpu->cfg.number_of_interrupts; vectno++)
         if (env->irq_bank[16 + vectno].priority == priority
+            && env->irq_bank[16 + vectno].enable
             && env->irq_bank[16 + vectno].pending)
           {
             found = true;

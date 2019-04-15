@@ -24,13 +24,21 @@
 	.global IRQ_18
 	.type IRQ_18, @function
 IRQ_18:
+#define AUX_IRQ_SELECT  0x40b
+#define AUX_IRQ_ENABLE  0x40c
 	clri
 	add	r0,r0,1
+        mov     r1, AUX_IRQ_SELECT
+        mov     r2, AUX_IRQ_ENABLE
 	;; clean the IRQ
+        sr      18, [r1]
+        sr      0, [r2]
 	sr	0, [AUX_IRQ_HINT]
 	brgt	r0,1,@.extisr
 	;; retrigger the irq
 	sr	18, [AUX_IRQ_HINT]
+        sr      18, [r1]
+        sr      1, [r2]
 	print " SW-IRQ 0,"
 	rtie
 .extisr:
