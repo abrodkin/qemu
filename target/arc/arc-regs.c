@@ -25,6 +25,7 @@
 #include "mmu.h"
 #include "irq.h"
 #include "arc_timer.h"
+#include "arc-cache.h"
 
 struct arc_aux_reg_detail arc_aux_regs_detail[ARC_AUX_REGS_DETAIL_LAST] = {
 #define DEF(NUM, CPU, SUB, NAME) \

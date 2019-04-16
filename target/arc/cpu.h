@@ -26,6 +26,7 @@
 #include "arc-common.h"
 //#include "aux-reg.h"
 #include "mmu.h"
+#include "arc-cache.h"
 
 #define TARGET_LONG_BITS            32
 
@@ -288,6 +289,7 @@ typedef struct CPUARCState {
   uint32_t param;
 
   struct arc_mmu mmu;   /* mmu.h */
+  struct arc_cache cache; /* arc-cache.h */
 
   bool            stopped;
 

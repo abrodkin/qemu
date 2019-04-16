@@ -27,6 +27,6 @@ obj-y   += gdbstub.o
 obj-y   += arc-decoder.o
 obj-y   += arc-regs.o
 obj-y   += arc-semfunc.o
-obj-y   += mmu.o arc_timer.o irq.o
+obj-y   += mmu.o arc_timer.o irq.o arc-cache.o
 # obj-$(CONFIG_SOFTMMU) += machine.o
 # obj-$(CONFIG_SOFTMMU) += machine.o
