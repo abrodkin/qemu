@@ -27,7 +27,6 @@
 #include "sysemu/qtest.h"
 #include "ui/console.h"
 #include "hw/boards.h"
-#include "hw/devices.h"
 #include "hw/loader.h"
 #include "qemu/error-report.h"
 #include "exec/address-spaces.h"

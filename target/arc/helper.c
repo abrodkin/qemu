@@ -24,6 +24,7 @@
 #include "hw/irq.h"
 #include "include/hw/sysbus.h"
 #include "include/sysemu/sysemu.h"
+#include "qemu/qemu-print.h"
 #include "exec/exec-all.h"
 #include "exec/cpu_ldst.h"
 #include "qemu/host-utils.h"
@@ -204,30 +205,25 @@ static gint arc_cpu_list_compare (gconstpointer a, gconstpointer b)
 
 static void arc_cpu_list_entry (gpointer data, gpointer user_data)
 {
-  ObjectClass *oc = data;
-  CPUListState *s = user_data;
-  const char *typename;
-  char *name;
-
-  typename = object_class_get_name (oc);
-  name = g_strndup (typename, strlen (typename) - strlen ("-" TYPE_ARC_CPU));
-  (*s->cpu_fprintf)(s->file, "  %s\n", name);
-  g_free (name);
+    ObjectClass *oc = data;
+    const char *typename;
+    char *name;
+  
+    typename = object_class_get_name (oc);
+    name = g_strndup (typename, strlen (typename) - strlen ("-" TYPE_ARC_CPU));
+    qemu_printf("  %s\n", name);
+    g_free (name);
 }
 
-void arc_cpu_list (FILE *f, fprintf_function cpu_fprintf)
+void arc_cpu_list(void)
 {
-  CPUListState s = {
-    .file = f,
-    .cpu_fprintf = cpu_fprintf,
-  };
-  GSList *list;
-
-  list = object_class_get_list (TYPE_ARC_CPU, false);
-  list = g_slist_sort (list, arc_cpu_list_compare);
-  (*cpu_fprintf)(f, "Available CPUs:\n");
-  g_slist_foreach (list, arc_cpu_list_entry, &s);
-  g_slist_free (list);
+    GSList *list;
+  
+    list = object_class_get_list (TYPE_ARC_CPU, false);
+    list = g_slist_sort (list, arc_cpu_list_compare);
+    qemu_printf("Available CPUs:\n");
+    g_slist_foreach (list, arc_cpu_list_entry, NULL);
+    g_slist_free (list);
 }
 
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,

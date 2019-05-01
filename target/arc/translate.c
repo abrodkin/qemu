@@ -19,6 +19,7 @@
  */
 
 #include "translate.h"
+#include "qemu/qemu-print.h"
 
 //TCGv_env cpu_env;
 
@@ -401,16 +402,15 @@ static const TranslatorOps arc_translator_ops = {
     .disas_log          = arc_tr_disas_log,
 };
 
-//static void gen_intermediate_code_old(CPUState *cs, struct TranslationBlock *tb);
 /* generate intermediate code for basic block 'tb'.  */
-void gen_intermediate_code(CPUState *cpu, TranslationBlock *tb)
+void gen_intermediate_code(CPUState *cpu, TranslationBlock *tb, int max_insns)
 {
 #ifdef OLD_WAY
     gen_intermediate_code_old(cpu, tb);
 #else
     DisasContext dc;
     const TranslatorOps *ops = &arc_translator_ops;
-    translator_loop(ops, &dc.base, cpu, tb);
+    translator_loop(ops, &dc.base, cpu, tb, max_insns);
 #endif
 }
 
@@ -580,14 +580,13 @@ void restore_state_to_opc(CPUARCState *env, TranslationBlock *tb,
     env->pc = data[0];
 }
 
-void arc_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
-                            int flags)
+void arc_cpu_dump_state(CPUState *cs, FILE *f, int flags)
 {
     ARCCPU *cpu = ARC_CPU(cs);
     CPUARCState *env = &cpu->env;
     int i;
 
-    cpu_fprintf(f, "STATUS:  [ %c %c %c %c %c %c %s %s %s %s %s %s %c]\n",
+    qemu_fprintf(f, "STATUS:  [ %c %c %c %c %c %c %s %s %s %s %s %s %c]\n",
                         env->stat.Lf ? 'L' : '-',
                         env->stat.Zf ? 'Z' : '-',
                         env->stat.Nf ? 'N' : '-',
@@ -603,12 +602,12 @@ void arc_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
                         env->stat.Hf ? 'H' : '-'
                         );
 
-    cpu_fprintf(f, "\n");
+    qemu_fprintf(f, "\n");
     for (i = 0; i < ARRAY_SIZE(env->r); i++) {
-        cpu_fprintf(f, "R[%02d]:  %02x   ", i, env->r[i]);
+        qemu_fprintf(f, "R[%02d]:  %02x   ", i, env->r[i]);
 
         if ((i % 8) == 7) {
-            cpu_fprintf(f, "\n");
+            qemu_fprintf(f, "\n");
         }
     }
 }

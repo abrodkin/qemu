@@ -456,7 +456,7 @@ void arc_translate_init(void);
 
 #define cpu_init(cpu_model) cpu_generic_init(TYPE_ARC_CPU, cpu_model)
 
-void arc_cpu_list(FILE *f, fprintf_function cpu_fprintf);
+void arc_cpu_list(void);
 int cpu_arc_exec(CPUState *cpu);
 int cpu_arc_signal_handler(int host_signum, void *pinfo, void *puc);
 int arc_cpu_handle_mmu_fault(CPUState *cpu, vaddr address, int rw,
@@ -465,8 +465,7 @@ int arc_cpu_memory_rw_debug(CPUState *cs, vaddr address, uint8_t *buf,
 				int len, bool is_write);
 void arc_cpu_do_interrupt(CPUState *cpu);
 
-void arc_cpu_dump_state(CPUState *cs, FILE *f,
-			fprintf_function cpu_fprintf, int flags);
+void arc_cpu_dump_state(CPUState *cs, FILE *f, int flags);
 hwaddr arc_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
 int arc_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int arc_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);

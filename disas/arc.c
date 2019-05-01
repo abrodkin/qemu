@@ -19,7 +19,7 @@
 
 #include "qemu/osdep.h"
 #include "qemu-common.h"
-#include "disas/bfd.h"
+#include "disas/dis-asm.h"
 #include "target/arc/arc-common.h"
 #include "target/arc/arc-decoder.h"
 
