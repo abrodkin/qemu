@@ -310,21 +310,24 @@ static bool arc_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *cpu,
 
 static void decode_opc(CPUARCState *env, DisasContext *ctx)
 {
-  ctx->env = env;
-  ctx->bstate = arc_decode (ctx);
-  switch(ctx->bstate) {
+    ctx->env = env;
+    ctx->bstate = arc_decode (ctx);
+    switch(ctx->bstate) {
     case BS_BRANCH_DS:
-      ctx->base.num_insns++;
+        ctx->base.num_insns++;
     case BS_BRANCH:
-      ctx->base.is_jmp = DISAS_NORETURN;
-      break;
+        ctx->base.is_jmp = DISAS_NORETURN;
+        break;
     case BS_BRANCH_HW_LOOP:
     case BS_NONE:
-      ctx->base.is_jmp = DISAS_NEXT;
-      break;
+        ctx->base.is_jmp = DISAS_NEXT;
+        break;
+    case BS_DISAS_UPDATE:
+        ctx->base.is_jmp = DISAS_UPDATE;
+        break;
     default:
-      assert(0);
-  }
+        g_assert_not_reached();
+    }
 }
 
 static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
@@ -369,6 +372,7 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
 
     switch (dc->base.is_jmp) {
       case DISAS_TOO_MANY:
+      case DISAS_UPDATE:
           gen_gotoi_tb(dc, 0, dc->base.pc_next);
           break;
       case DISAS_NORETURN:

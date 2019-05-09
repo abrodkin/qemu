@@ -296,7 +296,9 @@ void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
 #define getRegIndex(R, ID) tcg_gen_movi_tl(R, (int) ID)
 
 #define readAuxReg(R, A) gen_helper_lr(R, cpu_env, A)
-#define writeAuxReg(NAME, B) gen_helper_sr(cpu_env, B, NAME)
+#define writeAuxReg(NAME, B)            \
+    gen_helper_sr(cpu_env, B, NAME);    \
+    ret = BS_DISAS_UPDATE
 
 void arc2_gen_mac(TCGv phi, TCGv_i32 b, TCGv_i32 c);
 #define MAC(R, B, C) \

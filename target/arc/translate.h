@@ -38,14 +38,21 @@
 
 #include "exec/translator.h"
 
+/* signaling the end of translation block */
+#define DISAS_UPDATE    DISAS_TARGET_0
+
 enum insn_return_state {
-    BS_NONE      = 0x00,     /*  Nothing special (none of the below          */
-    BS_STOP	 = 0x01,
-    BS_BRANCH    = 0x02,     /*  A branch condition is reached               */
-    BS_BRANCH_DS = 0x03,     /*  A branch condition is reached               */
-    BS_EXCP      = 0x04,     /*  An exception condition is reached           */
-    BS_BREAK     = 0x05,
-    BS_BRANCH_HW_LOOP,	     /*  A branch condition in LP_END for hardware loops  */
+    BS_NONE           = 0x00,   /*  Nothing special (none of the below)  */
+    BS_STOP           = 0x01,
+    BS_BRANCH         = 0x02,   /*  A branch condition is reached        */
+    BS_BRANCH_DS      = 0x03,   /*  A branch condition is reached        */
+    BS_EXCP           = 0x04,   /*  An exception condition is reached    */
+    BS_BREAK          = 0x05,
+    BS_BRANCH_HW_LOOP = 0x06,   /*
+                                 * A branch condition in LP_END for
+                                 * hardware loops
+                                 */
+    BS_DISAS_UPDATE   = 0x07    /* Used for signaling the _end_ of a TB  */
 };
 typedef struct DisasContext {
     DisasContextBase base;
