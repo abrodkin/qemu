@@ -20,7 +20,7 @@ test00:
 test01:
   ; mpuen : momenterally enabled with full access
   ; when read, only relevant bits must be set.
-  auxreg_write_read mpuen   , 0xffffffff, 0x400001f8, 0x01
+  auxreg_write_read mpuen   , 0xffffffff, 0x400001f8, 1
   ; disable mpu at once
   mpu_disable
   auxreg_write_read mpurdb0 , 0xffffffff, 0xffffffe1, 0x01
@@ -58,7 +58,7 @@ test02_user_space:
   add r0, r0, r0             ; some filler to make a basic block
   ; accessing MPU registers in user mode is not allowed
   lr r0, [mpu_build]
-  assert_eq 0, 1, 0x02       ; exception must have been raised
+  assert_eq 0, 1, 2          ; exception must have been raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -74,10 +74,10 @@ test03:
                        efa      = @test03_illegal_lr_rgn, \
                        eret     = @test03_illegal_lr_rgn, \
                        continue = @test03_cont          , \
-                       test_num = 0x03
+                       test_num = 3
 test03_illegal_lr_rgn:
   lr r1, [mpurdb15]
-  assert_eq 0, 1, 0x03
+  assert_eq 0, 1, 3
 test03_cont:
   ; prep the exception for 'sr'ing a region that does not exist
   lr r0, [mpuic]    ; don't care for mpu_ecr value
@@ -86,10 +86,10 @@ test03_cont:
                        efa      = @test03_illegal_sr_rgn, \
                        eret     = @test03_illegal_sr_rgn, \
                        continue = @test04               , \
-                       test_num = 0x03
+                       test_num = 3
 test03_illegal_sr_rgn:
   sr r1, [mpurdp8]
-  assert_eq 0, 1, 0x03
+  assert_eq 0, 1, 3
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -105,18 +105,18 @@ test04:
   mpu_write_data  DATA04, MEM_ADDR04
   mpu_enable
   ; read permission check
-  mpu_verify_data DATA04, MEM_ADDR04, 0x04
+  mpu_verify_data DATA04, MEM_ADDR04, 4
   ; write permission check
   mpu_set_excep_params mpu_ecr  = MPU_ECR_W_R1           , \
                        ecr      = PROTV_WRITE_MPU        , \
                        efa      = MEM_ADDR04             , \
                        eret     = @test04_illegal_store+4, \
                        continue = @test05                , \
-                       test_num = 0x04
+                       test_num = 4
 test04_illegal_store:
   add r0, r0, r0            ; filler; so exception happens in...
   st  r1, [MEM_ADDR04]      ; ...the middle of a translation block
-  assert_eq 0, 1, 0x04      ; an exception must have been raised
+  assert_eq 0, 1, 4         ; an exception must have been raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,7 +135,7 @@ test05:
   mpu_write_data  DATA05, MEM_ADDR05+32 ; write to 0x4044 (region1)
   ; let the fun begin
   mpu_enable
-  mpu_verify_data DATA05, MEM_ADDR05+32, 0x05
+  mpu_verify_data DATA05, MEM_ADDR05+32, 5
   st r7, [MEM_ADDR05]                   ; write bogus data (region 0)
   ; now time for some exception
   mpu_set_excep_params mpu_ecr  = MPU_ECR_W_R1         , \
@@ -143,10 +143,10 @@ test05:
                        efa      = MEM_ADDR05+32        , \
                        eret     = @test05_illegal_store, \
                        continue = @test06              , \
-                       test_num = 0x05
+                       test_num = 5
 test05_illegal_store:
   st r7, [MEM_ADDR05+32]    ; this shouldn't be allowed
-  assert_eq 0, 1, 0x05      ; an exception must have been raised
+  assert_eq 0, 1, 5         ; an exception must have been raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -168,10 +168,10 @@ test06:
                        efa      = MEM_ADDR06+32       , \
                        eret     = @test06_illegal_read, \
                        continue = @test06_change_size , \
-                       test_num = 0x06
+                       test_num = 6
 test06_illegal_read:
   ld r7, [MEM_ADDR06+32]    ; this is not allowed anymore
-  assert_eq 0, 1, 0x06      ; an exception must have been raised
+  assert_eq 0, 1, 6         ; an exception must have been raised
 test06_change_size:
   ; changing size (deliberately mpu is not disabled)
   mpu_add_region  mpurdp3, REG_MPU_EN_KE, MPU_SIZE_32B ; update (64 -> 32)
@@ -207,10 +207,10 @@ test07_rest:
                        efa      = CODE_CAVE07+4       , \
                        eret     = @test07_illegal_read, \
                        continue = @test08             , \
-                       test_num = 0x07
+                       test_num = 7
 test07_illegal_read:
   ld r7, [CODE_CAVE07+4]    ; this shouldn't be allowed
-  assert_eq 0, 1, 0x07      ; an exception must have been raised
+  assert_eq 0, 1, 7         ; an exception must have been raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -236,30 +236,30 @@ test08:
                        efa      = BIG_ADDR08               , \
                        eret     = @test08_illegal_write    , \
                        continue = @test08_change_permission, \
-                       test_num = 0x08
+                       test_num = 8
   ; default region with only write permission
   mpu_enable REG_MPU_EN_KW
   ; checking read (BIG_ADDR08) and exec (current instruction) permissions
-  mpu_verify_data DATA08_1, BIG_ADDR08, 0x08
+  mpu_verify_data DATA08_1, BIG_ADDR08, 8
 test08_illegal_write:
   st r7, [BIG_ADDR08]       ; no write is allowed
-  assert_eq 0, 1, 0x08      ; an exception must have been raised
+  assert_eq 0, 1, 8         ; an exception must have been raised
 test08_change_permission:
   ; change permission _and_ size
   mpu_add_region  mpurdp7, REG_MPU_EN_FULL_ACCESS , MPU_SIZE_2G
   ; now there should be no problem in writing either
   mpu_write_data  DATA08_2, BIG_ADDR08
-  mpu_verify_data DATA08_2, BIG_ADDR08, 0x08
+  mpu_verify_data DATA08_2, BIG_ADDR08, 8
   ; prepping second exception: default region has no read access
   mpu_set_excep_params mpu_ecr  = MPU_ECR_R_DEF           , \
                        ecr      = PROTV_READ_MPU          , \
                        efa      = BIG_ADDR08+0xF0         , \
                        eret     = @test08_illegal_def_read, \
                        continue = @test09                 , \
-                       test_num = 0x08
+                       test_num = 8
 test08_illegal_def_read:
   ld r7, [BIG_ADDR08+0xF0]  ; this is default region now and not sanctioned
-  assert_eq 0, 1, 0x08      ; an exception must have been raised
+  assert_eq 0, 1, 8         ; an exception must have been raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -283,22 +283,22 @@ test09:
                        efa      = MEM_ADDR09_2            , \
                        eret     = @test09_user_space+8    , \
                        continue = @test09_rest_kernel_mode, \
-                       test_num = 0x09
+                       test_num = 9
   ; let's have at it
   mpu_enable REG_MPU_EN_UE | REG_MPU_EN_KR
   enter_user_mode @test09_user_space
 test09_user_space:
   st r7, [MEM_ADDR09_2-4]   ; write to the end of user region
   st r7, [MEM_ADDR09_2]     ; uh-oh: causing trouble
-  assert_eq 0, 1, 0x09      ; we're looking for an exception; not this.
+  assert_eq 0, 1, 9         ; we're looking for an exception; not this.
 test09_rest_kernel_mode:
   ; a simple write and verify chore in kernel mode
   mpu_write_data  DATA09, MEM_ADDR09_2+64
-  mpu_verify_data DATA09, MEM_ADDR09_2+64, 0x09
+  mpu_verify_data DATA09, MEM_ADDR09_2+64, 9
   ; also writing to user region because of implied write access
   mpu_write_data  DATA09, MEM_ADDR09_1+64
   mpu_disable       ; else we cannot verify (no read access)
-  mpu_verify_data DATA09, MEM_ADDR09_1+64, 0x09
+  mpu_verify_data DATA09, MEM_ADDR09_1+64, 9
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -318,11 +318,11 @@ test10:
                        efa      = CODE_CAVE10    , \
                        eret     = CODE_CAVE10    , \
                        continue = @test11        , \
-                       test_num = 0x10
+                       test_num = 10
   mpu_enable
   enter_user_mode @test10_user_space
 test10_user_space:
-  mpu_verify_data DATA10, CODE_CAVE10, 0x10   ; read must be OK
+  mpu_verify_data DATA10, CODE_CAVE10, 10     ; read must be OK
   j @CODE_CAVE10                              ; this one not
 
 
@@ -345,12 +345,12 @@ test11:
                        efa      = MEM_ADDR11          , \
                        eret     = @test11_illegal_read, \
                        continue = @test12             , \
-                       test_num = 0x11
+                       test_num = 11
   mpu_enable REG_MPU_EN_KE
   add r0, r0, r0              ; just a random guy making a difference
 test11_illegal_read:
   ld  r0, [MEM_ADDR11]
-  assert_eq 0, 1, 0x11        ; an exception better be raised
+  assert_eq 0, 1, 11          ; an exception better be raised
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -366,7 +366,7 @@ test12:
 test12_doomed:
   add r0, r0, r0
   lr  r0, [mpuen]
-  assert_eq 0, r0, 0x12
+  assert_eq 0, r0, 12
   j @test13
   ; the machine check routine to be executed eventually
 	.global	 EV_MachineCheck
@@ -416,7 +416,7 @@ test13:
                        efa      = MEM_ADDR13_2        , \
                        eret     = @test13_illegal_read, \
                        continue = @test14             , \
-                       test_num = 0x13
+                       test_num = 13
   mpu_enable
   ld r0, [TWO_PAGES_BEFORE+0x1000]    ; must cache the page
   ld r0, [TWO_PAGES_BEFORE+0x1100]    ; reuse same information
@@ -430,7 +430,7 @@ test13:
   ld r0, [ONE_PAGE_AFTER+0x04    ]    ; ...can be cached
 test13_illegal_read:
   ld r0, [MEM_ADDR13_2           ]    ; oops!
-  assert_eq 0, 1, 0x13
+  assert_eq 0, 1, 13
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -466,14 +466,14 @@ test14:
                        efa      = r1                   , \
                        eret     = @test14_illegal_write, \
                        continue = @test14_mpu          , \
-                       test_num = 0x14
+                       test_num = 14
   ; enable the guys
   mmu_enable                  ; enable MMU
   mpu_enable REG_MPU_EN_KW    ; enable MPU with kernel write access
   ; this is happening in MMU's territory
 test14_illegal_write:
   st r0, [r1]       ; no write for this entry in TLB
-  assert_eq 0, 1, 0x14
+  assert_eq 0, 1, 14
 
 test14_mpu:
   add r0, r0, r0            ; a happy camper
@@ -484,10 +484,10 @@ test14_mpu:
                        efa      = MEM_ADDR14          , \
                        eret     = @test14_illegal_read, \
                        continue = @test14_wrapup      , \
-                       test_num = 0x14
+                       test_num = 14
 test14_illegal_read:
   ld  r0, [MEM_ADDR14]      ; uh-oh...
-  assert_eq 0, 1, 0x14
+  assert_eq 0, 1, 14
 test14_wrapup:
   mpu_disable
   mmu_disable

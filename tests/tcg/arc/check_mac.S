@@ -104,83 +104,83 @@ start
 
 ;;;;;;;;;;;;;;;;;;;;;; MAC ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; acc =  0 +  4*5 = 20
-mac_test val1=4, val2=5, res=20, test_num=0x01
+mac_test val1=4, val2=5, res=20, test_num=1
 ; acc = 20 +  5*1 = 25
-mac_test val1=1, val2=5, res=25, test_num=0x02
+mac_test val1=1, val2=5, res=25, test_num=2
 ; acc = 25 + -1*5 = 20
-mac_test val1=0xFFFFFFFF, val2=0x5, res=20, racch=0x0, raccl=20, n=0, test_num=0x03
+mac_test val1=0xFFFFFFFF, val2=0x5, res=20, racch=0x0, raccl=20, n=0, test_num=3
 ; acc = 20 + -3*9 = -7
-mac_test val1=0xFFFFFFFD, val2=0x09, res=0xFFFFFFF9, racch=0xFFFFFFFF, raccl=0xFFFFFFF9, n=1, test_num=0x04
+mac_test val1=0xFFFFFFFD, val2=0x09, res=0xFFFFFFF9, racch=0xFFFFFFFF, raccl=0xFFFFFFF9, n=1, test_num=4
 ; producing a result that sets both acch and accl
-mac_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, res=1, racch=0x3FFFFFFF, raccl=0x01, n=0, v=0, test_num=0x05
+mac_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, res=1, racch=0x3FFFFFFF, raccl=0x01, n=0, v=0, test_num=5
 ; acc is 0x3FFFFFFF00000001
-mac_test val1=0x80000000, val2=0x80000000, res=1, racch=0x7FFFFFFF, raccl=0x01, n=0, v=0, test_num=0x06
+mac_test val1=0x80000000, val2=0x80000000, res=1, racch=0x7FFFFFFF, raccl=0x01, n=0, v=0, test_num=6
 ; acc is 0x7FFFFFFF00000001; going for the kill: N and V will be set
-mac_test val1=0x12344321, val2=0x56788654, res=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, n=1, v=1, test_num=0x07
+mac_test val1=0x12344321, val2=0x56788654, res=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, n=1, v=1, test_num=7
 ; "mac" is not supposed to clear the overflow bit
-mac_test acch=0, accl=0, val1=0, val2=0, res=0, racch=0, raccl=0, n=0, v=1, test_num=0x08
+mac_test acch=0, accl=0, val1=0, val2=0, res=0, racch=0, raccl=0, n=0, v=1, test_num=8
 clear_flags_and_accu
 
 
 ;;;;;;;;;;;;;;;;;;;;;; MACU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; acc =  0 +  4*5 = 20
-macu_test val1=4, val2=5, res=20, test_num=0x09
+macu_test val1=4, val2=5, res=20, test_num=9
 ; acc = 20 +  5*1 = 25
-macu_test val1=1, val2=5, res=25, test_num=0x10
+macu_test val1=1, val2=5, res=25, test_num=10
 ; acc = 25 + 21,474,836,475 = 21,474,836,500 (0x00000005,0x00000014)
-macu_test val1=0xFFFFFFFF, val2=0x5, res=20, racch=5, raccl=20, test_num=0x11
+macu_test val1=0xFFFFFFFF, val2=0x5, res=20, racch=5, raccl=20, test_num=11
 ; acc = 21,474,836,500 + 38,654,705,637 = 60,129,542,137 (0x0000000D,0xFFFFFFF9)
-macu_test val1=0xFFFFFFFD, val2=0x09, res=0xFFFFFFF9, racch=0x0D, raccl=0xFFFFFFF9, test_num=0x12
+macu_test val1=0xFFFFFFFD, val2=0x09, res=0xFFFFFFF9, racch=0x0D, raccl=0xFFFFFFF9, test_num=12
 ; producing a result that sets both acch and accl
-macu_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, res=1, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=0x13
+macu_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, res=1, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=13
 ; acc is 0x3FFFFFFF00000001
-macu_test val1=0x80000000, val2=0x80000000, res=1, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=0x14
+macu_test val1=0x80000000, val2=0x80000000, res=1, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=14
 ; acc is 0x7FFFFFFF00000001; line below still will not trigger an overflow for MACU
-macu_test val1=0x12344321, val2=0x56788654, res=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, v=0, test_num=0x15
+macu_test val1=0x12344321, val2=0x56788654, res=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, v=0, test_num=15
 ; cause an overflow
-macu_test acch=0xFFFFFFFF, accl=0xFFFFFFFF, val1=1, val2=1, res=0, racch=0, raccl=0, v=1, test_num=0x16
+macu_test acch=0xFFFFFFFF, accl=0xFFFFFFFF, val1=1, val2=1, res=0, racch=0, raccl=0, v=1, test_num=16
 ; "macu" is not supposed to clear the overflow bit
-macu_test acch=0, accl=0, val1=0, val2=0, res=0, racch=0, raccl=0, v=1, test_num=0x17
+macu_test acch=0, accl=0, val1=0, val2=0, res=0, racch=0, raccl=0, v=1, test_num=17
 clear_flags_and_accu
 
 
 ;;;;;;;;;;;;;;;;;;;;; MACD ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-macd_test val1=4, val2=5, resh=0, resl=20, test_num=0x18
+macd_test val1=4, val2=5, resh=0, resl=20, test_num=18
 ; acc is now 20
-macd_test val1=1, val2=5, resh=0, resl=25, test_num=0x19
+macd_test val1=1, val2=5, resh=0, resl=25, test_num=19
 ; acc = 25 + -1*5 = 20
-macd_test val1=0xFFFFFFFF, val2=0x5, resh=0, resl=20, racch=0x0, raccl=20, n=0, test_num=0x20
+macd_test val1=0xFFFFFFFF, val2=0x5, resh=0, resl=20, racch=0x0, raccl=20, n=0, test_num=20
 ; acc = 20 + -3*9 = -7
-macd_test val1=0xFFFFFFFD, val2=0x09, resh = 0xFFFFFFFF, resl=0xFFFFFFF9, racch=0xFFFFFFFF, raccl=0xFFFFFFF9, n=1, test_num=0x21
+macd_test val1=0xFFFFFFFD, val2=0x09, resh = 0xFFFFFFFF, resl=0xFFFFFFF9, racch=0xFFFFFFFF, raccl=0xFFFFFFF9, n=1, test_num=21
 ; producing a result that sets both acch and accl
-macd_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, resh=0x3FFFFFFF, resl=0x01, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=0x22
+macd_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, resh=0x3FFFFFFF, resl=0x01, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=22
 ; acc is 0x3FFFFFFF00000001
-macd_test val1=0x80000000, val2=0x80000000, resh=0x7FFFFFFF, resl=0x01, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=0x23
+macd_test val1=0x80000000, val2=0x80000000, resh=0x7FFFFFFF, resl=0x01, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=23
 ; acc is 0x7FFFFFFF00000001; going for the kill: N and V will be set
-macd_test val1=0x12344321, val2=0x56788654, resh=0x86262098, resl=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, n=1, v=1, test_num=0x24
+macd_test val1=0x12344321, val2=0x56788654, resh=0x86262098, resl=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, n=1, v=1, test_num=24
 ; "macd" is not supposed to clear the overflow bit
-macd_test acch=0, accl=0, val1=0, val2=0, resh=0, resl=0, racch=0, raccl=0, n=0, v=1, test_num=0x25
+macd_test acch=0, accl=0, val1=0, val2=0, resh=0, resl=0, racch=0, raccl=0, n=0, v=1, test_num=25
 clear_flags_and_accu
 
 
 ;;;;;;;;;;;;;;;;;;;; MACDU ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-macdu_test val1=4, val2=5, resh=0, resl=20, test_num=0x20
+macdu_test val1=4, val2=5, resh=0, resl=20, test_num=26
 ; acc is now 20
-macdu_test val1=1, val2=5, resh=0, resl=25, test_num=0x21
+macdu_test val1=1, val2=5, resh=0, resl=25, test_num=27
 ; acc = 25 + 21,474,836,475 = 21,474,836,500 (0x00000005,0x00000014)
-macdu_test val1=0xFFFFFFFF, val2=0x5, resh=5, resl=20, racch=5, raccl=20, test_num=0x11
+macdu_test val1=0xFFFFFFFF, val2=0x5, resh=5, resl=20, racch=5, raccl=20, test_num=28
 ; acc = 21,474,836,500 + 38,654,705,637 = 60,129,542,137 (0x0000000D,0xFFFFFFF9)
-macdu_test val1=0xFFFFFFFD, val2=0x09, resh=0x0D, resl=0xFFFFFFF9, racch=0x0D, raccl=0xFFFFFFF9, test_num=0x12
+macdu_test val1=0xFFFFFFFD, val2=0x09, resh=0x0D, resl=0xFFFFFFF9, racch=0x0D, raccl=0xFFFFFFF9, test_num=29
 ; producing a result that sets both acch and accl
-macdu_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, resh=0x3FFFFFFF, resl=0x01, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=0x22
+macdu_test acch=0, accl=0, val1=0x7FFFFFFF, val2=0x7FFFFFFF, resh=0x3FFFFFFF, resl=0x01, racch=0x3FFFFFFF, raccl=0x01, v=0, test_num=30
 ; acc is 0x3FFFFFFF00000001
-macdu_test val1=0x80000000, val2=0x80000000, resh=0x7FFFFFFF, resl=0x01, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=0x23
+macdu_test val1=0x80000000, val2=0x80000000, resh=0x7FFFFFFF, resl=0x01, racch=0x7FFFFFFF, raccl=0x01, v=0, test_num=31
 ; acc is 0x7FFFFFFF00000001; line below still will not trigger an overflow for MACU
-macdu_test val1=0x12344321, val2=0x56788654, resh=0x86262098, resl=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, v=0, test_num=0x24
+macdu_test val1=0x12344321, val2=0x56788654, resh=0x86262098, resl=0xE1C14CD5, racch=0x86262098, raccl=0xE1C14CD5, v=0, test_num=32
 ; cause an overflow
-macdu_test acch=0xFFFFFFFF, accl=0xFFFFFFFF, val1=1, val2=1, resh=0, resl=0, racch=0, raccl=0, v=1, test_num=0x25
+macdu_test acch=0xFFFFFFFF, accl=0xFFFFFFFF, val1=1, val2=1, resh=0, resl=0, racch=0, raccl=0, v=1, test_num=33
 ; "macdu" is not supposed to clear the overflow bit
-macdu_test acch=0, accl=0, val1=0, val2=0, resh=0, resl=0, racch=0, raccl=0, v=1, test_num=0x26
+macdu_test acch=0, accl=0, val1=0, val2=0, resh=0, resl=0, racch=0, raccl=0, v=1, test_num=34
 clear_flags_and_accu
 
 
@@ -188,21 +188,21 @@ clear_flags_and_accu
 mov r0, 0xFFFFFFFF
 mov r1, 0x11111111
 mac.f r2, r0, r1
-assert_flag REG_STAT_N, 1, test_num=0x27
+assert_flag REG_STAT_N, 1, test_num=35
 clear_flags_and_accu
 
 mov r0, 0xFFFFFFFF
 mov r1, 0x11111111
 mac r2, r0, r1
-assert_flag REG_STAT_N, 0, test_num=0x28
+assert_flag REG_STAT_N, 0, test_num=36
 clear_flags_and_accu
 
 setup_acc acch=0xFFFFFFFF, accl=0xFFFFFFFF
 mov r0, 0x01
 mov r1, 0x01
-; earlier, this caused an overflow; see test case 0x25
+; earlier, this caused an overflow; see test case 25
 macdu r2, r0, r1
-assert_flag REG_STAT_V, 0, test_num=0x29
+assert_flag REG_STAT_V, 0, test_num=37
 clear_flags_and_accu
 
 ; FIXME: uncomment code below when assmbler starts supporting conditon codes
@@ -211,7 +211,7 @@ clear_flags_and_accu
 ;mov r1, 1
 ;mov r2, 0x1337
 ;;macu.v r2, r1, r0        ; assembler does not support this line
-;assert_eq 0x1337, r2, test_num=0x30
+;assert_eq 0x1337, r2, test_num=38
 ;
 ;mov r0, 42
 ;mov r1, 1
@@ -220,8 +220,8 @@ clear_flags_and_accu
 ;add.f r4, r4, r4
 ;; conditional execution and update flags
 ;macd.N.f r2, r1, r0      ; assembler does not support this line
-;assert_flag REG_STAT_N, 0, test_num=0x31
-;assert_eq 42, r2, test_num=0x31
+;assert_flag REG_STAT_N, 0, test_num=39
+;assert_eq 42, r2, test_num=39
 
 
 ;;;;;;;;;;;;;;;;;;; Finished ;;;;;;;;;;;;;;;;;;;;;;;;;;

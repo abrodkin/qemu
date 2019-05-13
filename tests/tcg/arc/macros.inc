@@ -9,127 +9,129 @@ tn_\name:
 
 .macro check_r2 val
   sub.f     r0, r2, \val
-  beq	    @3333f
+  beq	    @1000f
   print     "Fail"
-3333:
+1000:
+.endm
+
+
+.macro start
+  .text
+  .global main
+  .align 4
+  main:
+.endm
+
+.macro end
+1001:
+  st 1, [POWER_DEVICE]
+  b @1001b
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .equ   OUTPUT_DEVICE, 0x90000000      ; output device address in QEMU
+.equ   POWER_DEVICE,  0xF0000008      ; power management device
 
 ; macro:     print
 ; input:     message - the string to be printed
 ; regs used: r11, r12
 ; example:   print "hello world\n"
-;
-; caveat emptor:
-;   this macro uses relative lables. if the  code using this macro
-;   happens to use the same  relative lables, then  the  assembler
-;   will get confused. these labels are: '0000', '1111', '2222'
-;   last  but  not  least, this  macro   assumes   the   following
-;   instructions already work: 'ldb.ab', 'breq', 'stb', 'j'
 .macro  print message
 
   .data
-  0000:
+  2010:
   .asciz "\message"
   .align 4
 
   .text
-  mov_s     r11, @0000b                 ; the message to be printed
-  1111:
+  mov_s     r11, @2010b                 ; the message to be printed
+  1010:
     ldb.ab  r12, [r11, 1]
-    breq    r12, 0, @2222f
+    breq    r12, 0, @1011f
     stb     r12, [OUTPUT_DEVICE]
-    j       @1111b
-  2222:
+    j       @1010b
+  1011:
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; macro:     swap_nibbles_32
-; input:     any positive number
-; result:    r12
-; regs used: r11, r12
-; example:   swap_nibbles_32 0x12345678  --> r12 = 0x87654321
-;
-; description:
-;   reverses all the nibles (4-bit digits) in a 32-bit long number
-;
-; caveat emptor:
-;   this  macro assumes the following instructions already work:
-;   'asl', 'lsr, 'breq', 'bnz', 'j'
-.macro  swap_nibbles_32  number
-  asl   r12, \number, 28
-  asl   r11, \number, 20
-  and   r11, r11, 0x0F000000
-  or    r12, r12, r11
-
-  asl   r11, \number, 12
-  and   r11, r11, 0x00F00000
-  or    r12, r12, r11
-  asl   r11, \number, 4
-  and   r11, r11, 0x000F0000
-  or    r12, r12, r11
-
-  lsr   r11, \number, 4
-  and   r11, r11, 0x0000F000
-  or    r12, r12, r11
-  lsr   r11, \number, 12
-  and   r11, r11, 0x00000F00
-  or    r12, r12, r11
-
-  lsr   r11, \number, 20
-  and   r11, r11, 0x000000F0
-  or    r12, r12, r11
-  lsr   r11, \number, 28
-  and   r11, r11, 0x0000000F
-  or    r12, r12, r11
-.endm
-
 ; macro:     print_number
-; input:     BCD (Binary Coded Decimal) number
-; regs used: r11, r12
-; example:   print 0x123
-;            print 0x11       --> to print "11", DO NOT USE print 0xB
+; input:     number
+; regs used: r11, r12, r13, r14
+; example:   print_number 0x123
+;            print_number 11
 ;
 ; description:
-;   given a number in BCD form (hexadecimal digits representing a
-;   decimal number), prints it to the output.
-;
-; caveat emptor:
-;   this macro uses relative lables. if the  code using this macro
-;   happens to use the same  relative lables, then  the  assembler
-;   will get confused. these labels are: '4444', '5555'
-;   last  but  not  least, this  macro   assumes   the   following
-;   instructions already work: 'asl', 'lsr, 'breq', 'bnz', 'j'
-.macro print_number  num
+;   given a number, prints it to the output as a decimal string.
+.macro print_number   number
+  .data
+  .align 4
+2020:         ; place holder for printed number in reverse
+  .skip 12
 
-  swap_nibbles_32 \num     ; i.e. mov r12, nible_swap(num)
-  ; if the input is 0, just go for printing (will print only one byte)
-  breq  r12, 0, @5555f
-  ; getting rid of trailing 0's
-  4444:
-  and.f 0, r12, 0x0F
-  bnz   @5555f
-  lsr   r12, r12, 4
-  j     @4444b
+  .text
+  mov    r11, \number
+  mov    r13, @2020b
+  mov    r14, @2020b
+1020:
+  remu   r12, r11, 10
+  add_s  r12, r12, 0x30
+  stb.ab r12, [r13, 1]
+  divu   r11, r11, 10
+  brne   r11, 0, @1020b
 
-  5555:
-  and   r11, r12, 0x0F
-  add   r11, r11, '0'
-  st    r11, [OUTPUT_DEVICE]
-  lsr.f r12, r12, 4
-  bnz   @5555b
+1021:
+  ldb.aw r12, [r13, -1]
+  stb    r12, [0x90000000]
+  brne   r13, r14, @1021b
 .endm
+
+
+; macro:     print_number_hex
+; input:     number
+; regs used: r11, r12, r13, r14
+; example:   print_number_hex 0x123
+;            print_number_hex 11
+;
+; description:
+;   given a number, prints it to the output with "0x" prefix and in
+;   hexadecimal format.
+.macro print_number_hex  num
+  .data
+  .align 4
+2030:           ; number printed in reverse order
+  .skip 12
+
+  .text
+  mov   r11, \num
+  mov   r13, @2030b
+  mov   r14, @2030b
+1030:
+  and   r12, r11, 0x0F
+  brgt  r12, 9, @1031f
+  add_s r12, r12, '0'
+  j     @1032f
+1031:
+  add_s r12, r12, 'W'
+1032:
+  stb.ab r12, [r13, 1]
+  lsr.f  r11, r11, 4
+  bnz    @1030b
+
+  print "0x"
+10333:
+  ldb.aw r12, [r13, -1]
+  stb    r12, [OUTPUT_DEVICE]
+  brgt   r13, r14, @10333b
+.endm
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; macro:     assert_eq
 ; input:     a, b     - two values/registers to be compared
 ;            test_num - optional: printed error number, default is 1.
-;                       valid range is: any BCD number
 ; regs used: r11, r12
 ; example:   assert_eq 12, r2
 ;            assert_eq r1, 8
@@ -139,19 +141,14 @@ tn_\name:
 ; description:
 ;   compares  the  two inputs. if they are equal, nothing happens.
 ;   but if not, then it is going to print "Ret:1" and exit.
-;
-; caveat emptor:
-;   this macro uses a relative lable. if the code using this macro
-;   happens to use the  same  relative lable, then  the  assembler
-;   will get confused. this label is: '3333'
 .macro assert_eq a, b, test_num=1
   mov   r11, \a
   mov   r12, \b
-  breq  r11, r12, @3333f
+  breq  r11, r12, @1040f
   print "FAIL:"
   print_number \test_num
   end
-3333:
+1040:
 .endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -232,11 +229,6 @@ tn_\name:
 ;   extracts the corresponding bit at given index by reg_stat_flag.
 ;   if it holds  the  same value  as  given 'bit', nothing happens,
 ;   else it will print an error and exit.
-;
-; caveat emptor:
-;   this macro uses a relative lable. if the code using this macro
-;   happens to use the  same  relative lable, then  the  assembler
-;   will get confused. this label is: '3333'
 .macro assert_flag reg_stat_flag, bit, test_num
   lr     r11, [REG_STAT]
   and    r11, r11, \reg_stat_flag
@@ -264,17 +256,3 @@ tn_\name:
   rtie
 .endm
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-.macro start
-  .text
-    .global main
-    .align 4
-  main:
-.endm
-
-.macro end
-1:
-  flag 1
-  b @1b
-.endm
