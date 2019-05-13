@@ -8,8 +8,10 @@
 	mov	r0,0
 	;; Use IRQ18 for the test.
 	sr	18, [AUX_IRQ_HINT]
-	;; Sleep until we get the IRQ
-	sleep
+	;; wait (sleep doesn't work as expected because all the irq
+	;; are triggered BEFORE sleep is even fetch/executed.
+.llocal00:
+	breq	r0, 0, @.llocal00
 	brlt	r0, 2, @.failMe
 	print " Pass\n"
 	end
