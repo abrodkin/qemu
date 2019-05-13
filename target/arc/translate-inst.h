@@ -296,6 +296,15 @@ void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
 #define getRegIndex(R, ID) tcg_gen_movi_tl(R, (int) ID)
 
 #define readAuxReg(R, A) gen_helper_lr(R, cpu_env, A)
+/*
+ * Here, by returning DISAS_UPDATE we are making SR the end
+ * of a Translation Block (TB). This is necessary because
+ * somtimes writing to control registers updates how a TB is
+ * handled, like enabling MMU/MPU. If SR is not marked as the
+ * end, the next instructions are fetched and generated and
+ * the updated outcome (page/region permissions) is not taken
+ * into account.
+ */
 #define writeAuxReg(NAME, B)            \
     gen_helper_sr(cpu_env, B, NAME);    \
     ret = BS_DISAS_UPDATE
