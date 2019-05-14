@@ -1526,7 +1526,7 @@ read_and_decode_context (DisasCtxt *ctx,
 static int arc_gen_INVALID (DisasCtxt *ctx)
 {
     fprintf(stderr, "invalid inst @:%08x\n", ctx->cpc);
-    return BS_NONE;
+    return DISAS_NEXT;
 }
 
 /* Helper to be used by the disassembler.  */
@@ -1716,67 +1716,64 @@ static void gen_sleep (DisasCtxt *ctx, TCGv opa)
 }
 
 /* Return from exception.  */
-
-static void gen_rtie (DisasCtxt *ctx)
+static void gen_rtie(DisasCtxt *ctx)
 {
-  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
-  gen_helper_rtie (cpu_env);
-  tcg_gen_mov_tl (cpu_pc, cpu_pcl);
-  gen_goto_tb (ctx, 1, cpu_pc);
+    tcg_gen_movi_tl(cpu_pc, ctx->cpc);
+    gen_helper_rtie(cpu_env);
+    tcg_gen_mov_tl(cpu_pc, cpu_pcl);
+    gen_goto_tb(ctx, 1, cpu_pc);
 }
 
-int arc_decode (DisasCtxt *ctx)
+int arc_decode(DisasCtxt *ctx)
 {
-  const struct arc_opcode *opcode = NULL;
-  static bool should_stop = false;
-  int ret = BS_NONE;
-  enum arc_opcode_map mapping;
+    const struct arc_opcode *opcode = NULL;
+    int ret = DISAS_NEXT;
+    enum arc_opcode_map mapping;
 
-  /* Call the disassembler.  */
-  if (!read_and_decode_context (ctx, &opcode))
-    return arc_gen_INVALID (ctx);
+    /* Call the disassembler.  */
+    if (!read_and_decode_context(ctx, &opcode)) {
+        return arc_gen_INVALID(ctx);
+    }
 
-  /* Do the mapping.  */
-  if((mapping = arc_map_opcode (opcode)) != MAP_NONE)
-    {
-      TCGv ops[10];
-      int i;
-      for (i = 0; i < number_of_ops_semfunc[mapping]; i++)
-	{
-	  ops[i] = arc2_decode_operand (opcode, ctx, i);
-	}
+    /* Do the mapping.  */
+    if ((mapping = arc_map_opcode(opcode)) != MAP_NONE) {
+        TCGv ops[10];
+        int i;
+        for (i = 0; i < number_of_ops_semfunc[mapping]; i++) {
+            ops[i] = arc2_decode_operand(opcode, ctx, i);
+        }
 
-      /* Store some elements statically to implement less dynamic
-	 features of instructions.  Started by the need to keep a
-	 static reference to LP_START and LP_END.  */
-      switch(mapping)
-	{
-	case MAP_lp_LP:
-	  ctx->env->lps = ctx->npc;
-	  ctx->env->lpe = ctx->pcl + ctx->insn.operands[0].value;
-	  break;
+        /*
+         * Store some elements statically to implement less dynamic
+         * features of instructions.  Started by the need to keep a
+         * static reference to LP_START and LP_END.
+         */
+        switch(mapping) {
+        case MAP_lp_LP:
+            ctx->env->lps = ctx->npc;
+            ctx->env->lpe = ctx->pcl + ctx->insn.operands[0].value;
+            break;
 
-	default:
-	  break;
-      }
+        default:
+            break;
+        }
 
-      switch(mapping)
-	{
+        switch(mapping) {
 
 #define SEMANTIC_FUNCTION_CALL_0(NAME, A) \
-  arc2_gen_##NAME (ctx);
+            arc2_gen_##NAME (ctx);
 #define SEMANTIC_FUNCTION_CALL_1(NAME, A) \
-  arc2_gen_##NAME (ctx, ops[A]);
+            arc2_gen_##NAME (ctx, ops[A]);
 #define SEMANTIC_FUNCTION_CALL_2(NAME, A, B) \
-  arc2_gen_##NAME (ctx, ops[A], ops[B]);
+            arc2_gen_##NAME (ctx, ops[A], ops[B]);
 #define SEMANTIC_FUNCTION_CALL_3(NAME, A, B, C) \
-  arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C]);
+            arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C]);
 
 #define SEMANTIC_FUNCTION(...)
-#define MAPPING(MNEMONIC, NAME, NOPS, ...) \
-	    case MAP_##MNEMONIC##_##NAME: \
-	      ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME, __VA_ARGS__); \
-	      break;
+#define MAPPING(MNEMONIC, NAME, NOPS, ...)                          \
+            case MAP_##MNEMONIC##_##NAME:                           \
+            ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME, __VA_ARGS__); \
+            break;
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
 #undef SEMANTIC_FUNCTION
@@ -1785,63 +1782,56 @@ int arc_decode (DisasCtxt *ctx)
 #undef SEMANTIC_FUNCTION_CALL_2
 #undef SEMANTIC_FUNCTION_CALL_3
 
-	case MAP_swi_SWI:
-	case MAP_swi_s_SWI:
-	  gen_excp (ctx, EXCP_SWI, 0, ctx->insn.operands[0].value);
-	  ret = BS_NONE;
-	  break;
+        case MAP_swi_SWI:
+        case MAP_swi_s_SWI:
+            gen_excp(ctx, EXCP_SWI, 0, ctx->insn.operands[0].value);
+            ret = DISAS_NEXT;
+            break;
 
-	case MAP_trap_s_TRAP:
-	  gen_trap (ctx, ctx->insn.operands[0].value);
-	  ret = BS_NONE;
-	  break;
+        case MAP_trap_s_TRAP:
+            gen_trap(ctx, ctx->insn.operands[0].value);
+            ret = DISAS_NEXT;
+            break;
 
-	case MAP_rtie_RTIE:
-	  gen_rtie (ctx);
-	  ret = BS_BRANCH;
-	  break;
+        case MAP_rtie_RTIE:
+            gen_rtie(ctx);
+            ret = DISAS_NORETURN;
+            break;
 
-	case MAP_sleep_SLEEP:
-	  gen_sleep (ctx, ops[0]);
-	  ret = BS_NONE;
-	  break;
+        case MAP_sleep_SLEEP:
+            gen_sleep(ctx, ops[0]);
+            ret = DISAS_NEXT;
+            break;
 
-	default:
-	  arc_debug_opcode(opcode, ctx, "Could not map opcode");
-	  ret = BS_NONE;
-	  should_stop = false;
-	  break;
-	}
+        default:
+            arc_debug_opcode(opcode, ctx, "Could not map opcode");
+            ret = DISAS_NEXT;
+            break;
+        }
 
-      for (i = 0;
-	   i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
-	   i++)
-	{
-	  operand_t operand = ctx->insn.operands[i];
-	  if (!(operand.type & ARC_OPERAND_LIMM)
-	      && !(operand.type & ARC_OPERAND_IR))
-	    {
-	      tcg_temp_free_i32 (ops[i]);
-	    }
-	}
+        for (i = 0;
+             i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
+             i++) {
+            operand_t operand = ctx->insn.operands[i];
+            if (!(operand.type & ARC_OPERAND_LIMM) &&
+                !(operand.type & ARC_OPERAND_IR)) {
+                tcg_temp_free_i32 (ops[i]);
+            }
+        }
 
-    }
-  else
-    {
-      gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
-      arc_debug_opcode(opcode, ctx, "Could not identify opcode");
-      ret = BS_NONE;
-      //should_stop = true;
+    } /* mapping is done */
+    else {
+        gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
+        arc_debug_opcode(opcode, ctx, "Could not identify opcode");
+        ret = DISAS_NEXT;
     }
 
-#ifdef DEBUG_TCG
-  #error "HERE"
-#endif
-  ret = (!opcode || should_stop) ? BS_STOP : ret;
-  return ret;
+    return ret;
 }
+
 
 /* Local variables:
    eval: (c-set-style "gnu")
    indent-tabs-mode: t
    End:  */
+/* vim: set ts=4 sw=4 et: */

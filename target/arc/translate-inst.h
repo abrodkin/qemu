@@ -252,7 +252,7 @@ int arc2_get_tcgv_value(TCGv elem);
 
 #define setPC(NEW_PC) \
   gen_goto_tb(ctx, 1, NEW_PC); \
-  ret = ret == BS_NONE ? BS_BRANCH : ret
+  ret = ret == DISAS_NEXT ? DISAS_NORETURN : ret
 
 #define setBLINK(BLINK_ADDR) tcg_gen_mov_i32(cpu_blink, BLINK_ADDR);
 
@@ -307,7 +307,7 @@ void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
  */
 #define writeAuxReg(NAME, B)            \
     gen_helper_sr(cpu_env, B, NAME);    \
-    ret = BS_DISAS_UPDATE
+    ret = DISAS_UPDATE
 
 void arc2_gen_mac(TCGv phi, TCGv_i32 b, TCGv_i32 c);
 #define MAC(R, B, C) \

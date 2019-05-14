@@ -70,7 +70,7 @@
 int
 arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_13 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -265,7 +265,7 @@ arc2_gen_FLAG (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_13 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -447,7 +447,7 @@ arc2_gen_KFLAG (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_ADD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -531,7 +531,7 @@ arc2_gen_ADD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ADD1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -618,7 +618,7 @@ arc2_gen_ADD1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ADD2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -705,7 +705,7 @@ arc2_gen_ADD2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ADD3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -792,7 +792,7 @@ arc2_gen_ADD3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ADC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -885,7 +885,7 @@ arc2_gen_ADC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_SBC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -976,7 +976,7 @@ arc2_gen_SBC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_NEG (DisasCtxt *ctx, TCGv b, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1061,7 +1061,7 @@ arc2_gen_NEG (DisasCtxt *ctx, TCGv b, TCGv a)
 int
 arc2_gen_SUB (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1143,7 +1143,7 @@ arc2_gen_SUB (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_SUB1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1225,7 +1225,7 @@ arc2_gen_SUB1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_SUB2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1307,7 +1307,7 @@ arc2_gen_SUB2 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_SUB3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1397,7 +1397,7 @@ arc2_gen_SUB3 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1503,7 +1503,7 @@ arc2_gen_MAX (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv lb = tcg_temp_local_new_i32();
@@ -1595,7 +1595,7 @@ arc2_gen_MIN (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_CMP (DisasCtxt *ctx, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -1660,7 +1660,7 @@ arc2_gen_CMP (DisasCtxt *ctx, TCGv b, TCGv c)
 int
 arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -1719,7 +1719,7 @@ arc2_gen_AND (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -1778,7 +1778,7 @@ arc2_gen_OR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -1837,7 +1837,7 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -1906,7 +1906,7 @@ arc2_gen_MOV (DisasCtxt *ctx, TCGv a, TCGv b)
 int
 arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2007,7 +2007,7 @@ arc2_gen_ASL (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2102,7 +2102,7 @@ arc2_gen_ASR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2171,7 +2171,7 @@ arc2_gen_ASR8 (DisasCtxt *ctx, TCGv b, TCGv a)
 int
 arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2239,7 +2239,7 @@ arc2_gen_ASR16 (DisasCtxt *ctx, TCGv b, TCGv a)
 int
 arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2304,7 +2304,7 @@ arc2_gen_LSL16 (DisasCtxt *ctx, TCGv a, TCGv b)
 int
 arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2379,7 +2379,7 @@ arc2_gen_LSL8 (DisasCtxt *ctx, TCGv a, TCGv b)
 int
 arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2473,7 +2473,7 @@ arc2_gen_LSR (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2538,7 +2538,7 @@ arc2_gen_LSR16 (DisasCtxt *ctx, TCGv a, TCGv b)
 int
 arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2603,7 +2603,7 @@ arc2_gen_LSR8 (DisasCtxt *ctx, TCGv a, TCGv b)
 int
 arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2666,7 +2666,7 @@ arc2_gen_BIC (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2743,7 +2743,7 @@ arc2_gen_BCLR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 int
 arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2836,7 +2836,7 @@ arc2_gen_BMSK (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 int
 arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2924,7 +2924,7 @@ arc2_gen_BMSKN (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 int
 arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -2990,7 +2990,7 @@ arc2_gen_BSET (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 int
 arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3055,7 +3055,7 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 int
 arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3139,7 +3139,7 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 int
 arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3223,7 +3223,7 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
 int
 arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3308,7 +3308,7 @@ arc2_gen_RLC (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3393,7 +3393,7 @@ arc2_gen_RRC (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3461,7 +3461,7 @@ arc2_gen_SEXB (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3529,7 +3529,7 @@ arc2_gen_SEXH (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3588,7 +3588,7 @@ arc2_gen_EXTB (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3644,7 +3644,7 @@ arc2_gen_EXTH (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3697,7 +3697,7 @@ arc2_gen_BTST (DisasCtxt *ctx, TCGv c, TCGv b)
 int
 arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3750,7 +3750,7 @@ arc2_gen_TST (DisasCtxt *ctx, TCGv b, TCGv c)
 int
 arc2_gen_XBFU (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3838,7 +3838,7 @@ arc2_gen_XBFU (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 int
 arc2_gen_AEX (DisasCtxt *ctx, TCGv src2, TCGv b)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -3882,7 +3882,7 @@ arc2_gen_AEX (DisasCtxt *ctx, TCGv src2, TCGv b)
 int
 arc2_gen_LR (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
   readAuxReg(temp_1, src);
   tcg_gen_mov_i32(dest, temp_1);
@@ -3907,7 +3907,7 @@ arc2_gen_LR (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
 
   writeAuxReg(src2, src1);
   return ret;
@@ -3938,7 +3938,7 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 int
 arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv status32 = tcg_temp_local_new_i32();
   TCGv ie = tcg_temp_local_new_i32();
@@ -4010,7 +4010,7 @@ arc2_gen_CLRI (DisasCtxt *ctx, TCGv c)
 int
 arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv status32 = tcg_temp_local_new_i32();
   TCGv e_mask = tcg_temp_local_new_i32();
@@ -4098,7 +4098,7 @@ arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 int
 arc2_gen_NOP (DisasCtxt *ctx)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
 
   return ret;
 }
@@ -4119,7 +4119,7 @@ arc2_gen_NOP (DisasCtxt *ctx)
 int
 arc2_gen_PREALLOC (DisasCtxt *ctx)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
 
   return ret;
 }
@@ -4148,7 +4148,7 @@ arc2_gen_PREALLOC (DisasCtxt *ctx)
 int
 arc2_gen_PREFETCH (DisasCtxt *ctx, TCGv src1, TCGv src2)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int AA;
   AA = getAAFlag ();
   if (((AA == 1) || (AA == 2)))
@@ -4196,7 +4196,7 @@ arc2_gen_PREFETCH (DisasCtxt *ctx, TCGv src1, TCGv src2)
 int
 arc2_gen_MPY (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4275,7 +4275,7 @@ arc2_gen_MPY (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MPYMU (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4339,7 +4339,7 @@ arc2_gen_MPYMU (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_MPYM (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4403,7 +4403,7 @@ arc2_gen_MPYM (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_MPYU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4479,7 +4479,7 @@ arc2_gen_MPYU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MPYUW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4549,7 +4549,7 @@ arc2_gen_MPYUW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4640,7 +4640,7 @@ arc2_gen_MPYW (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
 int
 arc2_gen_DIV (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4734,7 +4734,7 @@ arc2_gen_DIV (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 int
 arc2_gen_DIVU (DisasCtxt *ctx, TCGv src2, TCGv dest, TCGv src1)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4819,7 +4819,7 @@ arc2_gen_DIVU (DisasCtxt *ctx, TCGv src2, TCGv dest, TCGv src1)
 int
 arc2_gen_REM (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4913,7 +4913,7 @@ arc2_gen_REM (DisasCtxt *ctx, TCGv src2, TCGv src1, TCGv dest)
 int
 arc2_gen_REMU (DisasCtxt *ctx, TCGv src2, TCGv dest, TCGv src1)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -4997,7 +4997,7 @@ arc2_gen_REMU (DisasCtxt *ctx, TCGv src2, TCGv dest, TCGv src1)
 int
 arc2_gen_MAC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5094,7 +5094,7 @@ arc2_gen_MAC (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MACU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5193,7 +5193,7 @@ arc2_gen_MACU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MACD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5298,7 +5298,7 @@ arc2_gen_MACD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_MACDU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5402,7 +5402,7 @@ arc2_gen_MACDU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv alu = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
@@ -5472,7 +5472,7 @@ arc2_gen_ABS (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv tmp2 = tcg_temp_local_new_i32();
@@ -5525,7 +5525,7 @@ arc2_gen_SWAP (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv tmp1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -5595,7 +5595,7 @@ arc2_gen_SWAPE (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_NOT (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int f_flag;
   tcg_gen_not_i32(dest, src);
   f_flag = getFFlag ();
@@ -5629,7 +5629,7 @@ arc2_gen_NOT (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_BI (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -5663,7 +5663,7 @@ arc2_gen_BI (DisasCtxt *ctx, TCGv c)
 int
 arc2_gen_BIH (DisasCtxt *ctx, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -5706,7 +5706,7 @@ arc2_gen_BIH (DisasCtxt *ctx, TCGv c)
 int
 arc2_gen_B (DisasCtxt *ctx, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv l_rd = tcg_temp_local_new_i32();
@@ -5769,7 +5769,7 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
 int
 arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5831,7 +5831,7 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 int
 arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -5925,7 +5925,7 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 int
 arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6021,7 +6021,7 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 int
 arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv l_rd = tcg_temp_local_new_i32();
@@ -6110,7 +6110,7 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 int
 arc2_gen_J (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv l_src = tcg_temp_local_new_i32();
@@ -6176,7 +6176,7 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv l_src = tcg_temp_local_new_i32();
@@ -6260,7 +6260,7 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6329,7 +6329,7 @@ arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -6403,7 +6403,7 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6472,7 +6472,7 @@ arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -6546,7 +6546,7 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6615,7 +6615,7 @@ arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -6689,7 +6689,7 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6758,7 +6758,7 @@ arc2_gen_SETGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -6832,7 +6832,7 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETLE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6901,7 +6901,7 @@ arc2_gen_SETLE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_SETGT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -6970,7 +6970,7 @@ arc2_gen_SETGT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -7040,7 +7040,7 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -7094,7 +7094,7 @@ arc2_gen_SETLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv l_offset = tcg_temp_local_new_i32();
@@ -7164,7 +7164,7 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
 int
 arc2_gen_SETHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -7207,7 +7207,7 @@ arc2_gen_SETHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 int
 arc2_gen_EX (DisasCtxt *ctx, TCGv b, TCGv c)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(temp, b);
@@ -7237,7 +7237,7 @@ arc2_gen_EX (DisasCtxt *ctx, TCGv b, TCGv c)
 int
 arc2_gen_LLOCK (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   getMemory(temp_1, src, LONG);
@@ -7269,7 +7269,7 @@ arc2_gen_LLOCK (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_LLOCKD (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv pair = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
@@ -7313,7 +7313,7 @@ arc2_gen_LLOCKD (DisasCtxt *ctx, TCGv dest, TCGv src)
 int
 arc2_gen_SCOND (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv lf = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -7366,7 +7366,7 @@ arc2_gen_SCOND (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv lf = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -7417,7 +7417,7 @@ arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_DMB (DisasCtxt *ctx, TCGv a)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
 
   return ret;
 }
@@ -7473,7 +7473,7 @@ arc2_gen_DMB (DisasCtxt *ctx, TCGv a)
 int
 arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int AA;
   int ZZ;
   TCGv address = tcg_temp_local_new_i32();
@@ -7624,7 +7624,7 @@ arc2_gen_LD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 int
 arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int AA;
   int ZZ;
   TCGv address = tcg_temp_local_new_i32();
@@ -7765,7 +7765,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 int
 arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int AA;
   int ZZ;
   TCGv address = tcg_temp_local_new_i32();
@@ -7884,7 +7884,7 @@ arc2_gen_ST (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 int
 arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   int AA;
   int ZZ;
   TCGv address = tcg_temp_local_new_i32();
@@ -8000,7 +8000,7 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
 int
 arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -8046,7 +8046,7 @@ arc2_gen_POP (DisasCtxt *ctx, TCGv dest)
 int
 arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv local_src = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -8100,7 +8100,7 @@ arc2_gen_PUSH (DisasCtxt *ctx, TCGv src)
 int
 arc2_gen_LP (DisasCtxt *ctx, TCGv rd)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
@@ -8182,7 +8182,7 @@ arc2_gen_LP (DisasCtxt *ctx, TCGv rd)
 int
 arc2_gen_NORM (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv psrc = tcg_temp_local_new_i32();
   TCGv i = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(psrc, src);
@@ -8227,7 +8227,7 @@ arc2_gen_NORM (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_NORMH (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv lsrc = tcg_temp_local_new_i32();
   TCGv i = tcg_temp_local_new_i32();
   tcg_gen_andi_i32(lsrc, src, 65535);
@@ -8271,7 +8271,7 @@ arc2_gen_NORMH (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_FLS (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv psrc = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(psrc, src);
   ARC_HELPER(fls, dest, psrc);
@@ -8312,7 +8312,7 @@ arc2_gen_FLS (DisasCtxt *ctx, TCGv src, TCGv dest)
 int
 arc2_gen_FFS (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
-  int ret = BS_NONE;
+  int ret = DISAS_NEXT;
   TCGv psrc = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(psrc, src);
   ARC_HELPER(ffs, dest, psrc);

@@ -261,41 +261,39 @@ arc2_gen_set_debug(DisasCtxt *ctx, bool value)
 void
 arc2_gen_execute_delayslot(DisasCtxt *ctx)
 {
-  static int in_delay_slot = false;
-  if (ctx->insn.limm_p == 0 && !in_delay_slot)
-    {
-      in_delay_slot = true;
-      uint32_t cpc = ctx->cpc;
-      uint32_t pcl = ctx->pcl;
-      insn_t insn = ctx->insn;
+    static int in_delay_slot = false;
+    if (ctx->insn.limm_p == 0 && !in_delay_slot) {
+        in_delay_slot = true;
+        uint32_t cpc = ctx->cpc;
+        uint32_t pcl = ctx->pcl;
+        insn_t insn = ctx->insn;
 
-      ctx->cpc = ctx->npc;
-      ctx->pcl = ctx->cpc & 0xfffffffc;
+        ctx->cpc = ctx->npc;
+        ctx->pcl = ctx->cpc & 0xfffffffc;
 
-      ++ctx->ds;
+        ++ctx->ds;
 
-      /* TODO: check for illegal instruction sequence */
+        /* TODO: check for illegal instruction sequence */
 
-      tcg_gen_movi_tl(cpu_pc, ctx->npc);
-      arc_decode (ctx);
-      tcg_gen_movi_tl(cpu_pc, ctx->cpc);
+        tcg_gen_movi_tl(cpu_pc, ctx->npc);
+        arc_decode(ctx);
+        tcg_gen_movi_tl(cpu_pc, ctx->cpc);
 
-      assert (ctx->bstate == BS_NONE);
+        assert(ctx->base.is_jmp == DISAS_NEXT);
 
-      --ctx->ds;
+        --ctx->ds;
 
-      /* Make dpc(delay_slot next pc) become npc(next pc) of the delayslot
-       * instruction.  */
-      ctx->dpc = ctx->npc;
+        /* Make dpc(delay_slot next pc) become npc(next pc) of the delayslot
+         * instruction.  */
+        ctx->dpc = ctx->npc;
 
-      /* Restore old values.  */
-      ctx->cpc = cpc;
-      ctx->pcl = pcl;
-      ctx->insn = insn;
-      ctx->bstate = BS_BRANCH_DS;
-      in_delay_slot = false;
+        /* Restore old values.  */
+        ctx->cpc = cpc;
+        ctx->pcl = pcl;
+        ctx->insn = insn;
+        in_delay_slot = false;
     }
-  return;
+    return;
 }
 
 bool
