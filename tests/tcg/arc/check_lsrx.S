@@ -14,12 +14,12 @@ ARCTEST_BEGIN
   #-------------------------------------------------------------
   # Logical tests
   #-------------------------------------------------------------
-  TEST_RR_OP ( 2, lsr, 0x00000000, 0x00000000,   0);
-  TEST_RR_OP ( 3, lsr, 0x12345678, 0x12345678,   0);
-  TEST_RR_OP ( 4, lsr, 0x01234567, 0x12345678,   4);
-  TEST_RR_OP ( 5, lsr, 0x0ABCDEF4, 0xABCDEF45,   4);
-  TEST_RR_OP ( 6, lsr, 0x00000000, 0x7FFFFFFF,  31);
-  TEST_RR_OP ( 7, lsr, 0x00000001, 0xFFFFFFFF,  31);
+  TEST_RR_3OP ( 2, lsr, 0x00000000, 0x00000000,   0);
+  TEST_RR_3OP ( 3, lsr, 0x12345678, 0x12345678,   0);
+  TEST_RR_3OP ( 4, lsr, 0x01234567, 0x12345678,   4);
+  TEST_RR_3OP ( 5, lsr, 0x0ABCDEF4, 0xABCDEF45,   4);
+  TEST_RR_3OP ( 6, lsr, 0x00000000, 0x7FFFFFFF,  31);
+  TEST_RR_3OP ( 7, lsr, 0x00000001, 0xFFFFFFFF,  31);
 
   #-------------------------------------------------------------
   # Flag tests

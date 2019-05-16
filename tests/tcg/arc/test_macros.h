@@ -23,11 +23,17 @@
                inst r0, r1, SEXT_IMM(imm)               \
         )
 
-#define TEST_RR_OP( testnum, inst, result, val1, val2 ) \
+#define TEST_RR_3OP( testnum, inst, result, val1, val2 ) \
     TEST_CASE( testnum, r0, result,                     \
                mov  r1, MASK_XLEN(val1)`                \
                mov  r2, MASK_XLEN(val2)`                \
                inst r0, r1, r2                          \
+        )
+
+#define TEST_RR_2OP( testnum, inst, result, val)         \
+    TEST_CASE( testnum, r0, result,                     \
+               mov  r1, MASK_XLEN(val)`                 \
+               inst r0, r1                              \
         )
 
 #define TEST_IMM_SRC1_EQ_DEST( testnum, inst, result, val1, imm ) \
@@ -61,9 +67,19 @@
     mov  r12, testnum`                                       \
         mov  r1, MASK_XLEN(val1)`                            \
         mov  r2, MASK_XLEN(val2)`                            \
-        inst.f   0, r1, r2`                                     \
-        mov.cs   r3,(~expected) & 0x01`                         \
-        mov.cc   r3, (expected) & 0x01`                         \
+        inst.f   0, r1, r2`                                  \
+        mov.cs   r3,(~expected) & 0x01`                      \
+        mov.cc   r3, (expected) & 0x01`                      \
+        brne     r3, 0, @fail
+
+#define TEST_1OP_CARRY( testnum, inst, expected, val) \
+    test_ ## testnum:                                 \
+    mov  r12, testnum`                                \
+        add.f    0, r0, r0`                           \
+        mov      r1, MASK_XLEN(val)`                  \
+        inst.f   0, r1`                               \
+        mov.cs   r3,(~expected) & 0x01`               \
+        mov.cc   r3, (expected) & 0x01`               \
         brne     r3, 0, @fail
 
 #define TEST_2OP_ZERO( testnum, inst, expected, val1, val2)  \
@@ -159,17 +175,17 @@ fail:`\
         st      r2, [0x90000000]`\
         mov     r2, ':'`\
         st      r2, [0x90000000]`\
-	mov	r13, r12`\
-	mov	r15, 0x30`\
-	mov	r14, r12`\
-loop_z:	`\
+        mov r13, r12`\
+        mov r15, 0x30`\
+        mov r14, r12`\
+loop_z: `\
         sub.f   r13, r13, 0x0A`\
-	add.pl	r15, r15, 1`\
-	mov.pl	r14, r13 `\
-	bpl	@loop_z`\
+        add.pl  r15, r15, 1`\
+        mov.pl  r14, r13 `\
+        bpl     @loop_z`\
         st      r15, [0x90000000]`\
         add     r14, r14, 0x30`\
         st      r14, [0x90000000]`\
         mov     r2, '\n'`\
         st      r2, [0x90000000]`\
-        b 1b`
+        b       1b`

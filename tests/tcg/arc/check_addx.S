@@ -36,26 +36,26 @@ ARCTEST_BEGIN
 
   TEST_IMM_OP( 16, add, 0x0000000080000000, 0x7fffffff, 0x001 )
 
-  TEST_RR_OP( 17,  add, 0x00000000, 0x00000000, 0x00000000 )
-  TEST_RR_OP( 18,  add, 0x00000002, 0x00000001, 0x00000001 )
-  TEST_RR_OP( 19,  add, 0x0000000a, 0x00000003, 0x00000007 )
+  TEST_RR_3OP( 17,  add, 0x00000000, 0x00000000, 0x00000000 )
+  TEST_RR_3OP( 18,  add, 0x00000002, 0x00000001, 0x00000001 )
+  TEST_RR_3OP( 19,  add, 0x0000000a, 0x00000003, 0x00000007 )
 
-  TEST_RR_OP( 20,  add, 0xffffffffffff8000, 0x0000000000000000, 0xffffffffffff8000 )
-  TEST_RR_OP( 21,  add, 0xffffffff80000000, 0xffffffff80000000, 0x00000000 )
-  TEST_RR_OP( 22,  add, 0xffffffff7fff8000, 0xffffffff80000000, 0xffffffffffff8000 )
+  TEST_RR_3OP( 20,  add, 0xffffffffffff8000, 0x0000000000000000, 0xffffffffffff8000 )
+  TEST_RR_3OP( 21,  add, 0xffffffff80000000, 0xffffffff80000000, 0x00000000 )
+  TEST_RR_3OP( 22,  add, 0xffffffff7fff8000, 0xffffffff80000000, 0xffffffffffff8000 )
 
-  TEST_RR_OP( 23,  add, 0x0000000000007fff, 0x0000000000000000, 0x0000000000007fff )
-  TEST_RR_OP( 24,  add, 0x000000007fffffff, 0x000000007fffffff, 0x0000000000000000 )
-  TEST_RR_OP( 25,  add, 0x0000000080007ffe, 0x000000007fffffff, 0x0000000000007fff )
+  TEST_RR_3OP( 23,  add, 0x0000000000007fff, 0x0000000000000000, 0x0000000000007fff )
+  TEST_RR_3OP( 24,  add, 0x000000007fffffff, 0x000000007fffffff, 0x0000000000000000 )
+  TEST_RR_3OP( 25,  add, 0x0000000080007ffe, 0x000000007fffffff, 0x0000000000007fff )
 
-  TEST_RR_OP( 26,  add, 0xffffffff80007fff, 0xffffffff80000000, 0x0000000000007fff )
-  TEST_RR_OP( 27,  add, 0x000000007fff7fff, 0x000000007fffffff, 0xffffffffffff8000 )
+  TEST_RR_3OP( 26,  add, 0xffffffff80007fff, 0xffffffff80000000, 0x0000000000007fff )
+  TEST_RR_3OP( 27,  add, 0x000000007fff7fff, 0x000000007fffffff, 0xffffffffffff8000 )
 
-  TEST_RR_OP( 28,  add, 0xffffffffffffffff, 0x0000000000000000, 0xffffffffffffffff )
-  TEST_RR_OP( 29,  add, 0x0000000000000000, 0xffffffffffffffff, 0x0000000000000001 )
-  TEST_RR_OP( 30,  add, 0xfffffffffffffffe, 0xffffffffffffffff, 0xffffffffffffffff )
+  TEST_RR_3OP( 28,  add, 0xffffffffffffffff, 0x0000000000000000, 0xffffffffffffffff )
+  TEST_RR_3OP( 29,  add, 0x0000000000000000, 0xffffffffffffffff, 0x0000000000000001 )
+  TEST_RR_3OP( 30,  add, 0xfffffffffffffffe, 0xffffffffffffffff, 0xffffffffffffffff )
 
-  TEST_RR_OP( 31,  add, 0x0000000080000000, 0x0000000000000001, 0x000000007fffffff )
+  TEST_RR_3OP( 31,  add, 0x0000000080000000, 0x0000000000000001, 0x000000007fffffff )
 
 
   #-------------------------------------------------------------
