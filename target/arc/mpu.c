@@ -331,7 +331,7 @@ static void log_mpu_data(const ARCMPU *mpu)
             size = rp->size & 0x3FF;
         }
         qemu_log_mask(CPU_LOG_MMU,
-                "[MPU] |   %02u   | %s | 0x%08X | %3u %s | 0x%08X-0x%08x "
+                "[MPU] |   %02u   | %s | 0x%08x | %3u %s | 0x%08x-0x%08x "
                 "|     %c%c%c      |    %c%c%c     |\n",
                 r, rb->valid ? "true " : "false", rb->addr, size, suffix,
                 rb->addr & rp->mask,
