@@ -355,20 +355,22 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
     DisasContext *dc = container_of(dcbase, DisasContext, base);
 
     switch (dc->base.is_jmp) {
-      case DISAS_TOO_MANY:
-      case DISAS_UPDATE:
-          gen_gotoi_tb(dc, 0, dc->base.pc_next);
-          break;
-      case DISAS_NORETURN:
-          break;
-      default:
-          g_assert_not_reached();
+    case DISAS_TOO_MANY:
+    case DISAS_UPDATE:
+        gen_gotoi_tb(dc, 0, dc->base.pc_next);
+        break;
+    case DISAS_NORETURN:
+        break;
+    default:
+         g_assert_not_reached();
     }
 
-    if (dc->base.num_insns == dc->base.max_insns
-	&& (dc->base.tb->cflags & CF_LAST_IO)) {
+    if (dc->base.num_insns == dc->base.max_insns &&
+        (dc->base.tb->cflags & CF_LAST_IO)) {
         gen_io_end();
     }
+    tcg_temp_free_i32(dc->zero);
+    tcg_temp_free_i32(dc->one);
 }
 
 static void arc_tr_disas_log(const DisasContextBase *dcbase, CPUState *cpu)
