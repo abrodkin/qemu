@@ -348,8 +348,6 @@ TCGv arc2_gen_next_reg(TCGv reg);
 #define nextReg(A) \
   arc2_gen_next_reg(A)
 
-#define Zero() (ctx->zero)
-
 bool arc2_target_has_option(enum target_options option);
 #define targetHasOption(OPTION) \
   arc2_target_has_option(OPTION)

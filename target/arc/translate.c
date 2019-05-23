@@ -276,11 +276,7 @@ static void arc_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
 }
 static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
 {
-  DisasContext *dc = container_of(dcbase, DisasContext, base);
-
-  /* TODO (issue #61): remove these */
-  dc->zero = tcg_const_local_i32(0);
-  dc->one = tcg_const_local_i32(1);
+  /* place holder for now */
 }
 
 static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
@@ -346,9 +342,8 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
             dc->base.is_jmp = DISAS_TOO_MANY;
         }
     }
-    /* TODO (issue #61): enable the line below */
     /* verify if there is any TCG temporaries leakge */
-    //translator_loop_temp_check(dcbase);
+    translator_loop_temp_check(dcbase);
 }
 
 static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
@@ -370,9 +365,6 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
         (dc->base.tb->cflags & CF_LAST_IO)) {
         gen_io_end();
     }
-    /* TODO (issue #61): remove these */
-    tcg_temp_free_i32(dc->zero);
-    tcg_temp_free_i32(dc->one);
 }
 
 static void arc_tr_disas_log(const DisasContextBase *dcbase, CPUState *cpu)

@@ -24,9 +24,6 @@
 #include "translate.h"
 #include "translate-inst.h"
 
-#define arc_true (ctx->one)
-#define arc_false (ctx->zero)
-
 #define LONG 0
 #define BYTE 1
 #define WORD 2
