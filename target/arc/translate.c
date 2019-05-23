@@ -278,6 +278,7 @@ static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
 {
   DisasContext *dc = container_of(dcbase, DisasContext, base);
 
+  /* TODO (issue #61): remove these */
   dc->zero = tcg_const_local_i32(0);
   dc->one = tcg_const_local_i32(1);
 }
@@ -316,38 +317,38 @@ static void decode_opc(CPUARCState *env, DisasContext *ctx)
 
 static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
 {
-  DisasContext *dc = container_of(dcbase, DisasContext, base);
-  CPUARCState *env = cpu->env_ptr;
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+    CPUARCState *env = cpu->env_ptr;
 
-  dc->cpc = dc->base.pc_next;
-  decode_opc(env, dc);
-  dc->base.pc_next = dc->npc;
+    dc->cpc = dc->base.pc_next;
+    decode_opc(env, dc);
+    dc->base.pc_next = dc->npc;
 
-  /* Hardware loop control code */
-  if (dc->npc == env->lpe)
-    {
-      TCGLabel *label = gen_new_label();
-      tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-      tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
-      gen_goto_tb(dc, 0, cpu_lps);
-      gen_set_label(label);
-      gen_gotoi_tb(dc, 1, dc->npc);
-      dc->base.is_jmp = DISAS_NORETURN;
+    /* Hardware loop control code */
+    if (dc->npc == env->lpe) {
+        TCGLabel *label = gen_new_label();
+        tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
+        tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
+        gen_goto_tb(dc, 0, cpu_lps);
+        gen_set_label(label);
+        gen_gotoi_tb(dc, 1, dc->npc);
+        dc->base.is_jmp = DISAS_NORETURN;
     }
 
-  if(dc->base.is_jmp == DISAS_NORETURN)
-    {
-      gen_gotoi_tb(dc, 0, dc->npc);
+    if(dc->base.is_jmp == DISAS_NORETURN) {
+        gen_gotoi_tb(dc, 0, dc->npc);
     }
-  else if(dc->base.is_jmp == DISAS_NEXT)
-    {
-      target_ulong page_start;
+    else if(dc->base.is_jmp == DISAS_NEXT) {
+        target_ulong page_start;
 
-      page_start = dc->base.pc_first & TARGET_PAGE_MASK;
-      if (dc->base.pc_next - page_start >= TARGET_PAGE_SIZE) {
-          dc->base.is_jmp = DISAS_TOO_MANY;
-      }
+        page_start = dc->base.pc_first & TARGET_PAGE_MASK;
+        if (dc->base.pc_next - page_start >= TARGET_PAGE_SIZE) {
+            dc->base.is_jmp = DISAS_TOO_MANY;
+        }
     }
+    /* TODO (issue #61): enable the line below */
+    /* verify if there is any TCG temporaries leakge */
+    //translator_loop_temp_check(dcbase);
 }
 
 static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
@@ -369,6 +370,7 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
         (dc->base.tb->cflags & CF_LAST_IO)) {
         gen_io_end();
     }
+    /* TODO (issue #61): remove these */
     tcg_temp_free_i32(dc->zero);
     tcg_temp_free_i32(dc->one);
 }

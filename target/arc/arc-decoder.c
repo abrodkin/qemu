@@ -1577,86 +1577,79 @@ arc_map_opcode (const struct arc_opcode *opcode)
   return MAP_NONE;
 }
 
-static void
-arc_debug_opcode(const struct arc_opcode *opcode, DisasCtxt *ctx, const char *msg)
+static void arc_debug_opcode(const struct arc_opcode *opcode,
+                             DisasCtxt *ctx,
+                             const char *msg)
 {
-  qemu_log_mask(LOG_UNIMP,
-		"%s for %s at pc=0x%08x\n", msg, opcode->name, ctx->cpc);
+    qemu_log_mask(LOG_UNIMP,
+            "%s for %s at pc=0x%08x\n", msg, opcode->name, ctx->cpc);
 }
 
-static TCGv
-arc2_decode_operand(const struct arc_opcode *opcode, DisasCtxt *ctx, unsigned char nop)
+static TCGv arc2_decode_operand(const struct arc_opcode *opcode,
+                                DisasCtxt *ctx,
+                                unsigned char nop)
 {
-  TCGv ret;
+    TCGv ret;
 
-
-  if (nop == ctx->insn.n_ops)
-    {
-      switch (ctx->insn.class)
-	{
-	case LOGICAL:
-#if 0
-	  qemu_log_mask(LOG_UNIMP,
-			"Make operand %d for %s one.\n", nop, opcode->name);
-#endif
-	  return ctx->one;
-	default:
-#if 0
-          qemu_log_mask(LOG_UNIMP,
-			"Make operand %d for %s zero.\n", nop, opcode->name);
-#endif
-	  return ctx->zero;
-	}
+    if (nop == ctx->insn.n_ops) {
+        switch (ctx->insn.class) {
+        /* last (extra) operand for LOGICAL is assumed 1 */
+        case LOGICAL:
+            return tcg_const_local_i32(1);
+        /* else it is assumed 0 */
+        default:
+            return tcg_const_local_i32(0);
+        }
     }
 
-  assert (nop < ctx->insn.n_ops);
-  operand_t operand = ctx->insn.operands[nop];
+    assert(nop < ctx->insn.n_ops);
+    operand_t operand = ctx->insn.operands[nop];
 
-  if(operand.type & ARC_OPERAND_IR)
-    {
-      ret = cpu_r[operand.value];
-      if (operand.value == 63)
-	tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+    if(operand.type & ARC_OPERAND_IR) {
+        ret = cpu_r[operand.value];
+        if (operand.value == 63) {
+            tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+        }
     }
-  else
-    {
-      int32_t limm = operand.value;
-      if (operand.type & ARC_OPERAND_LIMM)
-      {
-	limm = ctx->insn.limm;
-	tcg_gen_movi_tl (cpu_limm, limm);
-	ret = cpu_r[62];
-      } else {
-	ret = tcg_const_local_i32(limm);
-      }
+    else {
+        int32_t limm = operand.value;
+        if (operand.type & ARC_OPERAND_LIMM) {
+            limm = ctx->insn.limm;
+            tcg_gen_movi_tl(cpu_limm, limm);
+            ret = cpu_r[62];
+        }
+        else {
+            ret = tcg_const_local_i32(limm);
+        }
     }
 
   return ret;
 }
 
-/* Generate exception.  */
-
-static void gen_excp (DisasCtxt *ctx,
-		      uint32_t index,
-		      uint32_t causecode,
-		      uint32_t param)
+/* Generate exception. */
+static void gen_excp(DisasCtxt *ctx,
+                     uint32_t index,
+                     uint32_t causecode,
+                     uint32_t param)
 {
-  TCGv_i32 tmp0 = tcg_const_i32 (index);
-  TCGv_i32 tmp1 = tcg_const_i32 (causecode);
-  TCGv_i32 tmp2 = tcg_const_i32 (param);
+    TCGv_i32 tmp0 = tcg_const_i32(index);
+    TCGv_i32 tmp1 = tcg_const_i32(causecode);
+    TCGv_i32 tmp2 = tcg_const_i32(param);
 
-  tcg_gen_movi_tl (cpu_pc, ctx->cpc);
-  tcg_gen_movi_tl (cpu_eret, ctx->cpc);
-  if (ctx->ds)
-    tcg_gen_movi_tl (cpu_erbta, ctx->dpc);
-  else
-    tcg_gen_movi_tl (cpu_erbta, ctx->npc);
+    tcg_gen_movi_tl(cpu_pc, ctx->cpc);
+    tcg_gen_movi_tl(cpu_eret, ctx->cpc);
+    if (ctx->ds) {
+        tcg_gen_movi_tl(cpu_erbta, ctx->dpc);
+    }
+    else {
+        tcg_gen_movi_tl(cpu_erbta, ctx->npc);
+    }
 
-  gen_helper_raise_exception (cpu_env, tmp0, tmp1, tmp2);
+    gen_helper_raise_exception(cpu_env, tmp0, tmp1, tmp2);
 
-  tcg_temp_free_i32 (tmp0);
-  tcg_temp_free_i32 (tmp1);
-  tcg_temp_free_i32 (tmp2);
+    tcg_temp_free_i32(tmp0);
+    tcg_temp_free_i32(tmp1);
+    tcg_temp_free_i32(tmp2);
 }
 
 /* Generate trap.  */
@@ -1682,37 +1675,34 @@ static void gen_trap (DisasCtxt *ctx, uint32_t param)
 }
 
 /* Generate sleep insn.  */
-static void gen_sleep (DisasCtxt *ctx, TCGv opa)
+static void gen_sleep(DisasCtxt *ctx, TCGv opa)
 {
-  uint32_t param = 0;
+    uint32_t param = 0;
 
-  tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
-  if (ctx->insn.operands[0].type & ARC_OPERAND_IR)
-    {
-      TCGv tmp3 = tcg_temp_local_new_i32 ();
-      TCGLabel *done_L = gen_new_label ();
+    tcg_gen_movi_tl(cpu_npc_helper, ctx->npc);
+    if (ctx->insn.operands[0].type & ARC_OPERAND_IR) {
+        TCGv tmp3 = tcg_temp_local_new_i32 ();
+        TCGLabel *done_L = gen_new_label();
 
-      tcg_gen_andi_tl (tmp3, opa, 0x10);
-      tcg_gen_brcondi_tl (TCG_COND_NE, tmp3, 0x10, done_L);
-      tcg_gen_andi_tl (cpu_Ef, opa, 0x0f);
-      tcg_gen_mov_tl (cpu_IEf, arc_true);
-      gen_set_label (done_L);
+        tcg_gen_andi_tl(tmp3, opa, 0x10);
+        tcg_gen_brcondi_tl(TCG_COND_NE, tmp3, 0x10, done_L);
+        tcg_gen_andi_tl(cpu_Ef, opa, 0x0f);
+        tcg_gen_mov_tl(cpu_IEf, arc_true);
+        gen_set_label(done_L);
 
-      tcg_temp_free_i32 (tmp3);
+        tcg_temp_free_i32(tmp3);
     }
-  else
-    {
-      param = ctx->insn.operands[0].value;
-      if (param & 0x10)
-	{
-	  tcg_gen_movi_tl (cpu_IEf, 1);
-	  tcg_gen_movi_tl (cpu_Ef, param & 0x0f);
-	}
+    else {
+        param = ctx->insn.operands[0].value;
+        if (param & 0x10) {
+            tcg_gen_movi_tl(cpu_IEf, 1);
+            tcg_gen_movi_tl(cpu_Ef, param & 0x0f);
+        }
     }
-  /*FIXME! setup debug registers as well.  */
+    /*FIXME! setup debug registers as well.  */
 
-  gen_helper_halt (cpu_env);
-  qemu_log_mask (CPU_LOG_TB_IN_ASM, "CPU in sleep mode, waiting for an IRQ.\n");
+    gen_helper_halt(cpu_env);
+    qemu_log_mask(CPU_LOG_TB_IN_ASM, "CPU in sleep mode, waiting for an IRQ.\n");
 }
 
 /* Return from exception.  */
@@ -1809,19 +1799,17 @@ int arc_decode(DisasCtxt *ctx)
             break;
         }
 
-        for (i = 0;
-             i < number_of_ops_semfunc[mapping] && i < ctx->insn.n_ops;
-             i++) {
+        for (i = 0; i < number_of_ops_semfunc[mapping]; i++) {
             operand_t operand = ctx->insn.operands[i];
             if (!(operand.type & ARC_OPERAND_LIMM) &&
                 !(operand.type & ARC_OPERAND_IR)) {
-                tcg_temp_free_i32 (ops[i]);
+                tcg_temp_free_i32(ops[i]);
             }
         }
 
     } /* mapping is done */
     else {
-        gen_excp (ctx, EXCP_INST_ERROR, 0, 0);
+        gen_excp(ctx, EXCP_INST_ERROR, 0, 0);
         arc_debug_opcode(opcode, ctx, "Could not identify opcode");
         ret = DISAS_NEXT;
     }

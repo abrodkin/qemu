@@ -53,6 +53,7 @@ typedef struct DisasContext {
 
     unsigned ds;    /*  we are within ds*/
 
+    /* TODO (issue #61): remove these */
     TCGv one;       /*  0x00000001      */
     TCGv zero;      /*  0x00000000      */
 
