@@ -1687,7 +1687,7 @@ static void gen_sleep(DisasCtxt *ctx, TCGv opa)
         tcg_gen_andi_tl(tmp3, opa, 0x10);
         tcg_gen_brcondi_tl(TCG_COND_NE, tmp3, 0x10, done_L);
         tcg_gen_andi_tl(cpu_Ef, opa, 0x0f);
-        tcg_gen_mov_tl(cpu_IEf, arc_true);
+        tcg_gen_movi_tl(cpu_IEf, 1);
         gen_set_label(done_L);
 
         tcg_temp_free_i32(tmp3);
