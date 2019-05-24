@@ -189,13 +189,6 @@ print_operands (const struct arc_opcode *opcode,
       if (ARC_OPERAND_IS_FAKE (operand))
 	continue;
 
-#if 0
-      if ((operand->flags & ARC_OPERAND_IGNORE)
-	  && (operand->flags & ARC_OPERAND_IR)
-	  && value == -1)
-	continue;
-#endif
-
       if (operand->flags & ARC_OPERAND_COLON)
 	{
 	  (*info->fprintf_func) (info->stream, ":");
@@ -217,6 +210,14 @@ print_operands (const struct arc_opcode *opcode,
 
       /* Get the decoded*/
       value = pinsn->operands[i++].value;
+
+      if ((operand->flags & ARC_OPERAND_IGNORE)
+	  && (operand->flags & ARC_OPERAND_IR)
+	  && value == -1)
+      {
+        need_comma = FALSE;
+	continue;
+      }
 
       if (operand->flags & ARC_OPERAND_PCREL)
 	{
