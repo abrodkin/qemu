@@ -309,6 +309,14 @@ void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
     gen_helper_sr(cpu_env, B, NAME);    \
     ret = DISAS_UPDATE
 
+/*
+ * At the end of a SYNC instruction, it is guaranteed that
+ * handling the current interrupt is finished and the raising
+ * pulse signal (if any), is cleared. By marking SYNC as the
+ * end of a TB we gave a chance to interrupt threads to execute.
+ */
+#define syncReturnDisasUpdate()     (ret = DISAS_UPDATE)
+
 void arc2_gen_mac(TCGv phi, TCGv_i32 b, TCGv_i32 c);
 #define MAC(R, B, C) \
   arc2_gen_mac(R, B, C)

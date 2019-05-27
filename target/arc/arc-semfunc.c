@@ -3917,6 +3917,28 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 
 
 
+/* SYNC
+ *    Variables: 
+ *    Functions: syncReturnDisasUpdate
+--- code ---
+{
+  syncReturnDisasUpdate ();
+}
+ */
+
+int
+arc2_gen_SYNC (DisasCtxt *ctx)
+{
+  int ret = DISAS_NEXT;
+
+  syncReturnDisasUpdate();
+  return ret;
+}
+
+
+
+
+
 /* CLRI
  *    Variables: @c
  *    Functions: getRegister, setRegister
@@ -4087,7 +4109,7 @@ arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 
 
 /* NOP
- *    Variables:
+ *    Variables: 
  *    Functions: doNothing
 --- code ---
 {
@@ -4108,7 +4130,7 @@ arc2_gen_NOP (DisasCtxt *ctx)
 
 
 /* PREALLOC
- *    Variables:
+ *    Variables: 
  *    Functions: doNothing
 --- code ---
 {
@@ -5203,7 +5225,7 @@ arc2_gen_MACD (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv high_mul = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv pair;
+  TCGv pair = NULL;
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_10 = tcg_temp_local_new_i32();
   TCGv new_acchi = tcg_temp_local_new_i32();
@@ -5308,7 +5330,7 @@ arc2_gen_MACDU (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv high_mul = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv pair;
+  TCGv pair = NULL;
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_10 = tcg_temp_local_new_i32();
   TCGv new_acchi = tcg_temp_local_new_i32();
@@ -7271,7 +7293,7 @@ arc2_gen_LLOCKD (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = DISAS_NEXT;
   TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv pair;
+  TCGv pair = NULL;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
@@ -7371,7 +7393,7 @@ arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
   TCGv lf = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv pair;
+  TCGv pair = NULL;
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
@@ -7407,7 +7429,7 @@ arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
 
 /* DMB
  *    Variables: @a
- *    Functions:
+ *    Functions: 
 --- code ---
 {
   @a = @a;
@@ -7635,7 +7657,7 @@ arc2_gen_LDD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv new_dest = tcg_temp_local_new_i32();
-  TCGv pair;
+  TCGv pair = NULL;
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
@@ -7890,8 +7912,8 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   TCGv address = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
-  TCGv pair;
-  bool pair_initialized = false;
+  TCGv pair = NULL;
+  bool pair_initialized = FALSE;
   TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
@@ -7946,8 +7968,8 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     }
   else
     {
-    pair = tcg_temp_local_new_i32();
-    pair_initialized = true;
+      pair = tcg_temp_local_new_i32();
+      pair_initialized = TRUE;
     TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
   tcg_gen_movi_i32(temp_6, 31);
@@ -7982,7 +8004,7 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_7);
   if (pair_initialized) {
-      tcg_temp_free(pair);
+    tcg_temp_free(pair);
   }
 
   return ret;
