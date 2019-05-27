@@ -621,3 +621,6 @@ arc_mpu_translate(CPUARCState *env, target_ulong addr,
 
     return MPU_SUCCESS;
 }
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */
