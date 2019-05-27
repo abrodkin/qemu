@@ -67,6 +67,7 @@ TESTCASES += check_manip_mmu.tst
 TESTCASES += check_rtie_user.tst
 TESTCASES += check_rtc.tst
 TESTCASES += check_mpu.tst
+TESTCASES += check_big_tb.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o
