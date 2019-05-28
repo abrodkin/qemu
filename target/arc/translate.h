@@ -53,6 +53,10 @@ typedef struct DisasContext {
 
     unsigned ds;    /*  we are within ds*/
 
+    /* TODO (issue #62): these must be removed */
+    TCGv     zero;  /*  0x00000000      */
+    TCGv     one;   /*  0x00000001      */
+
     insn_t insn;
 
     CPUARCState *env;

@@ -316,6 +316,10 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
     DisasContext *dc = container_of(dcbase, DisasContext, base);
     CPUARCState *env = cpu->env_ptr;
 
+    /* TODO (issue #62): these must be removed */
+    dc->zero = tcg_const_local_i32(0);
+    dc->one  = tcg_const_local_i32(1);
+
     dc->cpc = dc->base.pc_next;
     decode_opc(env, dc);
     dc->base.pc_next = dc->npc;
@@ -342,6 +346,11 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
             dc->base.is_jmp = DISAS_TOO_MANY;
         }
     }
+    
+    /* TODO (issue #62): these must be removed */
+    tcg_temp_free_i32(dc->zero);
+    tcg_temp_free_i32(dc->one );
+    
     /* verify if there is any TCG temporaries leakge */
     translator_loop_temp_check(dcbase);
 }

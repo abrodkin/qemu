@@ -24,6 +24,10 @@
 #include "translate.h"
 #include "translate-inst.h"
 
+/* TODO (issue #62): these must be removed */
+#define arc_false   (ctx->zero)
+#define arc_true    (ctx->one)
+
 #define LONG 0
 #define BYTE 1
 #define WORD 2

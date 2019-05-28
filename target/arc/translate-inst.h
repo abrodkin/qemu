@@ -356,6 +356,9 @@ TCGv arc2_gen_next_reg(TCGv reg);
 #define nextReg(A) \
   arc2_gen_next_reg(A)
 
+/* TODO (issue #62): this must be removed */
+#define Zero()  (ctx->zero)
+
 bool arc2_target_has_option(enum target_options option);
 #define targetHasOption(OPTION) \
   arc2_target_has_option(OPTION)
