@@ -2020,7 +2020,8 @@ static void gen_sleep(DisasCtxt *ctx, TCGv opa)
     /* FIXME: setup debug registers as well. */
 
     gen_helper_halt(cpu_env);
-    qemu_log_mask(CPU_LOG_TB_IN_ASM, "CPU in sleep mode, waiting for an IRQ.\n");
+    qemu_log_mask(CPU_LOG_TB_IN_ASM,
+                  "CPU in sleep mode, waiting for an IRQ.\n");
 }
 
 /* Return from exception. */
