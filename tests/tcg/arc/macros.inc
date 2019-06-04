@@ -185,9 +185,11 @@ tn_\name:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Exceptions
-.equ INSTRUCTION_ERROR  , 0x00020000
-.equ MACHINE_CHECK      , 0x00030000
-.equ PRIVILEGE_VIOLATION, 0x00070000
+.equ ILLEGAL_INSTRUCTION         , 0x00020000
+.equ ILLEGAL_INSTRUCTION_SEQUENCE, 0x00020100
+.equ MACHINE_CHECK               , 0x00030000
+.equ PRIVILEGE_VIOLATION         , 0x00070000
+.equ MISALIGNED_DATA_ACCESS      , 0x000D0000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

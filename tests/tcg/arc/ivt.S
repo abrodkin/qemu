@@ -20,7 +20,7 @@
   IVT_ENTRY(EV_Extension)      ; 10  EV_Extension         0x28    40
   IVT_ENTRY(EV_DivZero)        ; 11  EV_DivZero           0x2C    44
   IVT_ENTRY(EV_DCError)        ; 12  EV_DCError           0x30    48
-  IVT_ENTRY(EV_Maligned)       ; 13  EV_Maligned          0x34    52
+  IVT_ENTRY(EV_Misaligned)     ; 13  EV_Misaligned        0x34    52
   IVT_ENTRY(EV_Ex14)           ; 14  unused               0x38    56
   IVT_ENTRY(EV_Ex15)           ; 15  unused               0x3C    60
   IVT_ENTRY(IRQ_Timer0)        ; 16  Timer 0              0x40    64

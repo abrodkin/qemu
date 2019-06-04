@@ -70,7 +70,7 @@ test03:
   ; prep the exception for 'lr'ing a region that does not exist
   lr r0, [mpuic]    ; don't care for mpu_ecr value
   mpu_set_excep_params mpu_ecr  = r0                    , \
-                       ecr      = INSTRUCTION_ERROR     , \
+                       ecr      = ILLEGAL_INSTRUCTION   , \
                        efa      = @test03_illegal_lr_rgn, \
                        eret     = @test03_illegal_lr_rgn, \
                        continue = @test03_cont          , \
@@ -82,7 +82,7 @@ test03_cont:
   ; prep the exception for 'sr'ing a region that does not exist
   lr r0, [mpuic]    ; don't care for mpu_ecr value
   mpu_set_excep_params mpu_ecr  = r0                    , \
-                       ecr      = INSTRUCTION_ERROR     , \
+                       ecr      = ILLEGAL_INSTRUCTION   , \
                        efa      = @test03_illegal_sr_rgn, \
                        eret     = @test03_illegal_sr_rgn, \
                        continue = @test04               , \
