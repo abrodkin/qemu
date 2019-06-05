@@ -47,6 +47,7 @@ TCGv     cpu_Vf;
 TCGv     cpu_Uf;
 
 TCGv     cpu_DEf;
+TCGv     cpu_ESf;
 TCGv     cpu_AEf;
 TCGv     cpu_Hf;
 TCGv     cpu_IEf;
@@ -142,14 +143,14 @@ void gen_goto_tb(DisasContext *ctx, int n, TCGv dest)
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
     tcg_gen_exit_tb(ctx->tb, n);
 #else
-    tcg_gen_mov_tl(cpu_pc,  dest);
+    tcg_gen_mov_tl(cpu_pc, dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
     if(ctx->base.singlestep_enabled)
       gen_helper_debug(cpu_env);
     tcg_gen_exit_tb(NULL, 0);
 #endif
 }
-static void  gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
+static void gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
 {
     if (use_goto_tb(ctx, dest)) {
         tcg_gen_goto_tb(n);
@@ -185,17 +186,18 @@ void arc_translate_init(void)
     cpu_S2f = NEW_ARC_REG(macmod.S2);
     cpu_CSf = NEW_ARC_REG(macmod.CS);
 
-    cpu_Zf = NEW_ARC_REG(stat.Zf);
-    cpu_Lf = NEW_ARC_REG(stat.Lf);
-    cpu_Nf = NEW_ARC_REG(stat.Nf);
-    cpu_Cf = NEW_ARC_REG(stat.Cf);
-    cpu_Vf = NEW_ARC_REG(stat.Vf);
-    cpu_Uf = NEW_ARC_REG(stat.Uf);
+    cpu_Zf  = NEW_ARC_REG(stat.Zf);
+    cpu_Lf  = NEW_ARC_REG(stat.Lf);
+    cpu_Nf  = NEW_ARC_REG(stat.Nf);
+    cpu_Cf  = NEW_ARC_REG(stat.Cf);
+    cpu_Vf  = NEW_ARC_REG(stat.Vf);
+    cpu_Uf  = NEW_ARC_REG(stat.Uf);
     cpu_DEf = NEW_ARC_REG(stat.DEf);
+    cpu_ESf = NEW_ARC_REG(stat.ESf);
     cpu_AEf = NEW_ARC_REG(stat.AEf);
-    cpu_Hf = NEW_ARC_REG(stat.Hf);
-    cpu_IEf = NEW_ARC_REG (stat.IEf);
-    cpu_Ef = NEW_ARC_REG (stat.Ef);
+    cpu_Hf  = NEW_ARC_REG(stat.Hf);
+    cpu_IEf = NEW_ARC_REG(stat.IEf);
+    cpu_Ef  = NEW_ARC_REG(stat.Ef);
 
     cpu_l1_Zf = NEW_ARC_REG(stat_l1.Zf);
     cpu_l1_Lf = NEW_ARC_REG(stat_l1.Lf);
@@ -346,11 +348,11 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
             dc->base.is_jmp = DISAS_TOO_MANY;
         }
     }
-    
+
     /* TODO (issue #62): these must be removed */
     tcg_temp_free_i32(dc->zero);
     tcg_temp_free_i32(dc->one );
-    
+
     /* verify if there is any TCG temporaries leakge */
     translator_loop_temp_check(dcbase);
 }

@@ -15,6 +15,7 @@
 ecr_ref    : .word 0x0
 eret_ref   : .word 0x0
 efa_ref    : .word 0x0
+erbta_ref  : .word 0x0
 cont_addr  : .word 0x0
 test_number: .word 0x0
   .text
@@ -25,13 +26,15 @@ test_number: .word 0x0
 ;
 ; this macro writes the provided parameters to a temporary place holder
 ; that later will be used by ProtV exception above to verify as reference
-.macro set_excep_params ecr, eret, efa, continue, test_num
+.macro set_excep_params ecr, eret, efa, erbta, continue, test_num
   mov  r11, \ecr
   st   r11, [ecr_ref]
   mov  r11, \efa
   st   r11, [efa_ref]
   mov  r11, \eret
   st   r11, [eret_ref]
+  mov  r11, \erbta
+  st   r11, [erbta_ref]
   mov  r11, \continue
   st   r11, [cont_addr]
   mov  r11, \test_num
@@ -66,6 +69,9 @@ EV_Misaligned:
   ld   r11, [efa_ref]
   lr   r12, [efa]
   brne r12, r11, @exc_fail
+  ld   r11, [erbta_ref]
+  lr   r12, [erbta]
+  brne r12, r11, @exc_fail
   ; do not pursue the branch target anymore
   lr   r11, [erstatus]
   and  r11, r11, ~0x8040    ; clear ES and DE bit
@@ -82,6 +88,7 @@ exc_fail:
 ;;;;;;;;;;;;;;;;;;; \ Exception Verification Helpers / ;;;;;;;;;;;;;;;;;;;;;;
 
   start
+  mov     sp , 0x1000     ; let's set sp to 0x100 for all the tests
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; u6=0 leads to doing nothing
@@ -231,9 +238,11 @@ test05:
   rtie
 
 test05_excep_prep:
+  lr      r7, [erbta]             ; don't care for erbta
   set_excep_params ecr=MISALIGNED_DATA_ACCESS, \
                    eret=@test05_enter        , \
                    efa=TEST05_EFA            , \
+                   erbta=r7                  , \
                    continue=@test05_wrapup   , \
                    test_num=5
   mov     r10, sp                 ; backup sp to restore later
@@ -261,10 +270,13 @@ test06:
   set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
                    eret=@test06_delay              , \
                    efa=@test06_delay               , \
+                   erbta=@test06_fail              , \
                    continue=@test07                , \
                    test_num=6
-  mov     r1, 0xc0e2              ; opcode for enter_s [r13]
+  mov     r1, 0xc0e2          ; opcode for enter_s [r13]
   sth     r1, [test06_delay]
+  b       @test06_dummy_tb    ; by having 'b' here, it is end of this tb.
+test06_dummy_tb:              ; so this one will be decoded after mutation.
   b.d     @test06_fail
 test06_delay:
   nop_s
@@ -276,36 +288,41 @@ test06_fail:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; an execution slot instruction --> illegal instruction sequence exception
+; TODO (issue #73): enable this after EI_S has been implemented.
 test07:
-  mov     r1, @test07_ei_table
-  sr      r1, [ei_base]
-  j       @test07_begin
-
-  .align 4
-test07_ei_table:
-  enter_s [r13]
-
-test07_begin:
-  set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
-                   eret=@test07_ei_table           , \
-                   efa=@test07_ei_table            , \
-                   continue=@test08                , \
-                   test_num=7
-  ei_s    0
-
-test07_fail:
-  print "failed: test07\n"
-  end
+;  mov     r1, @test07_ei_table
+;  sr      r1, [ei_base]
+;  j       @test07_begin
+;
+;  .align 4
+;test07_ei_table:
+;  enter_s [r13]
+;
+;test07_begin:
+;  set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
+;                   eret=@test07_ei_table           , \
+;                   efa=@test07_ei_table            , \
+;                   erbta=@test07_fail              , \
+;                   continue=@test08                , \
+;                   test_num=7
+;  ei_s    0
+;
+;test07_fail:
+;  print "failed: test07\n"
+;  end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; it is allowed to have "enter_s 0" in delay/execution slot because it is
 ; like a nop then and is not a multi-cycle instruction.
+; TODO (issue #73): enable the ei_check part after EI_S has been done.
 test08:
-  mov     r1, 0xc0e0              ; opcode for enter_s []
+  mov     r1, 0xc0e0          ; opcode for enter_s []
   sth     r1, [test08_delay]
+  b       @test08_dummy_tb    ; by having 'b' here, it is end of this tb.
+test08_dummy_tb:              ; so this one will be decoded after mutation.
   b.d     @test08_ei_check
 test08_delay:
-  nop_s                           ; at runtime this is enter_s [] and is ok
+  nop_s                       ; at runtime this is enter_s [] and is ok
   nop_s
 
   .align 4
@@ -313,9 +330,10 @@ test08_ei_table:
   enter_s 0
 
 test08_ei_check:
-  mov     r1, @test08_ei_table
-  sr      r1, [ei_base]
-  ei_s    0
+  ; TODO (issue #73): enable after EI_S is implemented.
+  ;mov     r1, @test08_ei_table
+  ;sr      r1, [ei_base]
+  ;ei_s    0
   ; fall through to the next test
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,18 +341,22 @@ test08_ei_check:
 ;                           OR
 ; 16 general registers configured AND u[3:0] > 3 (r13-r15)
 ; --> illegal instruction exception
+; TODO (issue #52): this test case must be executed with
+;                   -global cpu.num-regs=16.
 test09:
-  set_excep_params ecr=ILLEGAL_INSTRUCTION, \
-                   eret=@test09_big_u3    , \
-                   efa=@test09_big_u3     , \
-                   continue=@test10       , \
-                   test_num=9
-test09_big_u3:      ; enter_s encoding : 1100 00UU 111u uuu0
-  .2byte 0xc0fd     ; enter_s [r13-r26]: 1100 0000 1111 1100 (0xc0fc)
-
-test09_fail:
-  print "failed: test09\n"
-  end
+;  lr      r7, [bta]               ; don't care for erbta (use current bta)
+;  set_excep_params ecr=ILLEGAL_INSTRUCTION, \
+;                   eret=@test09_big_u3    , \
+;                   efa=@test09_big_u3     , \
+;                   erbta=r7               , \
+;                   continue=@test10       , \
+;                   test_num=9
+;test09_big_u3:      ; enter_s encoding : 1100 00UU 111u uuu0
+;  enter_s 4
+;
+;test09_fail:
+;  print "failed: test09\n"
+;  end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; \ Enter Tests / ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; / Leave Tests \ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -494,9 +516,11 @@ test16:
   rtie
 
 test16_excep_prep:
+  lr      r7, [erbta]             ; don't care for erbta
   set_excep_params ecr=MISALIGNED_DATA_ACCESS, \
                    eret=@test16_enter        , \
                    efa=TEST16_FP             , \
+                   erbta=r7                  , \
                    continue=@test16_wrapup   , \
                    test_num=16
   mov     r10, sp                 ; backup sp to restore later
@@ -524,10 +548,13 @@ test17:
   set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
                    eret=@test17_delay              , \
                    efa=@test17_delay               , \
+                   erbta=@test17_fail              , \
                    continue=@test18                , \
                    test_num=17
-  mov     r1, 0xc0c2              ; opcode for leave_s [13]
+  mov     r1, 0xc0c2          ; opcode for leave_s [13]
   sth     r1, [test17_delay]
+  b       @test17_dummy_tb    ; by having 'b' here, it is end of this tb.
+test17_dummy_tb:              ; so this one will be decoded after mutation.
   b.d     @test17_fail
 test17_delay:
   nop_s
@@ -539,36 +566,41 @@ test17_fail:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; an execution slot instruction --> illegal instruction sequence exception
+; TODO (issue #73): enable this after EI_S has been implemented.
 test18:
-  mov     r1, @test18_ei_table
-  sr      r1, [ei_base]
-  j       @test18_begin
-
-  .align 4
-test18_ei_table:
-  leave_s [r13]
-
-test18_begin:
-  set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
-                   eret=@test18_ei_table           , \
-                   efa=@test18_ei_table            , \
-                   continue=@test19                , \
-                   test_num=18
-  ei_s    0
-
-test18_fail:
-  print "failed: test18\n"
-  end
+;  mov     r1, @test18_ei_table
+;  sr      r1, [ei_base]
+;  j       @test18_begin
+;
+;  .align 4
+;test18_ei_table:
+;  leave_s [r13]
+;
+;test18_begin:
+;  set_excep_params ecr=ILLEGAL_INSTRUCTION_SEQUENCE, \
+;                   eret=@test18_ei_table           , \
+;                   efa=@test18_ei_table            , \
+;                   erbta=@test18_fail              , \
+;                   continue=@test19                , \
+;                   test_num=18
+;  ei_s    0
+;
+;test18_fail:
+;  print "failed: test18\n"
+;  end
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; it is allowed to have "leave_s 0" in delay/execution slot because it is
 ; like a nop then and is not a multi-cycle instruction.
+; TODO (issue #73): enable the ei_check part after EI_S has been done.
 test19:
-  mov     r1, 0xc0c0              ; opcode for leave_s []
+  mov     r1, 0xc0c0          ; opcode for leave_s []
   sth     r1, [test19_delay]
+  b       @test19_dummy_tb    ; by having 'b' here, it is end of this tb.
+test19_dummy_tb:              ; so this one will be decoded after mutation.
   b.d     @test19_ei_check
 test19_delay:
-  nop_s                           ; at runtime this is leave_s [] and is ok
+  nop_s                       ; at runtime this is leave_s [] and is ok
   nop_s
 
   .align 4
@@ -576,9 +608,10 @@ test19_ei_table:
   leave_s 0
 
 test19_ei_check:
-  mov     r1, @test19_ei_table
-  sr      r1, [ei_base]
-  ei_s    0
+  ; TODO (issue #73): enable after EI_S is implemented.
+  ;mov     r1, @test19_ei_table
+  ;sr      r1, [ei_base]
+  ;ei_s    0
   ; fall through to the next test
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -586,18 +619,22 @@ test19_ei_check:
 ;                           OR
 ; 16 general registers configured AND u[3:0] > 3 (r13-r15)
 ; --> illegal instruction exception
+; TODO (issue #52): this test case must be executed with
+;                   -global cpu.num-regs=16.
 test20:
-  set_excep_params ecr=ILLEGAL_INSTRUCTION, \
-                   eret=@test20_big_u3    , \
-                   efa=@test20_big_u3     , \
-                   continue=@test21       , \
-                   test_num=20
-test20_big_u3:      ; leave_s encoding : 1100 0UUU 110u uuu0
-  .2byte 0xc0dd     ; leave_s [r13-r26]: 1100 0000 1101 1100 (0xc0dc)
-
-test20_fail:
-  print "failed: test20\n"
-  end
+;  lr      r7, [bta]               ; don't care for erbta (use current bta)
+;  set_excep_params ecr=ILLEGAL_INSTRUCTION, \
+;                   eret=@test20_big_u3    , \
+;                   efa=@test20_big_u3     , \
+;                   erbta=r7               , \
+;                   continue=@test21       , \
+;                   test_num=20
+;test20_big_u3:      ; leave_s encoding : 1100 0UUU 110u uuu0
+;  leave_s 4
+;
+;test20_fail:
+;  print "failed: test20\n"
+;  end
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;; \ Leave Tests / ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;; / Enter/Leave Test \ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -22,6 +22,7 @@
 #include "qemu/error-report.h"
 #include "cpu.h"
 #include "exec/helper-proto.h"
+#include "exec/cpu_ldst.h"
 #include "exec/ioport.h"
 #include "translate-all.h"
 #include "arc-regs.h"
@@ -501,6 +502,189 @@ uint32_t helper_mpym(CPUARCState *env, uint32_t b, uint32_t c)
   return ((_b * _c) >> 32);
 }
 
+
+/*
+ * throw "illegal instruction" exception if more than available
+ * registers are asked to be saved/restore.
+ */
+static void check_enter_leave_nr_regs(CPUARCState *env,
+                                      uint8_t      regs,
+                                      uintptr_t    host_pc)
+{
+    const uint8_t rgf_num_regs = arc_env_get_cpu(env)->cfg.rgf_num_regs;
+    if ((rgf_num_regs == 32 && regs > 14) ||
+        (rgf_num_regs == 16 && regs >  3)) {
+        CPUState *cs = CPU(arc_env_get_cpu(env));
+        cpu_restore_state(cs, host_pc, true);
+        cs->exception_index = EXCP_INST_ERROR;
+        env->causecode      = 0x00;
+        env->param          = 0x00;
+        env->eret           = env->pc;
+        env->erbta          = env->bta;
+        cpu_loop_exit(cs);
+    }
+}
+
+/*
+ * throw "illegal instruction sequence" exception if we are in a
+ * delay/execution slot.
+ */
+static void check_delay_or_execution_slot(CPUARCState *env,
+                                          uintptr_t    host_pc)
+{
+    if (env->stat.DEf || env->stat.ESf) {
+        CPUState *cs = CPU(arc_env_get_cpu(env));
+        cpu_restore_state(cs, host_pc, true);
+        cs->exception_index = EXCP_INST_ERROR;
+        env->causecode      = 0x01;
+        env->param          = 0x00;
+        env->eret           = env->pc;
+        env->erbta          = env->bta;
+        cpu_loop_exit(cs);
+    }
+}
+
+/*
+ * Throw "misaligned" exception if 'addr' is not 32-bit aligned.
+ * This check is done irrelevant of status32.AD bit.
+ */
+static void check_addr_is_word_aligned(CPUARCState *env,
+                                       target_ulong addr,
+                                       uintptr_t    host_pc)
+{
+    if (addr & 0x3) {
+        CPUState *cs = CPU(arc_env_get_cpu(env));
+        cpu_restore_state(cs, host_pc, true);
+        cs->exception_index = EXCP_MISALIGNED;
+        env->causecode      = 0x00;
+        env->param          = 0x00;
+        env->efa            = addr;
+        env->eret           = env->pc;
+        env->erbta          = env->bta;
+        cpu_loop_exit(cs);
+    }
+}
+
+/*
+ * helper for enter_s instruction.
+ * after we are done, stack layout would be:
+ * ,- top -.
+ * | blink |
+ * | r13   |
+ * | r14   |
+ * | ...   |
+ * | r26   |
+ * | fp    |
+ * `-------'
+ */
+void helper_enter(CPUARCState *env, uint32_t u6)
+{
+    /* nothing to do? then bye-bye! */
+    if (!u6) {
+        return;
+    }
+
+    uint8_t regs       = u6 & 0x0f; /* u[3:0] determines registers to save */
+    bool    save_fp    = u6 & 0x10; /* u[4] indicates if fp must be saved  */
+    bool    save_blink = u6 & 0x20; /* u[5] indicates saving of blink      */
+    uint8_t stack_size = 4*(regs + save_fp + save_blink);
+
+    /* number of regs to be saved must be sane */
+    check_enter_leave_nr_regs(env, regs, GETPC());
+
+    /* this cannot be executed in a delay/execution slot */
+    check_delay_or_execution_slot(env, GETPC());
+
+    /* stack must be a multiple of 4 (32 bit aligned) */
+    check_addr_is_word_aligned(env, CPU_SP(env) - stack_size, GETPC());
+
+    if (save_fp) {
+        CPU_SP(env) -= 4;
+        cpu_stl_data(env, CPU_SP(env), CPU_FP(env));
+    }
+
+    for (uint8_t gpr = regs; gpr >= 1; --gpr) {
+        CPU_SP(env) -= 4;
+        cpu_stl_data(env, CPU_SP(env), env->r[13+gpr-1]);
+    }
+
+    if (save_blink) {
+        CPU_SP(env) -= 4;
+        cpu_stl_data(env, CPU_SP(env), CPU_BLINK(env));
+    }
+
+    /* now that sp has been allocated, shall we write it to fp? */
+    if (save_fp) {
+        CPU_FP(env) = CPU_SP(env);
+    }
+}
+
+/* helper for leave_s instruction.
+ * a stack layout of below is assumed:
+ * ,- top -.
+ * | blink |
+ * | r13   |
+ * | r14   |
+ * | ...   |
+ * | r26   |
+ * | fp    |
+ * `-------'
+ */
+void helper_leave(CPUARCState *env, uint32_t u7)
+{
+    /* nothing to do? then bye-bye! */
+    if (!u7) {
+        return;
+    }
+
+    uint8_t regs       = u7 & 0x0f; /* u[3:0] determines registers to save */
+    bool restore_fp    = u7 & 0x10; /* u[4] indicates if fp must be saved  */
+    bool restore_blink = u7 & 0x20; /* u[5] indicates saving of blink      */
+    bool jump_to_blink = u7 & 0x40; /* u[6] should we jump to blink?       */
+
+    /* number of regs to be restored must be sane */
+    check_enter_leave_nr_regs(env, regs, GETPC());
+
+    /* this cannot be executed in a delay/execution slot */
+    check_delay_or_execution_slot(env, GETPC());
+
+    /*
+     * stack must be a multiple of 4 (32 bit aligned). we must take into
+     * account if sp is going to use fp's value or not.
+     */
+    const target_ulong addr = restore_fp ? CPU_FP(env) : CPU_SP(env);
+    check_addr_is_word_aligned(env, addr, GETPC());
+
+    /*
+     * if fp is in the picture, then first we have to use the current
+     * fp as the stack pointer for restoring.
+     */
+    if (restore_fp) {
+        CPU_SP(env) = CPU_FP(env);
+    }
+
+    if (restore_blink) {
+        CPU_BLINK(env) = cpu_ldl_data(env, CPU_SP(env));
+        CPU_SP(env) += 4;
+    }
+
+    for (uint8_t gpr = 0; gpr < regs; ++gpr) {
+        env->r[13+gpr] = cpu_ldl_data(env, CPU_SP(env));
+        CPU_SP(env) += 4;
+    }
+
+    if (restore_fp) {
+        CPU_FP(env) = cpu_ldl_data(env, CPU_SP(env));
+        CPU_SP(env) += 4;
+    }
+
+    /* now that we are done, should we jump to blink? */
+    if (jump_to_blink) {
+        CPU_PCL(env) = CPU_BLINK(env);
+        env->pc      = CPU_BLINK(env);
+    }
+}
+
 /*
 uint32_t lf_variable = 0;
 uint32_t helper_get_lf(void)
@@ -513,7 +697,5 @@ void helper_set_lf(uint32_t v)
 }
 */
 
-/* Local variables:
-   eval: (c-set-style "gnu")
-   indent-tabs-mode: t
-   End:  */
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */

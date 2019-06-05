@@ -90,6 +90,7 @@ extern TCGv     cpu_Vf;
 extern TCGv     cpu_Uf;
 
 extern TCGv     cpu_DEf;
+extern TCGv     cpu_ESf;
 extern TCGv     cpu_AEf;
 extern TCGv     cpu_IEf;
 extern TCGv     cpu_Hf;

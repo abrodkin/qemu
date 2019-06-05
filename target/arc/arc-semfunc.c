@@ -3918,7 +3918,7 @@ arc2_gen_SR (DisasCtxt *ctx, TCGv src2, TCGv src1)
 
 
 /* SYNC
- *    Variables: 
+ *    Variables:
  *    Functions: syncReturnDisasUpdate
 --- code ---
 {
@@ -4109,7 +4109,7 @@ arc2_gen_SETI (DisasCtxt *ctx, TCGv c)
 
 
 /* NOP
- *    Variables: 
+ *    Variables:
  *    Functions: doNothing
 --- code ---
 {
@@ -4130,7 +4130,7 @@ arc2_gen_NOP (DisasCtxt *ctx)
 
 
 /* PREALLOC
- *    Variables: 
+ *    Variables:
  *    Functions: doNothing
 --- code ---
 {
@@ -5709,18 +5709,18 @@ arc2_gen_BIH (DisasCtxt *ctx, TCGv c)
 
 /* B
  *    Variables: @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getCCFlag, getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   cc_flag = getCCFlag ();
-  l_rd = @rd;
+  bta = (getPCL () + @rd);
   if((shouldExecuteDelaySlot () == true))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((cc_flag == true))
     {
-      setPC ((getPCL () + l_rd));
+      setPC (bta);
     };
 }
  */
@@ -5731,18 +5731,19 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
   int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
-  TCGv l_rd = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_6 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
-  tcg_gen_mov_i32(l_rd, rd);
+  getPCL(temp_5);
+  tcg_gen_mov_i32(temp_4, temp_5);
+  tcg_gen_add_i32(bta, temp_4, rd);
   if ((shouldExecuteDelaySlot () == true))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -5753,19 +5754,15 @@ arc2_gen_B (DisasCtxt *ctx, TCGv rd)
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  getPCL(temp_6);
-  tcg_gen_mov_i32(temp_5, temp_6);
-  tcg_gen_add_i32(temp_4, temp_5, l_rd);
-  setPC(temp_4);
+  setPC(bta);
   gen_set_label(done_1);
   tcg_temp_free(temp_3);
   tcg_temp_free(cc_flag);
-  tcg_temp_free(l_rd);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_6);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
 
   return ret;
 }
@@ -5828,7 +5825,7 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
 
 /* BBIT0
  *    Variables: @b, @c, @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getCCFlag, getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   cc_flag = getCCFlag ();
@@ -5837,14 +5834,14 @@ arc2_gen_B_S (DisasCtxt *ctx, TCGv rd)
       p_b = @b;
       p_c = (@c & 31);
       tmp = (1 << p_c);
-      l_rd = @rd;
+      bta = (getPCL () + @rd);
       if((shouldExecuteDelaySlot () == true))
         {
-          executeDelaySlot ();
+          executeDelaySlot (bta);
         };
       if(((p_b && tmp) == 0))
         {
-          setPC ((getPCL () + l_rd));
+          setPC (bta);
         };
     };
 }
@@ -5861,13 +5858,12 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
-  TCGv l_rd = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
   getCCFlag(temp_6);
   tcg_gen_mov_i32(cc_flag, temp_6);
   TCGLabel *done_1 = gen_new_label();
@@ -5877,10 +5873,12 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_andi_i32(p_c, c, 31);
   tcg_gen_shlfi_i32(tmp, 1, p_c);
-  tcg_gen_mov_i32(l_rd, rd);
+  getPCL(temp_8);
+  tcg_gen_mov_i32(temp_7, temp_8);
+  tcg_gen_add_i32(bta, temp_7, rd);
   if ((shouldExecuteDelaySlot () == true))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -5892,10 +5890,7 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_gen_setcondi_i32(TCG_COND_EQ, temp_4, temp_3, 0);
   tcg_gen_xori_i32(temp_5, temp_4, 1); tcg_gen_andi_i32(temp_5, temp_5, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_5, arc_true, done_2);;
-  getPCL(temp_9);
-  tcg_gen_mov_i32(temp_8, temp_9);
-  tcg_gen_add_i32(temp_7, temp_8, l_rd);
-  setPC(temp_7);
+  setPC(bta);
   gen_set_label(done_2);
   gen_set_label(done_1);
   tcg_temp_free(temp_6);
@@ -5905,13 +5900,12 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
   tcg_temp_free(tmp);
-  tcg_temp_free(l_rd);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(bta);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
-  tcg_temp_free(temp_7);
 
   return ret;
 }
@@ -5922,7 +5916,7 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 
 /* BBIT1
  *    Variables: @b, @c, @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getCCFlag, getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   cc_flag = getCCFlag ();
@@ -5931,14 +5925,14 @@ arc2_gen_BBIT0 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
       p_b = @b;
       p_c = (@c & 31);
       tmp = (1 << p_c);
-      l_rd = @rd;
+      bta = (getPCL () + @rd);
       if((shouldExecuteDelaySlot () == true))
         {
-          executeDelaySlot ();
+          executeDelaySlot (bta);
         };
       if(((p_b && tmp) != 0))
         {
-          setPC ((getPCL () + l_rd));
+          setPC (bta);
         };
     };
 }
@@ -5955,13 +5949,12 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
   TCGv tmp = tcg_temp_local_new_i32();
-  TCGv l_rd = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_9 = tcg_temp_local_new_i32();
-  TCGv temp_8 = tcg_temp_local_new_i32();
-  TCGv temp_7 = tcg_temp_local_new_i32();
   getCCFlag(temp_6);
   tcg_gen_mov_i32(cc_flag, temp_6);
   TCGLabel *done_1 = gen_new_label();
@@ -5971,10 +5964,12 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_andi_i32(p_c, c, 31);
   tcg_gen_shlfi_i32(tmp, 1, p_c);
-  tcg_gen_mov_i32(l_rd, rd);
+  getPCL(temp_8);
+  tcg_gen_mov_i32(temp_7, temp_8);
+  tcg_gen_add_i32(bta, temp_7, rd);
   if ((shouldExecuteDelaySlot () == true))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -5986,10 +5981,7 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_gen_setcondi_i32(TCG_COND_NE, temp_4, temp_3, 0);
   tcg_gen_xori_i32(temp_5, temp_4, 1); tcg_gen_andi_i32(temp_5, temp_5, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_5, arc_true, done_2);;
-  getPCL(temp_9);
-  tcg_gen_mov_i32(temp_8, temp_9);
-  tcg_gen_add_i32(temp_7, temp_8, l_rd);
-  setPC(temp_7);
+  setPC(bta);
   gen_set_label(done_2);
   gen_set_label(done_1);
   tcg_temp_free(temp_6);
@@ -5999,13 +5991,12 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
   tcg_temp_free(tmp);
-  tcg_temp_free(l_rd);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(bta);
   tcg_temp_free(temp_3);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_5);
-  tcg_temp_free(temp_9);
-  tcg_temp_free(temp_8);
-  tcg_temp_free(temp_7);
 
   return ret;
 }
@@ -6016,14 +6007,14 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
 
 /* BL
  *    Variables: @rd
- *    Functions: getCCFlag, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC, getPCL
+ *    Functions: getCCFlag, getPCL, shouldExecuteDelaySlot, executeDelaySlot, setBLINK, nextInsnAddressAfterDelaySlot, nextInsnAddress, setPC
 --- code ---
 {
   cc_flag = getCCFlag ();
-  l_rd = @rd;
+  bta = (getPCL () + @rd);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((cc_flag == true))
     {
@@ -6035,7 +6026,7 @@ arc2_gen_BBIT1 (DisasCtxt *ctx, TCGv b, TCGv c, TCGv rd)
         {
           setBLINK (nextInsnAddress ());
         };
-      setPC ((getPCL () + l_rd));
+      setPC (bta);
     };
 }
  */
@@ -6046,22 +6037,23 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
   int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
-  TCGv l_rd = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_10 = tcg_temp_local_new_i32();
   TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
-  tcg_gen_mov_i32(l_rd, rd);
+  getPCL(temp_5);
+  tcg_gen_mov_i32(temp_4, temp_5);
+  tcg_gen_add_i32(bta, temp_4, rd);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6074,33 +6066,29 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   if ((shouldExecuteDelaySlot () == 1))
     {
-    nextInsnAddressAfterDelaySlot(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  setBLINK(temp_4);
-;
-    }
-  else
-    {
-    nextInsnAddress(temp_7);
+    nextInsnAddressAfterDelaySlot(temp_7);
   tcg_gen_mov_i32(temp_6, temp_7);
   setBLINK(temp_6);
 ;
     }
-  getPCL(temp_10);
-  tcg_gen_mov_i32(temp_9, temp_10);
-  tcg_gen_add_i32(temp_8, temp_9, l_rd);
-  setPC(temp_8);
+  else
+    {
+    nextInsnAddress(temp_9);
+  tcg_gen_mov_i32(temp_8, temp_9);
+  setBLINK(temp_8);
+;
+    }
+  setPC(bta);
   gen_set_label(done_1);
   tcg_temp_free(temp_3);
   tcg_temp_free(cc_flag);
-  tcg_temp_free(l_rd);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
   tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
   tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
-  tcg_temp_free(temp_10);
   tcg_temp_free(temp_9);
   tcg_temp_free(temp_8);
 
@@ -6117,14 +6105,14 @@ arc2_gen_BL (DisasCtxt *ctx, TCGv rd)
 --- code ---
 {
   cc_flag = getCCFlag ();
-  l_src = @src;
+  bta = @src;
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((cc_flag == true))
     {
-      setPC (l_src);
+      setPC (bta);
     };
 }
  */
@@ -6135,15 +6123,15 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
   int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
-  TCGv l_src = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
-  tcg_gen_mov_i32(l_src, src);
+  tcg_gen_mov_i32(bta, src);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6154,11 +6142,11 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
-  setPC(l_src);
+  setPC(bta);
   gen_set_label(done_1);
   tcg_temp_free(temp_3);
   tcg_temp_free(cc_flag);
-  tcg_temp_free(l_src);
+  tcg_temp_free(bta);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
 
@@ -6175,10 +6163,10 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
 --- code ---
 {
   cc_flag = getCCFlag ();
-  l_src = @src;
+  bta = @src;
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((cc_flag == true))
     {
@@ -6190,7 +6178,7 @@ arc2_gen_J (DisasCtxt *ctx, TCGv src)
         {
           setBLINK (nextInsnAddress ());
         };
-      setPC (l_src);
+      setPC (bta);
     };
 }
  */
@@ -6201,7 +6189,7 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
   TCGv cc_flag = tcg_temp_local_new_i32();
-  TCGv l_src = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv temp_5 = tcg_temp_local_new_i32();
@@ -6210,10 +6198,10 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   TCGv temp_6 = tcg_temp_local_new_i32();
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
-  tcg_gen_mov_i32(l_src, src);
+  tcg_gen_mov_i32(bta, src);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6238,11 +6226,11 @@ arc2_gen_JL (DisasCtxt *ctx, TCGv src)
   setBLINK(temp_6);
 ;
     }
-  setPC(l_src);
+  setPC(bta);
   gen_set_label(done_1);
   tcg_temp_free(temp_3);
   tcg_temp_free(cc_flag);
-  tcg_temp_free(l_src);
+  tcg_temp_free(bta);
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(temp_5);
@@ -6328,19 +6316,19 @@ arc2_gen_SETEQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BREQ
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((p_b == p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -6354,18 +6342,19 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_4);
+  tcg_gen_mov_i32(temp_3, temp_4);
+  tcg_gen_add_i32(bta, temp_3, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6377,21 +6366,17 @@ arc2_gen_BREQ (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, p_b, p_c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
 
   return ret;
 }
@@ -6471,19 +6456,19 @@ arc2_gen_SETNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRNE
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((p_b != p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -6497,18 +6482,19 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_4);
+  tcg_gen_mov_i32(temp_3, temp_4);
+  tcg_gen_add_i32(bta, temp_3, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6520,21 +6506,17 @@ arc2_gen_BRNE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_NE, temp_1, p_b, p_c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
 
   return ret;
 }
@@ -6614,19 +6596,19 @@ arc2_gen_SETLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRLT
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((p_b < p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -6640,18 +6622,19 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_4);
+  tcg_gen_mov_i32(temp_3, temp_4);
+  tcg_gen_add_i32(bta, temp_3, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6663,21 +6646,17 @@ arc2_gen_BRLT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_LT, temp_1, p_b, p_c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
 
   return ret;
 }
@@ -6757,19 +6736,19 @@ arc2_gen_SETGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRGE
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if((p_b >= p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -6783,18 +6762,19 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_4);
+  tcg_gen_mov_i32(temp_3, temp_4);
+  tcg_gen_add_i32(bta, temp_3, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -6806,21 +6786,17 @@ arc2_gen_BRGE (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   tcg_gen_setcond_i32(TCG_COND_GE, temp_1, p_b, p_c);
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
 
   return ret;
 }
@@ -6969,19 +6945,19 @@ arc2_gen_SETGT (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRLO
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, unsignedLT, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, unsignedLT, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if(unsignedLT (p_b, p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -6995,18 +6971,19 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_3);
+  tcg_gen_mov_i32(temp_2, temp_3);
+  tcg_gen_add_i32(bta, temp_2, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -7015,24 +6992,20 @@ arc2_gen_BRLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
     }
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
-  unsignedLT(temp_2, p_b, p_c);
-  tcg_gen_xori_i32(temp_1, temp_2, 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
+  unsignedLT(temp_4, p_b, p_c);
+  tcg_gen_xori_i32(temp_1, temp_4, 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_4);
+  tcg_temp_free(temp_1);
 
   return ret;
 }
@@ -7093,19 +7066,19 @@ arc2_gen_SETLO (DisasCtxt *ctx, TCGv b, TCGv c, TCGv a)
 
 /* BRHS
  *    Variables: @b, @c, @offset
- *    Functions: shouldExecuteDelaySlot, executeDelaySlot, unsignedGE, setPC, getPCL
+ *    Functions: getPCL, shouldExecuteDelaySlot, executeDelaySlot, unsignedGE, setPC
 --- code ---
 {
   p_b = @b;
   p_c = @c;
-  l_offset = @offset;
+  bta = (getPCL () + @offset);
   if((shouldExecuteDelaySlot () == 1))
     {
-      executeDelaySlot ();
+      executeDelaySlot (bta);
     };
   if(unsignedGE (p_b, p_c))
     {
-      setPC ((getPCL () + l_offset));
+      setPC (bta);
     }
   else
     {
@@ -7119,18 +7092,19 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
   int ret = DISAS_NEXT;
   TCGv p_b = tcg_temp_local_new_i32();
   TCGv p_c = tcg_temp_local_new_i32();
-  TCGv l_offset = tcg_temp_local_new_i32();
-  TCGv temp_2 = tcg_temp_local_new_i32();
-  TCGv temp_1 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
-  TCGv temp_4 = tcg_temp_local_new_i32();
   TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv bta = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
   tcg_gen_mov_i32(p_b, b);
   tcg_gen_mov_i32(p_c, c);
-  tcg_gen_mov_i32(l_offset, offset);
+  getPCL(temp_3);
+  tcg_gen_mov_i32(temp_2, temp_3);
+  tcg_gen_add_i32(bta, temp_2, offset);
   if ((shouldExecuteDelaySlot () == 1))
     {
-    executeDelaySlot();
+    executeDelaySlot(bta);
 ;
     }
   else
@@ -7139,24 +7113,20 @@ arc2_gen_BRHS (DisasCtxt *ctx, TCGv b, TCGv c, TCGv offset)
     }
   TCGLabel *else_1 = gen_new_label();
   TCGLabel *done_1 = gen_new_label();
-  unsignedGE(temp_2, p_b, p_c);
-  tcg_gen_xori_i32(temp_1, temp_2, 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
+  unsignedGE(temp_4, p_b, p_c);
+  tcg_gen_xori_i32(temp_1, temp_4, 1); tcg_gen_andi_i32(temp_1, temp_1, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_1, arc_true, else_1);;
-  getPCL(temp_5);
-  tcg_gen_mov_i32(temp_4, temp_5);
-  tcg_gen_add_i32(temp_3, temp_4, l_offset);
-  setPC(temp_3);
+  setPC(bta);
   tcg_gen_br(done_1);
   gen_set_label(else_1);
   gen_set_label(done_1);
   tcg_temp_free(p_b);
   tcg_temp_free(p_c);
-  tcg_temp_free(l_offset);
-  tcg_temp_free(temp_2);
-  tcg_temp_free(temp_1);
-  tcg_temp_free(temp_5);
-  tcg_temp_free(temp_4);
   tcg_temp_free(temp_3);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(bta);
+  tcg_temp_free(temp_4);
+  tcg_temp_free(temp_1);
 
   return ret;
 }
@@ -7429,7 +7399,7 @@ arc2_gen_SCONDD (DisasCtxt *ctx, TCGv src, TCGv dest)
 
 /* DMB
  *    Variables: @a
- *    Functions: 
+ *    Functions:
 --- code ---
 {
   @a = @a;
@@ -8007,6 +7977,50 @@ arc2_gen_STD (DisasCtxt *ctx, TCGv src1, TCGv src2, TCGv dest)
     tcg_temp_free(pair);
   }
 
+  return ret;
+}
+
+
+
+
+
+/* ENTER_S
+ *    Variables: @u6
+ *    Functions: helperEnter
+--- code ---
+{
+  helperEnter (@u6);
+}
+ */
+
+int
+arc2_gen_ENTER_S (DisasCtxt *ctx, TCGv u6)
+{
+  int ret = DISAS_NEXT;
+
+  helperEnter(u6);
+  return ret;
+}
+
+
+
+
+
+/* LEAVE_S
+ *    Variables: @u7
+ *    Functions: helperLeave
+--- code ---
+{
+  helperLeave (@u7);
+}
+ */
+
+int
+arc2_gen_LEAVE_S (DisasCtxt *ctx, TCGv u7)
+{
+  int ret = DISAS_NEXT;
+
+  helperLeave(u7);
   return ret;
 }
 

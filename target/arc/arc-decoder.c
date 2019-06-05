@@ -483,7 +483,7 @@ const struct arc_operand arc_operands[] = {
 
     /* ARC NPS400 Support: See comment near head of file. */
 #define NPS_R_DST_3B        (UIMM6_5_S + 1)
-    { 
+    {
         3, 24, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_24_dst, extract_nps_3bit_reg_at_24_dst
     },
@@ -543,49 +543,49 @@ const struct arc_operand arc_operands[] = {
     { 16, 0, 0, ARC_OPERAND_SIGNED, NULL, NULL },
 
 #define NPS_RFLT_UIMM6      (NPS_SIMM16 + 1)
-    { 
+    {
         6, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_rflt_uimm6, extract_nps_rflt_uimm6
     },
 
 #define NPS_XLDST_UIMM16    (NPS_RFLT_UIMM6 + 1)
-    { 
+    {
         16, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_cmem_uimm16, extract_nps_cmem_uimm16
     },
 
 #define NPS_SRC2_POS        (NPS_XLDST_UIMM16 + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_src2_pos, extract_nps_src2_pos
     },
 
 #define NPS_SRC1_POS        (NPS_SRC2_POS + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_src1_pos, extract_nps_src1_pos
     },
 
 #define NPS_ADDB_SIZE       (NPS_SRC1_POS + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_addb_size, extract_nps_addb_size
     },
 
 #define NPS_ANDB_SIZE       (NPS_ADDB_SIZE + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_andb_size, extract_nps_andb_size
     },
 
 #define NPS_FXORB_SIZE      (NPS_ANDB_SIZE + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_fxorb_size, extract_nps_fxorb_size
     },
 
 #define NPS_WXORB_SIZE      (NPS_FXORB_SIZE + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_wxorb_size, extract_nps_wxorb_size
     },
@@ -597,7 +597,7 @@ const struct arc_operand arc_operands[] = {
     { 4, 5, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_QCMP_SIZE       (NPS_DIV_UIMM4 + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_qcmp_size, extract_nps_qcmp_size
     },
@@ -612,43 +612,43 @@ const struct arc_operand arc_operands[] = {
     { 4, 5, 0, ARC_OPERAND_UNSIGNED, NULL, extract_nps_qcmp_m3 },
 
 #define NPS_CALC_ENTRY_SIZE (NPS_QCMP_M3 + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_calc_entry_size, extract_nps_calc_entry_size
     },
 
 #define NPS_R_DST_3B_SHORT      (NPS_CALC_ENTRY_SIZE + 1)
-    { 
+    {
         3, 8, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_8_dst, extract_nps_3bit_reg_at_8_dst
     },
 
 #define NPS_R_SRC1_3B_SHORT     (NPS_R_DST_3B_SHORT + 1)
-    { 
+    {
         3, 8, 0, ARC_OPERAND_IR | ARC_OPERAND_DUPLICATE | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_8_dst, extract_nps_3bit_reg_at_8_dst
     },
 
 #define NPS_R_SRC2_3B_SHORT     (NPS_R_SRC1_3B_SHORT + 1)
-    { 
+    {
         3, 5, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_5_src2, extract_nps_3bit_reg_at_5_src2
     },
 
 #define NPS_BITOP_SIZE2         (NPS_R_SRC2_3B_SHORT + 1)
-    { 
+    {
         5, 25, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_bitop2_size, extract_nps_bitop2_size
     },
 
 #define NPS_BITOP_SIZE1         (NPS_BITOP_SIZE2 + 1)
-    { 
+    {
         5, 20, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_bitop1_size, extract_nps_bitop1_size
     },
 
 #define NPS_BITOP_DST_POS3_POS4         (NPS_BITOP_SIZE1 + 1)
-    { 
+    {
         5, 0, 0, ARC_OPERAND_UNSIGNED, insert_nps_bitop_dst_pos3_pos4,
         extract_nps_bitop_dst_pos3_pos4
     },
@@ -678,7 +678,7 @@ const struct arc_operand arc_operands[] = {
     { 5, 0, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_BITOP_MOD4      (NPS_BITOP_SRC_POS1 + 1)
-    { 
+    {
         2, 0, 0, ARC_OPERAND_UNSIGNED, insert_nps_bitop_mod4,
         extract_nps_bitop_mod4
     },
@@ -693,7 +693,7 @@ const struct arc_operand arc_operands[] = {
     { 2, 25, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_BITOP_INS_EXT   (NPS_BITOP_MOD1 + 1)
-    { 
+    {
         5, 20, 0, ARC_OPERAND_UNSIGNED, insert_nps_bitop_ins_ext,
         extract_nps_bitop_ins_ext
     },
@@ -702,19 +702,19 @@ const struct arc_operand arc_operands[] = {
     { 3, 3, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_FIELD_SIZE      (NPS_FIELD_START_POS + 1)
-    { 
+    {
         3, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_field_size, extract_nps_field_size
     },
 
 #define NPS_SHIFT_FACTOR    (NPS_FIELD_SIZE + 1)
-    { 
+    {
         3, 9, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_shift_factor, extract_nps_shift_factor
     },
 
 #define NPS_BITS_TO_SCRAMBLE (NPS_SHIFT_FACTOR + 1)
-    { 
+    {
         3, 12, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_bits_to_scramble, extract_nps_bits_to_scramble
     },
@@ -723,13 +723,13 @@ const struct arc_operand arc_operands[] = {
     { 5, 5, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_BDLEN_MAX_LEN   (NPS_SRC2_POS_5B + 1)
-    { 
+    {
         8, 5, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_bdlen_max_len, extract_nps_bdlen_max_len
     },
 
 #define NPS_MIN_HOFS        (NPS_BDLEN_MAX_LEN + 1)
-    { 
+    {
         4, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_min_hofs, extract_nps_min_hofs
     },
@@ -745,13 +745,13 @@ const struct arc_operand arc_operands[] = {
      * but doesn't duplicate an operand
      */
 #define NPS_DPI_SRC1_3B     (NPS_DPI_DST + 1)
-    { 
+    {
         3, 24, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_24_dst, extract_nps_3bit_reg_at_24_dst
     },
 
 #define NPS_HASH_WIDTH      (NPS_DPI_SRC1_3B + 1)
-    { 
+    {
         5, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_hash_width, extract_nps_hash_width
     },
@@ -766,7 +766,7 @@ const struct arc_operand arc_operands[] = {
     { 2, 0, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_HASH_LEN        (NPS_HASH_BASEMAT + 1)
-    { 
+    {
         3, 2, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_hash_len, extract_nps_hash_len
     },
@@ -787,7 +787,7 @@ const struct arc_operand arc_operands[] = {
     { 3, 2, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_E4BY_INDEX3     (NPS_E4BY_INDEX2 + 1)
-    { 
+    {
         2, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_index3, extract_nps_index3
     },
@@ -796,97 +796,97 @@ const struct arc_operand arc_operands[] = {
     { 0, 0, 0, ARC_OPERAND_COLON | ARC_OPERAND_FAKE, NULL, NULL },
 
 #define NPS_BD              (COLON + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_bd, extract_nps_bd
     },
 
 #define NPS_JID             (NPS_BD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_jid, extract_nps_jid
     },
 
 #define NPS_LBD             (NPS_JID + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_lbd, extract_nps_lbd
     },
 
 #define NPS_MBD             (NPS_LBD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_mbd, extract_nps_mbd
     },
 
 #define NPS_SD              (NPS_MBD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_sd, extract_nps_sd
     },
 
 #define NPS_SM              (NPS_SD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_sm, extract_nps_sm
     },
 
 #define NPS_XA              (NPS_SM + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_xa, extract_nps_xa
     },
 
 #define NPS_XD              (NPS_XA + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_xd, extract_nps_xd
     },
 
 #define NPS_CD              (NPS_XD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cd, extract_nps_cd
     },
 
 #define NPS_CBD             (NPS_CD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cbd, extract_nps_cbd
     },
 
 #define NPS_CJID            (NPS_CBD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cjid, extract_nps_cjid
     },
 
 #define NPS_CLBD            (NPS_CJID + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_clbd, extract_nps_clbd
     },
 
 #define NPS_CM              (NPS_CLBD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cm, extract_nps_cm
     },
 
 #define NPS_CSD             (NPS_CM + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_csd, extract_nps_csd
     },
 
 #define NPS_CXA             (NPS_CSD + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cxa, extract_nps_cxa
     },
 
 #define NPS_CXD             (NPS_CXA + 1)
-    { 
+    {
         0, 0, 0, ARC_OPERAND_ADDRTYPE | ARC_OPERAND_NCHK,
         insert_nps_cxd, extract_nps_cxd
     },
@@ -895,7 +895,7 @@ const struct arc_operand arc_operands[] = {
     { 1, 10, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_BMU_NUM         (NPS_BD_TYPE + 1)
-    { 
+    {
         3, 0, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_bd_num_buff, extract_nps_bd_num_buff
     },
@@ -904,43 +904,43 @@ const struct arc_operand arc_operands[] = {
     { 4, 6, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_PMU_NUM_JOB     (NPS_PMU_NXT_DST + 1)
-    { 
+    {
         2, 6, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_pmu_num_job, extract_nps_pmu_num_job
     },
 
 #define NPS_R_DST_3B_48     (NPS_PMU_NUM_JOB + 1)
-    { 
+    {
         3, 40, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_40_dst, extract_nps_3bit_reg_at_40_dst
     },
 
 #define NPS_R_SRC1_3B_48    (NPS_R_DST_3B_48 + 1)
-    { 
+    {
         3, 40, 0, ARC_OPERAND_IR | ARC_OPERAND_DUPLICATE | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_40_dst, extract_nps_3bit_reg_at_40_dst
     },
 
 #define NPS_R_SRC2_3B_48    (NPS_R_SRC1_3B_48 + 1)
-    { 
+    {
         3, 37, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_37_src2, extract_nps_3bit_reg_at_37_src2
     },
 
 #define NPS_R_DST_3B_64     (NPS_R_SRC2_3B_48 + 1)
-    { 
+    {
         3, 56, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_56_dst, extract_nps_3bit_reg_at_56_dst
     },
 
 #define NPS_R_SRC1_3B_64    (NPS_R_DST_3B_64 + 1)
-    { 
+    {
         3, 56, 0, ARC_OPERAND_IR | ARC_OPERAND_DUPLICATE | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_56_dst, extract_nps_3bit_reg_at_56_dst
     },
 
 #define NPS_R_SRC2_3B_64    (NPS_R_SRC1_3B_64 + 1)
-    { 
+    {
         3, 53, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_3bit_reg_at_53_src2, extract_nps_3bit_reg_at_53_src2
     },
@@ -955,7 +955,7 @@ const struct arc_operand arc_operands[] = {
     { 5, 43, 0, ARC_OPERAND_IR | ARC_OPERAND_DUPLICATE, NULL, NULL },
 
 #define NPS_RBdouble_64     (NPS_RBdup_64 + 1)
-    { 
+    {
         10, 43, 0, ARC_OPERAND_IR | ARC_OPERAND_NCHK,
         insert_nps_rbdouble_64, extract_nps_rbdouble_64
     },
@@ -967,7 +967,7 @@ const struct arc_operand arc_operands[] = {
     { 16, 0, 0, ARC_OPERAND_UNSIGNED, NULL, NULL },
 
 #define NPS_PROTO_SIZE      (NPS_UIMM16_0_64 + 1)
-    { 
+    {
         6, 16, 0, ARC_OPERAND_UNSIGNED | ARC_OPERAND_NCHK,
         insert_nps_proto_size, extract_nps_proto_size
     }
@@ -2077,6 +2077,8 @@ int arc_decode(DisasCtxt *ctx)
             arc2_gen_##NAME (ctx, ops[A], ops[B]);
 #define SEMANTIC_FUNCTION_CALL_3(NAME, A, B, C) \
             arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C]);
+#define SEMANTIC_FUNCTION_CALL_4(NAME, A, B, C, D) \
+            arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C], ops[D]);
 
 #define SEMANTIC_FUNCTION(...)
 #define MAPPING(MNEMONIC, NAME, NOPS, ...)                          \

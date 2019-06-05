@@ -216,7 +216,7 @@ enum exception_code_list {
     EXCP_EXTENSION,
     EXCP_DIVZERO,
     EXCP_DCERROR,
-    EXCP_MALIGNED,
+    EXCP_MISALIGNED,
     EXCP_IRQ
 };
 

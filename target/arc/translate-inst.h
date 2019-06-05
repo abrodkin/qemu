@@ -226,8 +226,8 @@ void arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret);
 #define NoFurtherLoadsPending(R) arc2_gen_no_further_loads_pending(ctx, R)
 void arc2_gen_set_debug(DisasCtxt *ctx, bool value);
 #define setDebugLD(A) arc2_gen_set_debug(ctx, A)
-void arc2_gen_execute_delayslot(DisasCtxt *ctx);
-#define executeDelaySlot() arc2_gen_execute_delayslot(ctx)
+void arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta);
+#define executeDelaySlot(bta) arc2_gen_execute_delayslot(ctx, bta)
 bool arc2_gen_should_execute_delayslot(DisasCtxt *ctx);
 #define shouldExecuteDelaySlot() arc2_gen_should_execute_delayslot(ctx)
 
@@ -316,6 +316,34 @@ void arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos);
  * end of a TB we gave a chance to interrupt threads to execute.
  */
 #define syncReturnDisasUpdate()     (ret = DISAS_UPDATE)
+
+/*
+ * an enter_s may change code like below:
+ * ----
+ * r13 .. r26 <== shell opcodes
+ * sp <= pc+56
+ * enter_s
+ * ---
+ * it's not that we are promoting these type of instructions.
+ * nevertheless we must be able to emulate them. hence, once
+ * again: ret = DISAS_UPDATE
+ */
+#define helperEnter(U6)             \
+    gen_helper_enter(cpu_env, U6);  \
+    ret = DISAS_UPDATE
+
+/* a leave_s may jump to blink, hence the DISAS_UPDATE */
+#define helperLeave(U7)                                       \
+    tcg_gen_movi_tl(cpu_pc, ctx->cpc);                        \
+    gen_helper_leave(cpu_env, U7);                            \
+    TCGv jump_to_blink = tcg_temp_local_new_i32();            \
+    TCGLabel *done     = gen_new_label();                     \
+    tcg_gen_shri_i32(jump_to_blink, U7, 6);                   \
+    tcg_gen_brcondi_i32(TCG_COND_EQ, jump_to_blink, 0, done); \
+    gen_goto_tb(ctx, 1, cpu_pc);                              \
+    ret = DISAS_NORETURN;                                     \
+    gen_set_label(done);                                      \
+    tcg_temp_free(jump_to_blink);
 
 void arc2_gen_mac(TCGv phi, TCGv_i32 b, TCGv_i32 c);
 #define MAC(R, B, C) \

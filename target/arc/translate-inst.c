@@ -259,7 +259,7 @@ arc2_gen_set_debug(DisasCtxt *ctx, bool value)
 }
 
 void
-arc2_gen_execute_delayslot(DisasCtxt *ctx)
+arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
 {
     static int in_delay_slot = false;
     if (ctx->insn.limm_p == 0 && !in_delay_slot) {
@@ -273,11 +273,24 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx)
 
         ++ctx->ds;
 
-        /* TODO: check for illegal instruction sequence */
-
+        /*
+         * in case an exception should be raised during the execution
+         * of delay slot, bta value is used to set erbta.
+         */
+        tcg_gen_mov_tl(cpu_bta, bta);
+        /* set the pc to the next pc */
         tcg_gen_movi_tl(cpu_pc, ctx->npc);
+        /* we are in a delay slot */
+        tcg_gen_movi_tl(cpu_DEf, 1);
+        /* necessary for the likely call to restore_state_to_opc() */
+        tcg_gen_insn_start(ctx->npc);
         arc_decode(ctx);
+        /* no more in a delay slot */
+        tcg_gen_movi_tl(cpu_DEf, 0);
+        /* restore the pc back */
         tcg_gen_movi_tl(cpu_pc, ctx->cpc);
+        /* again, restore_state_to_opc() must use recent value */
+        tcg_gen_insn_start(ctx->cpc);
 
         assert(ctx->base.is_jmp == DISAS_NEXT);
 

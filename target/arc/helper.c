@@ -106,8 +106,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
     case EXCP_DCERROR:
         name = "DCError";
         break;
-    case EXCP_MALIGNED:
-        name = "Maligned";
+    case EXCP_MISALIGNED:
+        name = "Misaligned";
         break;
     case EXCP_IRQ:
     default:

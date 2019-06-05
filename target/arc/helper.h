@@ -36,6 +36,9 @@ DEF_HELPER_3(carry_add_flag, i32, i32, i32, i32)
 DEF_HELPER_3(overflow_add_flag, i32, i32, i32, i32)
 DEF_HELPER_3(overflow_sub_flag, i32, i32, i32, i32)
 
+DEF_HELPER_2(enter, void, env, i32)
+DEF_HELPER_2(leave, void, env, i32)
+
 DEF_HELPER_3(mpymu, i32, env, i32, i32)
 DEF_HELPER_3(mpym, i32, env, i32, i32)
 

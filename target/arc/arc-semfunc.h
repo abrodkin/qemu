@@ -40,6 +40,8 @@
   int arc2_gen_##NAME (DisasCtxt *, TCGv, TCGv);
 #define SEMANTIC_FUNCTION_PROTOTYPE_3(NAME) \
   int arc2_gen_##NAME (DisasCtxt *, TCGv, TCGv, TCGv);
+#define SEMANTIC_FUNCTION_PROTOTYPE_4(NAME) \
+  int arc2_gen_##NAME (DisasCtxt *, TCGv, TCGv, TCGv, TCGv);
 
 #define MAPPING(MNEMONIC, NAME, NOPS, ...)
 #define SEMANTIC_FUNCTION(NAME, NOPS) \
