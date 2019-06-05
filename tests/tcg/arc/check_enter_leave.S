@@ -82,13 +82,6 @@ exc_fail:
 ;;;;;;;;;;;;;;;;;;; \ Exception Verification Helpers / ;;;;;;;;;;;;;;;;;;;;;;
 
   start
-  mov r1, 0xc0e0
-  st  r1, [boohoo]
-  b.d @test00
-boohoo:
-  nop_s
-  nop_s
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; u6=0 leads to doing nothing
