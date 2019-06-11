@@ -78,9 +78,10 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
   env->timer[timer].period = period;
 
   qemu_log_mask(LOG_UNIMP,
-		"[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x\n",
+		"[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x "\
+                "(ctrl:0x%08x @ %d Hz)\n",
 		timer, env->timer[timer].T_Limit,
-		wait, delta);
+		wait, delta, env->timer[timer].T_Cntrl, env->freq_hz);
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
@@ -364,6 +365,8 @@ aux_timer_set (struct arc_aux_reg_detail *aux_reg_detail,
 {
   CPUARCState *env = (CPUARCState *) data;
 
+  qemu_log_mask (LOG_UNIMP, "[TMRx] AUX[%s] <= 0x%08x\n",
+                 aux_reg_detail->name, val);
   switch (aux_reg_detail->id)
     {
     case AUX_ID_control0:
