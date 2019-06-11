@@ -238,7 +238,6 @@ static void cpu_arc_control_set (CPUARCState *env,
   if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
       qemu_irq_lower (env->irq[TIMER0_IRQ + (timer)]);
   env->timer[timer].T_Cntrl = value & 0x1f;
-  cpu_arc_timer_update (env, timer);
 }
 
 static uint32_t arc_rtc_count_get (CPUARCState *env, bool lower)
