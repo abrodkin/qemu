@@ -3031,7 +3031,7 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
 
 
 /* ROL
- *    Variables: @src, @n, @dest
+ *    Variables: @src, @dest
  *    Functions: getCCFlag, rotateLeft, getFFlag, setZFlag, setNFlag, setCFlag, extractBits
 --- code ---
 {
@@ -3039,21 +3039,20 @@ arc2_gen_BXOR (DisasCtxt *ctx, TCGv c, TCGv a, TCGv b)
   if((cc_flag == true))
     {
       lsrc = @src;
-      ln = (@n & 31);
-      @dest = rotateLeft (lsrc, ln);
+      @dest = rotateLeft (lsrc, 1);
       f_flag = getFFlag ();
       if((f_flag == true))
         {
           setZFlag (@dest);
           setNFlag (@dest);
-          setCFlag (extractBits (lsrc, (ln - 1), (ln - 1)));
+          setCFlag (extractBits (lsrc, 31, 31));
         };
     };
 }
  */
 
 int
-arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
+arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv dest)
 {
   int ret = DISAS_NEXT;
   TCGv temp_3 = tcg_temp_local_new_i32();
@@ -3061,13 +3060,13 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   TCGv temp_1 = tcg_temp_local_new_i32();
   TCGv temp_2 = tcg_temp_local_new_i32();
   TCGv lsrc = tcg_temp_local_new_i32();
-  TCGv ln = tcg_temp_local_new_i32();
+  TCGv temp_5 = tcg_temp_local_new_i32();
   TCGv temp_4 = tcg_temp_local_new_i32();
   int f_flag;
+  TCGv temp_9 = tcg_temp_local_new_i32();
   TCGv temp_8 = tcg_temp_local_new_i32();
   TCGv temp_7 = tcg_temp_local_new_i32();
   TCGv temp_6 = tcg_temp_local_new_i32();
-  TCGv temp_5 = tcg_temp_local_new_i32();
   getCCFlag(temp_3);
   tcg_gen_mov_i32(cc_flag, temp_3);
   TCGLabel *done_1 = gen_new_label();
@@ -3075,19 +3074,19 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
   tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
   tcg_gen_mov_i32(lsrc, src);
-  tcg_gen_andi_i32(ln, n, 31);
-  rotateLeft(temp_4, lsrc, ln);
+  tcg_gen_movi_i32(temp_5, 1);
+  rotateLeft(temp_4, lsrc, temp_5);
   tcg_gen_mov_i32(dest, temp_4);
   f_flag = getFFlag ();
   if ((f_flag == true))
     {
     setZFlag(dest);
   setNFlag(dest);
-  tcg_gen_subi_i32(temp_8, ln, 1);
-  tcg_gen_subi_i32(temp_7, ln, 1);
-  extractBits(temp_6, lsrc, temp_7, temp_8);
-  tcg_gen_mov_i32(temp_5, temp_6);
-  setCFlag(temp_5);
+  tcg_gen_movi_i32(temp_9, 31);
+  tcg_gen_movi_i32(temp_8, 31);
+  extractBits(temp_7, lsrc, temp_8, temp_9);
+  tcg_gen_mov_i32(temp_6, temp_7);
+  setCFlag(temp_6);
 ;
     }
   else
@@ -3100,12 +3099,81 @@ arc2_gen_ROL (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   tcg_temp_free(temp_1);
   tcg_temp_free(temp_2);
   tcg_temp_free(lsrc);
-  tcg_temp_free(ln);
+  tcg_temp_free(temp_5);
   tcg_temp_free(temp_4);
+  tcg_temp_free(temp_9);
   tcg_temp_free(temp_8);
   tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
+
+  return ret;
+}
+
+
+
+
+
+/* ROL8
+ *    Variables: @src, @dest
+ *    Functions: getCCFlag, rotateLeft, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  cc_flag = getCCFlag ();
+  if((cc_flag == true))
+    {
+      lsrc = @src;
+      @dest = rotateLeft (lsrc, 8);
+      f_flag = getFFlag ();
+      if((f_flag == true))
+        {
+          setZFlag (@dest);
+          setNFlag (@dest);
+        };
+    };
+}
+ */
+
+int
+arc2_gen_ROL8 (DisasCtxt *ctx, TCGv src, TCGv dest)
+{
+  int ret = DISAS_NEXT;
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv cc_flag = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv lsrc = tcg_temp_local_new_i32();
+  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
+  getCCFlag(temp_3);
+  tcg_gen_mov_i32(cc_flag, temp_3);
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  tcg_gen_mov_i32(lsrc, src);
+  tcg_gen_movi_i32(temp_5, 8);
+  rotateLeft(temp_4, lsrc, temp_5);
+  tcg_gen_mov_i32(dest, temp_4);
+  f_flag = getFFlag ();
+  if ((f_flag == true))
+    {
+    setZFlag(dest);
+  setNFlag(dest);
+;
+    }
+  else
+    {
+  ;
+    }
+  gen_set_label(done_1);
+  tcg_temp_free(temp_3);
+  tcg_temp_free(cc_flag);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(lsrc);
   tcg_temp_free(temp_5);
+  tcg_temp_free(temp_4);
 
   return ret;
 }
@@ -3190,6 +3258,158 @@ arc2_gen_ROR (DisasCtxt *ctx, TCGv src, TCGv n, TCGv dest)
   tcg_temp_free(temp_7);
   tcg_temp_free(temp_6);
   tcg_temp_free(temp_5);
+
+  return ret;
+}
+
+
+
+
+
+/* ROR1
+ *    Variables: @src, @dest
+ *    Functions: getCCFlag, rotateRight, getFFlag, setZFlag, setNFlag, setCFlag, extractBits
+--- code ---
+{
+  cc_flag = getCCFlag ();
+  if((cc_flag == true))
+    {
+      lsrc = @src;
+      @dest = rotateRight (lsrc, 1);
+      f_flag = getFFlag ();
+      if((f_flag == true))
+        {
+          setZFlag (@dest);
+          setNFlag (@dest);
+          setCFlag (extractBits (lsrc, 0, 0));
+        };
+    };
+}
+ */
+
+int
+arc2_gen_ROR1 (DisasCtxt *ctx, TCGv src, TCGv dest)
+{
+  int ret = DISAS_NEXT;
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv cc_flag = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv lsrc = tcg_temp_local_new_i32();
+  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
+  TCGv temp_9 = tcg_temp_local_new_i32();
+  TCGv temp_8 = tcg_temp_local_new_i32();
+  TCGv temp_7 = tcg_temp_local_new_i32();
+  TCGv temp_6 = tcg_temp_local_new_i32();
+  getCCFlag(temp_3);
+  tcg_gen_mov_i32(cc_flag, temp_3);
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  tcg_gen_mov_i32(lsrc, src);
+  tcg_gen_movi_i32(temp_5, 1);
+  rotateRight(temp_4, lsrc, temp_5);
+  tcg_gen_mov_i32(dest, temp_4);
+  f_flag = getFFlag ();
+  if ((f_flag == true))
+    {
+    setZFlag(dest);
+  setNFlag(dest);
+  tcg_gen_movi_i32(temp_9, 0);
+  tcg_gen_movi_i32(temp_8, 0);
+  extractBits(temp_7, lsrc, temp_8, temp_9);
+  tcg_gen_mov_i32(temp_6, temp_7);
+  setCFlag(temp_6);
+;
+    }
+  else
+    {
+  ;
+    }
+  gen_set_label(done_1);
+  tcg_temp_free(temp_3);
+  tcg_temp_free(cc_flag);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(lsrc);
+  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_4);
+  tcg_temp_free(temp_9);
+  tcg_temp_free(temp_8);
+  tcg_temp_free(temp_7);
+  tcg_temp_free(temp_6);
+
+  return ret;
+}
+
+
+
+
+
+/* ROR8
+ *    Variables: @src, @dest
+ *    Functions: getCCFlag, rotateRight, getFFlag, setZFlag, setNFlag
+--- code ---
+{
+  cc_flag = getCCFlag ();
+  if((cc_flag == true))
+    {
+      lsrc = @src;
+      @dest = rotateRight (lsrc, 8);
+      f_flag = getFFlag ();
+      if((f_flag == true))
+        {
+          setZFlag (@dest);
+          setNFlag (@dest);
+        };
+    };
+}
+ */
+
+int
+arc2_gen_ROR8 (DisasCtxt *ctx, TCGv src, TCGv dest)
+{
+  int ret = DISAS_NEXT;
+  TCGv temp_3 = tcg_temp_local_new_i32();
+  TCGv cc_flag = tcg_temp_local_new_i32();
+  TCGv temp_1 = tcg_temp_local_new_i32();
+  TCGv temp_2 = tcg_temp_local_new_i32();
+  TCGv lsrc = tcg_temp_local_new_i32();
+  TCGv temp_5 = tcg_temp_local_new_i32();
+  TCGv temp_4 = tcg_temp_local_new_i32();
+  int f_flag;
+  getCCFlag(temp_3);
+  tcg_gen_mov_i32(cc_flag, temp_3);
+  TCGLabel *done_1 = gen_new_label();
+  tcg_gen_setcond_i32(TCG_COND_EQ, temp_1, cc_flag, arc_true);
+  tcg_gen_xori_i32(temp_2, temp_1, 1); tcg_gen_andi_i32(temp_2, temp_2, 1);;
+  tcg_gen_brcond_i32(TCG_COND_EQ, temp_2, arc_true, done_1);;
+  tcg_gen_mov_i32(lsrc, src);
+  tcg_gen_movi_i32(temp_5, 8);
+  rotateRight(temp_4, lsrc, temp_5);
+  tcg_gen_mov_i32(dest, temp_4);
+  f_flag = getFFlag ();
+  if ((f_flag == true))
+    {
+    setZFlag(dest);
+  setNFlag(dest);
+;
+    }
+  else
+    {
+  ;
+    }
+  gen_set_label(done_1);
+  tcg_temp_free(temp_3);
+  tcg_temp_free(cc_flag);
+  tcg_temp_free(temp_1);
+  tcg_temp_free(temp_2);
+  tcg_temp_free(lsrc);
+  tcg_temp_free(temp_5);
+  tcg_temp_free(temp_4);
 
   return ret;
 }
