@@ -133,9 +133,9 @@ MAPPING(adc, ADC, 3, 1, 2, 0)
 MAPPING(sbc, SBC, 3, 1, 2, 0)
 MAPPING(neg, NEG, 2, 1, 0)
 MAPPING(neg_s, NEG, 2, 1, 0)
-MAPPING(rsub, SUB, 3, 2, 1, 0)
 MAPPING(sub, SUB, 3, 1, 2, 0)
 MAPPING(sub_s, SUB, 3, 1, 2, 0)
+MAPPING(rsub, SUB, 3, 2, 1, 0)
 MAPPING(sub1, SUB1, 3, 1, 2, 0)
 MAPPING(sub2, SUB2, 3, 1, 2, 0)
 MAPPING(sub3, SUB3, 3, 1, 2, 0)
@@ -152,15 +152,21 @@ MAPPING(xor, XOR, 3, 0, 1, 2)
 MAPPING(xor_s, XOR, 3, 0, 1, 2)
 MAPPING(mov, MOV, 2, 0, 1)
 MAPPING(mov_s, MOV, 2, 0, 1)
+CONSTANT(ASL, asl, 2, 1) /* For variable @c */
 MAPPING(asl, ASL, 3, 1, 2, 0)
+CONSTANT(ASL, asl_s, 2, 1) /* For variable @c */
 MAPPING(asl_s, ASL, 3, 1, 2, 0)
+CONSTANT(ASR, asr, 2, 1) /* For variable @c */
 MAPPING(asr, ASR, 3, 1, 2, 0)
+CONSTANT(ASR, asr_s, 2, 1) /* For variable @c */
 MAPPING(asr_s, ASR, 3, 1, 2, 0)
 MAPPING(asr8, ASR8, 2, 1, 0)
 MAPPING(asr16, ASR16, 2, 1, 0)
 MAPPING(lsl16, LSL16, 2, 0, 1)
 MAPPING(lsl8, LSL8, 2, 0, 1)
+CONSTANT(LSR, lsr, 2, 1) /* For variable @c */
 MAPPING(lsr, LSR, 3, 1, 2, 0)
+CONSTANT(LSR, lsr_s, 2, 1) /* For variable @c */
 MAPPING(lsr_s, LSR, 3, 1, 2, 0)
 MAPPING(lsr16, LSR16, 2, 0, 1)
 MAPPING(lsr8, LSR8, 2, 0, 1)
@@ -274,19 +280,25 @@ MAPPING(llockd, LLOCKD, 2, 0, 1)
 MAPPING(scond, SCOND, 2, 1, 0)
 MAPPING(scondd, SCONDD, 2, 1, 0)
 MAPPING(dmb, DMB, 1, 0)
+CONSTANT(LD, ld, 2, 0) /* For variable @src2 */
 MAPPING(ld, LD, 3, 1, 2, 0)
 MAPPING(ld_s, LD, 3, 1, 2, 0)
 MAPPING(ldb_s, LD, 3, 1, 2, 0)
 MAPPING(ldh_s, LD, 3, 1, 2, 0)
 MAPPING(ldw_s, LD, 3, 1, 2, 0)
-MAPPING(ldi, LD, 3, 0, 1, 2)
-MAPPING(ldi_s, LD, 3, 0, 1, 2)
+CONSTANT(LD, ldi, 2, 0) /* For variable @src2 */
+MAPPING(ldi, LD, 3, 1, 2, 0)
+CONSTANT(LD, ldi_s, 2, 0) /* For variable @src2 */
+MAPPING(ldi_s, LD, 3, 1, 2, 0)
+CONSTANT(LDD, ldd, 2, 0) /* For variable @src2 */
 MAPPING(ldd, LDD, 3, 1, 2, 0)
+CONSTANT(ST, st, 2, 0) /* For variable @src2 */
 MAPPING(st, ST, 3, 1, 2, 0)
 MAPPING(st_s, ST, 3, 1, 2, 0)
 MAPPING(stb_s, ST, 3, 1, 2, 0)
 MAPPING(sth_s, ST, 3, 1, 2, 0)
 MAPPING(stw_s, ST, 3, 1, 2, 0)
+CONSTANT(STD, std, 2, 0) /* For variable @src2 */
 MAPPING(std, STD, 3, 1, 2, 0)
 MAPPING(enter_s, ENTER_S, 1, 0)
 MAPPING(leave_s, LEAVE_S, 1, 0)

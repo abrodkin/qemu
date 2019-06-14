@@ -44,12 +44,14 @@
   int arc2_gen_##NAME (DisasCtxt *, TCGv, TCGv, TCGv, TCGv);
 
 #define MAPPING(MNEMONIC, NAME, NOPS, ...)
+#define CONSTANT(...)
 #define SEMANTIC_FUNCTION(NAME, NOPS) \
   SEMANTIC_FUNCTION_PROTOTYPE_##NOPS(NAME)
 
 #include "arc-semfunc_mapping.h"
 
 #undef MAPPING
+#undef CONSTANT
 #undef SEMANTIC_FUNCTION_PROTOTYPE_0
 #undef SEMANTIC_FUNCTION_PROTOTYPE_1
 #undef SEMANTIC_FUNCTION_PROTOTYPE_2

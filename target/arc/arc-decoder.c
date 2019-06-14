@@ -1860,11 +1860,13 @@ const struct arc_opcode *arc_find_format(insn_t *insnd,
 enum arc_opcode_map {
     MAP_NONE = -1,
 #define SEMANTIC_FUNCTION(...)
+#define CONSTANT(...)
 #define MAPPING(MNEMONIC, NAME, NOPS, ...) \
     MAP_##MNEMONIC##_##NAME,
 #include "arc-semfunc_mapping.h"
 #include "arc-extra_mapping.h"
 #undef MAPPING
+#undef CONSTANT
 #undef SEMANTIC_FUNCTION
     /* Add some include to generated files */
     MAP_LAST
@@ -1872,10 +1874,12 @@ enum arc_opcode_map {
 
 const char number_of_ops_semfunc[MAP_LAST + 1] = {
 #define SEMANTIC_FUNCTION(...)
+#define CONSTANT(...)
 #define MAPPING(MNEMONIC, NAME, NOPS, ...) NOPS,
 #include "arc-semfunc_mapping.h"
 #include "arc-extra_mapping.h"
 #undef MAPPING
+#undef CONSTANT
 #undef SEMANTIC_FUNCTION
     2
 };
@@ -1883,15 +1887,67 @@ const char number_of_ops_semfunc[MAP_LAST + 1] = {
 static enum arc_opcode_map arc_map_opcode(const struct arc_opcode *opcode)
 {
 #define SEMANTIC_FUNCTION(...)
+#define CONSTANT(...)
 #define MAPPING(MNEMONIC, NAME, ...)         \
     if(strcmp(opcode->name, #MNEMONIC) == 0) \
         return MAP_##MNEMONIC##_##NAME;
 #include "arc-semfunc_mapping.h"
 #include "arc-extra_mapping.h"
 #undef MAPPING
+#undef CONSTANT
 #undef SEMANTIC_FUNCTION
 
     return MAP_NONE;
+}
+
+/* Code support for constant values coming from semantic function mapping. */
+struct constant_operands {
+  uint8_t operand_number;
+  uint32_t default_value;
+  struct constant_operands *next;
+};
+
+struct constant_operands *map_constant_operands[MAP_LAST];
+
+static void
+add_constant_operand(enum arc_opcode_map mapping,
+                     uint8_t operand_number,
+                     uint32_t value)
+{
+  struct constant_operands **t = &(map_constant_operands[mapping]);
+  while(*t != NULL)
+    t = &((*t)->next);
+  *t = (struct constant_operands *) malloc(sizeof(struct constant_operands));
+
+  (*t)->operand_number = operand_number;
+  (*t)->default_value = value;
+  (*t)->next = NULL;
+}
+
+static struct
+constant_operands *constant_entry_for(enum arc_opcode_map mapping,
+                                      uint8_t operand_number)
+{
+  struct constant_operands *t = map_constant_operands[mapping];
+  while(t != NULL)
+    {
+      if(t->operand_number && operand_number)
+        return t;
+      t = t->next;
+    }
+  return NULL;
+}
+
+static void init_constants(void) {
+#define SEMANTIC_FUNCTION(...)
+#define MAPPING(...)
+#define CONSTANT(NAME, MNEMONIC, OP_NUM, VALUE) \
+  add_constant_operand(MAP_##MNEMONIC##_##NAME, OP_NUM, VALUE);
+#include "arc-semfunc_mapping.h"
+#include "arc-extra_mapping.h"
+#undef MAPPING
+#undef CONSTANT
+#undef SEMANTIC_FUNCTION
 }
 
 static void arc_debug_opcode(const struct arc_opcode *opcode,
@@ -1905,40 +1961,37 @@ static void arc_debug_opcode(const struct arc_opcode *opcode,
 
 static TCGv arc2_decode_operand(const struct arc_opcode *opcode,
                                 DisasCtxt *ctx,
-                                unsigned char nop)
+                                unsigned char nop,
+                                enum arc_opcode_map mapping)
 {
     TCGv ret;
 
-    if (nop == ctx->insn.n_ops) {
-        switch (ctx->insn.class) {
-        /* last (extra) operand for LOGICAL is assumed 1 */
-        case LOGICAL:
-            return tcg_const_local_i32(1);
-        /* else it is assumed 0 */
-        default:
-            return tcg_const_local_i32(0);
-        }
-    }
-
-    assert(nop < ctx->insn.n_ops);
-    operand_t operand = ctx->insn.operands[nop];
-
-    if(operand.type & ARC_OPERAND_IR) {
-        ret = cpu_r[operand.value];
-        if (operand.value == 63) {
-            tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
-        }
+    if (nop >= ctx->insn.n_ops) {
+      struct constant_operands *co = constant_entry_for(mapping, nop);
+      assert(co != NULL);
+      ret = tcg_const_local_i32(co->default_value);
+      return ret;
     }
     else {
-        int32_t limm = operand.value;
-        if (operand.type & ARC_OPERAND_LIMM) {
-            limm = ctx->insn.limm;
-            tcg_gen_movi_tl(cpu_limm, limm);
-            ret = cpu_r[62];
-        }
-        else {
-            ret = tcg_const_local_i32(limm);
-        }
+      operand_t operand = ctx->insn.operands[nop];
+
+      if(operand.type & ARC_OPERAND_IR) {
+          ret = cpu_r[operand.value];
+          if (operand.value == 63) {
+              tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+          }
+      }
+      else {
+          int32_t limm = operand.value;
+          if (operand.type & ARC_OPERAND_LIMM) {
+              limm = ctx->insn.limm;
+              tcg_gen_movi_tl(cpu_limm, limm);
+              ret = cpu_r[62];
+          }
+          else {
+              ret = tcg_const_local_i32(limm);
+          }
+      }
     }
 
   return ret;
@@ -2038,6 +2091,12 @@ int arc_decode(DisasCtxt *ctx)
     const struct arc_opcode *opcode = NULL;
     int ret = DISAS_NEXT;
     enum arc_opcode_map mapping;
+    static bool initialized = false;
+
+    if(initialized == false) {
+      init_constants();
+      initialized = true;
+    }
 
     /* Call the disassembler. */
     if (!read_and_decode_context(ctx, &opcode)) {
@@ -2049,7 +2108,7 @@ int arc_decode(DisasCtxt *ctx)
         TCGv ops[10];
         int i;
         for (i = 0; i < number_of_ops_semfunc[mapping]; i++) {
-            ops[i] = arc2_decode_operand(opcode, ctx, i);
+            ops[i] = arc2_decode_operand(opcode, ctx, i, mapping);
         }
 
         /*
@@ -2081,12 +2140,14 @@ int arc_decode(DisasCtxt *ctx)
             arc2_gen_##NAME (ctx, ops[A], ops[B], ops[C], ops[D]);
 
 #define SEMANTIC_FUNCTION(...)
+#define CONSTANT(...)
 #define MAPPING(MNEMONIC, NAME, NOPS, ...)                          \
             case MAP_##MNEMONIC##_##NAME:                           \
             ret = SEMANTIC_FUNCTION_CALL_##NOPS(NAME, __VA_ARGS__); \
             break;
 #include "arc-semfunc_mapping.h"
 #undef MAPPING
+#undef CONSTANT
 #undef SEMANTIC_FUNCTION
 #undef SEMANTIC_FUNCTION_CALL_0
 #undef SEMANTIC_FUNCTION_CALL_1
