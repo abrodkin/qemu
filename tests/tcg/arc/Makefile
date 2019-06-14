@@ -25,6 +25,7 @@ TESTCASES += check_andx.tst
 TESTCASES += check_aslx.tst
 TESTCASES += check_asrx.tst
 TESTCASES += check_orx.tst
+TESTCASES += check_rolx.tst
 TESTCASES += check_rorx.tst
 TESTCASES += check_subx.tst
 TESTCASES += check_xorx.tst
