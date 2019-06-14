@@ -23,7 +23,7 @@ ARCTEST_BEGIN
   TEST_RR_2OP( 8, ror , 0x80000000, 0x00000001);
   TEST_RR_2OP( 9, ror , 0xdeadbeef, 0xbd5b7ddf);
   TEST_RR_2OP(10, ror8, 0x01000000, 0x00000001);
-  
+
   TEST_RR_2OP(11, rol , 0xbd5b7ddf, 0xdeadbeef);
   TEST_RR_2OP(12, rol8, 0x00000001, 0x01000000);
 
@@ -57,7 +57,7 @@ ARCTEST_BEGIN
   TEST_1OP_ZERO    (32, ror8, 1, 0x00000000);
   TEST_1OP_NEGATIVE(33, ror8, 0, 0x00000040);
   TEST_1OP_NEGATIVE(34, ror8, 1, 0x00000080);
-  
+
   TEST_1OP_CARRY   (35, rol , 0, 0x40000000);
   TEST_1OP_CARRY   (36, rol , 1, 0x80000000);
   TEST_1OP_ZERO    (37, rol , 0, 0x00001000);

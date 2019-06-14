@@ -93,8 +93,8 @@
 #define TEST_2OP_ZERO( testnum, inst, expected, val1, val2)  \
     test_ ## testnum:                                        \
     mov  r12, testnum`                                       \
-        mov  r1, MASK_XLEN(val1)`                            \
-        mov  r2, MASK_XLEN(val2)`                            \
+        mov      r1, MASK_XLEN(val1)`                        \
+        mov      r2, MASK_XLEN(val2)`                        \
         inst.f   0, r1, r2`                                  \
         mov.eq   r3, (~expected) & 0x01`                     \
         mov.ne   r3, (expected) & 0x01`                      \
@@ -115,19 +115,30 @@
 #define TEST_2OP_OVERFLOW( testnum, inst, expected, val1, val2) \
     test_ ## testnum:                                           \
     mov  r12, testnum`                                          \
-        mov  r1, MASK_XLEN(val1)`                               \
-        mov  r2, MASK_XLEN(val2)`                               \
+        mov      r1, MASK_XLEN(val1)`                           \
+        mov      r2, MASK_XLEN(val2)`                           \
         inst.f   0, r1, r2`                                     \
         mov.vs   r3,(~expected) & 0x01`                         \
         mov.vc   r3, (expected) & 0x01`                         \
         cmp      r3, 0`                                         \
         bne      @fail
 
+#define TEST_1OP_OVERFLOW( testnum, inst, expected, val) \
+    test_ ## testnum:                                    \
+    mov  r12, testnum`                                   \
+        add.f    0, r0, r0`                              \
+        mov      r1, MASK_XLEN(val)`                     \
+        inst.f   0, r1`                                  \
+        mov.vs   r3,(~expected) & 0x01`                  \
+        mov.vc   r3, (expected) & 0x01`                  \
+        cmp      r3, 0`                                  \
+        bne      @fail
+
 #define TEST_2OP_NEGATIVE( testnum, inst, expected, val1, val2)    \
     test_ ## testnum:                                              \
     mov  r12, testnum`                                             \
-        mov  r1, MASK_XLEN(val1)`                                  \
-        mov  r2, MASK_XLEN(val2)`                                  \
+        mov      r1, MASK_XLEN(val1)`                              \
+        mov      r2, MASK_XLEN(val2)`                              \
         inst.f   0, r1, r2`                                        \
         mov.mi   r3,(~expected) & 0x01`                            \
         mov.pl   r3, (expected) & 0x01`                            \
