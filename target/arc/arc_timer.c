@@ -101,6 +101,7 @@ static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
   /* Set the IP bit.  */
   env->timer[timer & 0x01].T_Cntrl |= TMR_IP;
   env->timer[timer & 0x01].T_Count = 0;
+  env->timer[timer & 0x01].last_clk = qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL);
 }
 
 /* This callback should occur when the counter is exactly equal to the
@@ -115,6 +116,7 @@ static void arc_timer0_cb (void *opaque)
     return;
 
   cpu_arc_timer_expire (env, 0);
+  cpu_arc_timer_update (env, 0);
 }
 
 static void arc_timer1_cb (void *opaque)
@@ -125,6 +127,7 @@ static void arc_timer1_cb (void *opaque)
     return;
 
   cpu_arc_timer_expire (env, 1);
+  cpu_arc_timer_update (env, 1);
 }
 
 static void cpu_rtc_count_update (CPUARCState *env)
