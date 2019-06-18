@@ -1902,43 +1902,45 @@ static enum arc_opcode_map arc_map_opcode(const struct arc_opcode *opcode)
 
 /* Code support for constant values coming from semantic function mapping. */
 struct constant_operands {
-  uint8_t operand_number;
-  uint32_t default_value;
-  struct constant_operands *next;
+    uint8_t operand_number;
+    uint32_t default_value;
+    struct constant_operands *next;
 };
 
 struct constant_operands *map_constant_operands[MAP_LAST];
 
-static void
-add_constant_operand(enum arc_opcode_map mapping,
-                     uint8_t operand_number,
-                     uint32_t value)
+static void add_constant_operand(enum arc_opcode_map mapping,
+                                 uint8_t operand_number,
+                                 uint32_t value)
 {
-  struct constant_operands **t = &(map_constant_operands[mapping]);
-  while(*t != NULL)
-    t = &((*t)->next);
-  *t = (struct constant_operands *) malloc(sizeof(struct constant_operands));
-
-  (*t)->operand_number = operand_number;
-  (*t)->default_value = value;
-  (*t)->next = NULL;
-}
-
-static struct
-constant_operands *constant_entry_for(enum arc_opcode_map mapping,
-                                      uint8_t operand_number)
-{
-  struct constant_operands *t = map_constant_operands[mapping];
-  while(t != NULL)
-    {
-      if(t->operand_number && operand_number)
-        return t;
-      t = t->next;
+    struct constant_operands **t = &(map_constant_operands[mapping]);
+    while (*t != NULL) {
+        t = &((*t)->next);
     }
-  return NULL;
+    *t = (struct constant_operands *) malloc(
+            sizeof(struct constant_operands));
+
+    (*t)->operand_number = operand_number;
+    (*t)->default_value = value;
+    (*t)->next = NULL;
 }
 
-static void init_constants(void) {
+static struct constant_operands *constant_entry_for(
+        enum arc_opcode_map mapping,
+        uint8_t operand_number)
+{
+    struct constant_operands *t = map_constant_operands[mapping];
+    while (t != NULL) {
+        if (t->operand_number && operand_number) {
+            return t;
+        }
+        t = t->next;
+    }
+    return NULL;
+}
+
+static void init_constants(void)
+{
 #define SEMANTIC_FUNCTION(...)
 #define MAPPING(...)
 #define CONSTANT(NAME, MNEMONIC, OP_NUM, VALUE) \
@@ -1967,19 +1969,19 @@ static TCGv arc2_decode_operand(const struct arc_opcode *opcode,
     TCGv ret;
 
     if (nop >= ctx->insn.n_ops) {
-      struct constant_operands *co = constant_entry_for(mapping, nop);
-      assert(co != NULL);
-      ret = tcg_const_local_i32(co->default_value);
-      return ret;
+       struct constant_operands *co = constant_entry_for(mapping, nop);
+       assert(co != NULL);
+       ret = tcg_const_local_i32(co->default_value);
+       return ret;
     }
     else {
-      operand_t operand = ctx->insn.operands[nop];
+        operand_t operand = ctx->insn.operands[nop];
 
-      if(operand.type & ARC_OPERAND_IR) {
-          ret = cpu_r[operand.value];
-          if (operand.value == 63) {
-              tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
-          }
+        if (operand.type & ARC_OPERAND_IR) {
+            ret = cpu_r[operand.value];
+            if (operand.value == 63) {
+                tcg_gen_movi_tl(cpu_pcl, ctx->pcl);
+            }
       }
       else {
           int32_t limm = operand.value;
@@ -2093,9 +2095,9 @@ int arc_decode(DisasCtxt *ctx)
     enum arc_opcode_map mapping;
     static bool initialized = false;
 
-    if(initialized == false) {
-      init_constants();
-      initialized = true;
+    if (initialized == false) {
+        init_constants();
+        initialized = true;
     }
 
     /* Call the disassembler. */
