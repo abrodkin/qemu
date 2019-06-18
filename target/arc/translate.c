@@ -21,135 +21,127 @@
 #include "translate.h"
 #include "qemu/qemu-print.h"
 
-//TCGv_env cpu_env;
 
-TCGv     cpu_gp;        /*  Global Pointer                      */
-TCGv     cpu_fp;        /*  Frame Pointer                       */
-TCGv     cpu_sp;        /*  Stack Pointer                       */
-TCGv     cpu_ilink1;    /*  Level 1 interrupt link register     */
-TCGv     cpu_ilink2;    /*  Level 2 interrupt link register     */
-TCGv     cpu_blink;     /*  Branch link register                */
-TCGv     cpu_acclo;     /*  64-bit accumulator register: low    */
-TCGv     cpu_acchi;     /*  64-bit accumulator register: high   */
-TCGv     cpu_limm;      /*  Long immediate data indicator       */
-TCGv     cpu_pcl;       /*  Program Counter [31:2], read-only,
-                                    32-bit aligned address.     */
+TCGv    cpu_gp;        /*  Global Pointer                      */
+TCGv    cpu_fp;        /*  Frame Pointer                       */
+TCGv    cpu_sp;        /*  Stack Pointer                       */
+TCGv    cpu_ilink1;    /*  Level 1 interrupt link register     */
+TCGv    cpu_ilink2;    /*  Level 2 interrupt link register     */
+TCGv    cpu_blink;     /*  Branch link register                */
+TCGv    cpu_acclo;     /*  64-bit accumulator register: low    */
+TCGv    cpu_acchi;     /*  64-bit accumulator register: high   */
+TCGv    cpu_limm;      /*  Long immediate data indicator       */
+TCGv    cpu_pcl;       /*  Program Counter [31:2], read-only,
+                           32-bit aligned address.             */
 
-TCGv     cpu_S1f;
-TCGv     cpu_S2f;
-TCGv     cpu_CSf;
+TCGv    cpu_S1f;
+TCGv    cpu_S2f;
+TCGv    cpu_CSf;
 
-TCGv     cpu_Lf;
-TCGv     cpu_Zf;
-TCGv     cpu_Nf;
-TCGv     cpu_Cf;
-TCGv     cpu_Vf;
-TCGv     cpu_Uf;
+TCGv    cpu_Lf;
+TCGv    cpu_Zf;
+TCGv    cpu_Nf;
+TCGv    cpu_Cf;
+TCGv    cpu_Vf;
+TCGv    cpu_Uf;
 
-TCGv     cpu_DEf;
-TCGv     cpu_ESf;
-TCGv     cpu_AEf;
-TCGv     cpu_Hf;
-TCGv     cpu_IEf;
-TCGv     cpu_Ef;
+TCGv    cpu_DEf;
+TCGv    cpu_ESf;
+TCGv    cpu_AEf;
+TCGv    cpu_Hf;
+TCGv    cpu_IEf;
+TCGv    cpu_Ef;
 
-TCGv     cpu_l1_Lf;
-TCGv     cpu_l1_Zf;
-TCGv     cpu_l1_Nf;
-TCGv     cpu_l1_Cf;
-TCGv     cpu_l1_Vf;
-TCGv     cpu_l1_Uf;
+TCGv    cpu_l1_Lf;
+TCGv    cpu_l1_Zf;
+TCGv    cpu_l1_Nf;
+TCGv    cpu_l1_Cf;
+TCGv    cpu_l1_Vf;
+TCGv    cpu_l1_Uf;
 
-TCGv     cpu_l1_DEf;
-TCGv     cpu_l1_AEf;
-TCGv     cpu_l1_Hf;
+TCGv    cpu_l1_DEf;
+TCGv    cpu_l1_AEf;
+TCGv    cpu_l1_Hf;
 
-TCGv     cpu_l2_Lf;
-TCGv     cpu_l2_Zf;
-TCGv     cpu_l2_Nf;
-TCGv     cpu_l2_Cf;
-TCGv     cpu_l2_Vf;
-TCGv     cpu_l2_Uf;
+TCGv    cpu_l2_Lf;
+TCGv    cpu_l2_Zf;
+TCGv    cpu_l2_Nf;
+TCGv    cpu_l2_Cf;
+TCGv    cpu_l2_Vf;
+TCGv    cpu_l2_Uf;
 
-TCGv     cpu_l2_DEf;
-TCGv     cpu_l2_AEf;
-TCGv     cpu_l2_Hf;
+TCGv    cpu_l2_DEf;
+TCGv    cpu_l2_AEf;
+TCGv    cpu_l2_Hf;
 
-TCGv     cpu_er_Lf;
-TCGv     cpu_er_Zf;
-TCGv     cpu_er_Nf;
-TCGv     cpu_er_Cf;
-TCGv     cpu_er_Vf;
-TCGv     cpu_er_Uf;
+TCGv    cpu_er_Lf;
+TCGv    cpu_er_Zf;
+TCGv    cpu_er_Nf;
+TCGv    cpu_er_Cf;
+TCGv    cpu_er_Vf;
+TCGv    cpu_er_Uf;
 
-TCGv     cpu_er_DEf;
-TCGv     cpu_er_AEf;
-TCGv     cpu_er_Hf;
+TCGv    cpu_er_DEf;
+TCGv    cpu_er_AEf;
+TCGv    cpu_er_Hf;
 
-TCGv     cpu_eret;
-TCGv     cpu_erbta;
-TCGv     cpu_ecr;
-TCGv     cpu_efa;
+TCGv    cpu_eret;
+TCGv    cpu_erbta;
+TCGv    cpu_ecr;
+TCGv    cpu_efa;
 
-TCGv     cpu_bta;
-TCGv     cpu_bta_l1;
-TCGv     cpu_bta_l2;
+TCGv    cpu_bta;
+TCGv    cpu_bta_l1;
+TCGv    cpu_bta_l2;
 
-TCGv     cpu_pc;
-TCGv     cpu_lpc;
-// replaced by AUX_REG array
-TCGv     cpu_lps;
-TCGv     cpu_lpe;
+TCGv    cpu_pc;
+TCGv    cpu_lpc;
+/* replaced by AUX_REG array */
+TCGv    cpu_lps;
+TCGv    cpu_lpe;
 
-TCGv     cpu_r[64];
+TCGv    cpu_r[64];
 
-TCGv     cpu_intvec;
+TCGv    cpu_intvec;
 
-TCGv     cpu_debug_LD;
-TCGv     cpu_debug_SH;
-TCGv     cpu_debug_BH;
-TCGv     cpu_debug_UB;
-TCGv     cpu_debug_ZZ;
-TCGv     cpu_debug_RA;
-TCGv     cpu_debug_IS;
-TCGv     cpu_debug_FH;
-TCGv     cpu_debug_SS;
+TCGv    cpu_debug_LD;
+TCGv    cpu_debug_SH;
+TCGv    cpu_debug_BH;
+TCGv    cpu_debug_UB;
+TCGv    cpu_debug_ZZ;
+TCGv    cpu_debug_RA;
+TCGv    cpu_debug_IS;
+TCGv    cpu_debug_FH;
+TCGv    cpu_debug_SS;
 
-TCGv	 cpu_npc_helper;
-TCGv	 cpu_lock_lf_var;
+TCGv    cpu_npc_helper;
+TCGv    cpu_lock_lf_var;
 
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
 static inline bool use_goto_tb(DisasContext *dc, target_ulong dest)
 {
-  if(unlikely(dc->base.singlestep_enabled))
-      return false;
+    if (unlikely(dc->base.singlestep_enabled)) {
+        return false;
+    }
 #ifndef CONFIG_USER_ONLY
-  return (dc->base.tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+    return (dc->base.tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
 #else
-  return true;
+    return true;
 #endif
 }
 
 void gen_goto_tb(DisasContext *ctx, int n, TCGv dest)
 {
-  //TranslationBlock   *tb;
-  //tb = ctx->tb;
-
-#if 0
-    tcg_gen_goto_tb(n);
     tcg_gen_mov_tl(cpu_pc, dest);
     tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
-    tcg_gen_exit_tb(ctx->tb, n);
-#else
-    tcg_gen_mov_tl(cpu_pc, dest);
-    tcg_gen_andi_tl(cpu_pcl, dest, 0xfffffffc);
-    if(ctx->base.singlestep_enabled)
-      gen_helper_debug(cpu_env);
+    if (ctx->base.singlestep_enabled) {
+        gen_helper_debug(cpu_env);
+    }
     tcg_gen_exit_tb(NULL, 0);
-#endif
 }
+
 static void gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
 {
     if (use_goto_tb(ctx, dest)) {
@@ -160,8 +152,9 @@ static void gen_gotoi_tb(DisasContext *ctx, int n, target_ulong dest)
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
         tcg_gen_movi_tl(cpu_pcl, dest & 0xfffffffc);
-	if(ctx->base.singlestep_enabled)
-	  gen_helper_debug(cpu_env);
+        if (ctx->base.singlestep_enabled) {
+            gen_helper_debug(cpu_env);
+        }
         tcg_gen_exit_tb(NULL, 0);
     }
 }
@@ -234,11 +227,13 @@ void arc_translate_init(void)
     cpu_intvec = NEW_ARC_REG(intvec);
 
     for (i = 0; i < 64; i++) {
-        char    name[16];
+        char name[16];
 
         sprintf(name, "r[%d]", i);
 
-        cpu_r[i] = tcg_global_mem_new_i32(cpu_env, ARC_REG_OFFS(r[i]), strdup(name));
+        cpu_r[i] = tcg_global_mem_new_i32(cpu_env,
+                                          ARC_REG_OFFS(r[i]),
+                                          strdup(name));
     }
 
     cpu_gp     = cpu_r[26];
@@ -269,16 +264,17 @@ void arc_translate_init(void)
     init_not_done = 0;
 }
 
-static void arc_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
+static void arc_tr_init_disas_context(DisasContextBase *dcbase,
+                                      CPUState *cs)
 {
-  DisasContext *dc = container_of(dcbase, DisasContext, base);
-  dc->base.is_jmp = DISAS_NEXT;
+    DisasContext *dc = container_of(dcbase, DisasContext, base);
+    dc->base.is_jmp = DISAS_NEXT;
 
-  dc->mem_idx = dc->base.tb->flags & 1;
+    dc->mem_idx = dc->base.tb->flags & 1;
 }
 static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
 {
-  /* place holder for now */
+    /* place holder for now */
 }
 
 static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
@@ -288,8 +284,8 @@ static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
     tcg_gen_insn_start(dc->base.pc_next);
     dc->cpc = dc->base.pc_next;
 
-    if (dc->base.num_insns == dc->base.max_insns
-	&& (dc->base.tb->cflags & CF_LAST_IO)) {
+    if (dc->base.num_insns == dc->base.max_insns &&
+        (dc->base.tb->cflags & CF_LAST_IO)) {
         gen_io_start();
     }
 }
@@ -397,20 +393,19 @@ static const TranslatorOps arc_translator_ops = {
     .disas_log          = arc_tr_disas_log,
 };
 
-/* generate intermediate code for basic block 'tb'.  */
-void gen_intermediate_code(CPUState *cpu, TranslationBlock *tb, int max_insns)
+/* generate intermediate code for basic block 'tb'. */
+void gen_intermediate_code(CPUState *cpu,
+                           TranslationBlock *tb,
+                           int max_insns)
 {
-#ifdef OLD_WAY
-    gen_intermediate_code_old(cpu, tb);
-#else
     DisasContext dc;
     const TranslatorOps *ops = &arc_translator_ops;
     translator_loop(ops, &dc.base, cpu, tb, max_insns);
-#endif
 }
 
-void restore_state_to_opc(CPUARCState *env, TranslationBlock *tb,
-                                                            target_ulong *data)
+void restore_state_to_opc(CPUARCState *env,
+                          TranslationBlock *tb,
+                          target_ulong *data)
 {
     env->pc = data[0];
 }
@@ -446,3 +441,7 @@ void arc_cpu_dump_state(CPUState *cs, FILE *f, int flags)
         }
     }
 }
+
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */

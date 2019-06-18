@@ -168,3 +168,7 @@ int arc_decode(DisasCtxt *ctx);
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest);
 
 #endif
+
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */
