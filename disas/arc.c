@@ -179,11 +179,6 @@ static void print_operands(const struct arc_opcode *opcode,
             continue;
         }
 
-        if (operand->flags & ARC_OPERAND_COLON) {
-            (*info->fprintf_func)(info->stream, ":");
-            continue;
-        }
-
         if (need_comma) {
             (*info->fprintf_func)(info->stream, ",");
         }

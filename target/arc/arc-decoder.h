@@ -88,7 +88,6 @@ typedef enum
   MPY7E    = (1U << 11),
   MPY8E    = (1U << 12),
   MPY9E    = (1U << 13),
-  NPS400   = (1U << 14),
   QUARKSE1 = (1U << 15),
   QUARKSE2 = (1U << 16),
   SHFT1    = (1U << 17),
@@ -189,26 +188,6 @@ struct arc_operand
   /* One bit syntax flags.  */
   unsigned int flags;
 
-  /* Insertion function.  This is used by the assembler.  To insert an
-     operand value into an instruction, check this field.
-
-     If it is NULL, execute
-	 i |= (op & ((1 << o->bits) - 1)) << o->shift;
-     (i is the instruction which we are filling in, o is a pointer to
-     this structure, and op is the opcode value; this assumes twos
-     complement arithmetic).
-
-     If this field is not NULL, then simply call it with the
-     instruction and the operand value.	 It will return the new value
-     of the instruction.  If the ERRMSG argument is not NULL, then if
-     the operand value is illegal, *ERRMSG will be set to a warning
-     string (the operand will be inserted in any case).	 If the
-     operand value is legal, *ERRMSG will be unchanged (most operands
-     can accept any value).  */
-  unsigned long long (*insert) (unsigned long long instruction,
-                                long long int op,
-                                const char **errmsg);
-
   /* Extraction function.  This is used by the disassembler.  To
      extract this operand type from an instruction, check this field.
 
@@ -281,24 +260,16 @@ extern const struct arc_operand arc_operands[];
 /* Mark the braket possition.  */
 #define ARC_OPERAND_BRAKET      0x1000
 
-/* Address type operand for NPS400.  */
-#define ARC_OPERAND_ADDRTYPE    0x2000
-
-/* Mark the colon position.  */
-#define ARC_OPERAND_COLON       0x4000
-
 /* Mask for selecting the type for typecheck purposes.  */
 #define ARC_OPERAND_TYPECHECK_MASK		 \
   (ARC_OPERAND_IR				 \
    | ARC_OPERAND_LIMM     | ARC_OPERAND_SIGNED	 \
-   | ARC_OPERAND_UNSIGNED | ARC_OPERAND_BRAKET   \
-   | ARC_OPERAND_ADDRTYPE | ARC_OPERAND_COLON)
+   | ARC_OPERAND_UNSIGNED | ARC_OPERAND_BRAKET)
 
 /* Macro to determine if an operand is a fake operand.  */
 #define ARC_OPERAND_IS_FAKE(op)                     \
   ((operand->flags & ARC_OPERAND_FAKE)              \
-   && !((operand->flags & ARC_OPERAND_BRAKET)	    \
-	|| (operand->flags & ARC_OPERAND_COLON)))
+   && !(operand->flags & ARC_OPERAND_BRAKET))
 
 /* The flags structure.  */
 struct arc_flag_operand
