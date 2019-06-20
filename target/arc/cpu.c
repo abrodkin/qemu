@@ -449,12 +449,12 @@ static const TypeInfo arc_cpu_type_info = {
 
 static void arc_cpu_register_types(void)
 {
-  int i;
-  type_register_static(&arc_cpu_type_info);
+    int i;
+    type_register_static(&arc_cpu_type_info);
 
-  for (i = 0; i < ARRAY_SIZE(arc_cpus); i++) {
-    cpu_register(&arc_cpus[i]);
-  }
+    for (i = 0; i < ARRAY_SIZE(arc_cpus); i++) {
+        cpu_register(&arc_cpus[i]);
+    }
 }
 
 type_init(arc_cpu_register_types)

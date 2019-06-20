@@ -1,5 +1,6 @@
 /*
- *  QEMU ARC CPU
+ * QEMU ARC CPU
+ * Copyright (C) 2016 Michael Rolnik
  * Copyright (C) 2019 Free Software Foundation, Inc.
 
  * This library is free software; you can redistribute it and/or
@@ -80,7 +81,7 @@ enum target_options {
     (arc_aux_reg_address_for(AUX_ID_lp_end, ARC_OPCODE_ARCv2HS))
 
 #define ReplMask(DEST, SRC, MASK) \
-    gen_helper_repl_mask (DEST, DEST, SRC, MASK)
+    gen_helper_repl_mask(DEST, DEST, SRC, MASK)
 
 
 void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret);
@@ -91,7 +92,6 @@ void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret);
 void to_implement(DisasCtxt *ctx);
 void to_implement_wo_abort(DisasCtxt *ctx);
 
-void no_semantics(DisasCtxt *ctx);
 #define killDelaySlot()
 void arc2_gen_set_memory(
         DisasCtxt *ctx, TCGv addr, int size, TCGv src, bool sign_extend);
@@ -113,22 +113,19 @@ void arc2_gen_set_debug(DisasCtxt *ctx, bool value);
 #define setDebugLD(A)   arc2_gen_set_debug(ctx, A)
 void arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta);
 #define executeDelaySlot(bta)   arc2_gen_execute_delayslot(ctx, bta)
-bool arc2_gen_should_execute_delayslot(DisasCtxt *ctx);
-#define shouldExecuteDelaySlot()    arc2_gen_should_execute_delayslot(ctx)
 
-void arc2_gen_setNFlag(TCGv elem);
-#define setNFlag(ELEM)  arc2_gen_setNFlag(ELEM)
+#define shouldExecuteDelaySlot()    (ctx->insn.d != 0)
+
+#define setNFlag(ELEM)  tcg_gen_shri_tl(cpu_Nf, ELEM, 31)
 #define getNFlag(R)     cpu_Nf
 
-#define setCFlag(ELEM) tcg_gen_mov_tl(cpu_Cf, ELEM)
-#define getCFlag(R)    tcg_gen_mov_tl(R, cpu_Cf)
+#define setCFlag(ELEM)  tcg_gen_mov_tl(cpu_Cf, ELEM)
+#define getCFlag(R)     tcg_gen_mov_tl(R, cpu_Cf)
 
-void arc2_gen_setVFlag(TCGv elem);
-#define setVFlag(ELEM)  arc2_gen_setVFlag(ELEM)
-void arc2_gen_set_zflag(TCGv elem);
-#define setZFlag(ELEM)  arc2_gen_set_zflag (ELEM)
+#define setVFlag(ELEM)  tcg_gen_mov_tl(cpu_Vf, ELEM)
 
-int arc2_get_tcgv_value(TCGv elem);
+#define setZFlag(ELEM)  \
+    tcg_gen_setcondi_i32(TCG_COND_EQ, cpu_Zf, ELEM, 0);
 
 #define nextInsnAddressAfterDelaySlot(R)    tcg_gen_movi_tl(R, ctx->dpc);
 
@@ -139,18 +136,16 @@ int arc2_get_tcgv_value(TCGv elem);
     gen_goto_tb(ctx, 1, NEW_PC);                    \
     ret = ret == DISAS_NEXT ? DISAS_NORETURN : ret
 
-#define setBLINK(BLINK_ADDR) tcg_gen_mov_i32(cpu_blink, BLINK_ADDR);
+#define setBLINK(BLINK_ADDR)    tcg_gen_mov_i32(cpu_blink, BLINK_ADDR);
 
-#define Carry(R, A) tcg_gen_shri_tl(R, A, 31);
-void arc2_gen_add_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
-#define CarryADD(R, A, B, C) arc2_gen_add_Cf(R, A, B, C)
-void arc2_gen_add_Vf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
-#define OverflowADD(R, A, B, C) arc2_gen_add_Vf(R, A, B, C)
+#define Carry(R, A)             tcg_gen_shri_tl(R, A, 31);
+
+#define CarryADD(R, A, B, C)    gen_helper_carry_add_flag(R, A, B, C)
+#define OverflowADD(R, A, B, C) gen_helper_overflow_add_flag(R, A, B, C)
+
 void arc2_gen_sub_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
-#define CarrySUB(R, A, B, C) arc2_gen_sub_Cf(R, A, B, C)
-
-void arc2_gen_sub_Vf(TCGv ret, TCGv dest, TCGv src1, TCGv src2);
-#define OverflowSUB(R, A, B, C) arc2_gen_sub_Vf(R, A, B, C)
+#define CarrySUB(R, A, B, C)    arc2_gen_sub_Cf(R, A, B, C)
+#define OverflowSUB(R, A, B, C) gen_helper_overflow_sub_flag(R, A, B, C)
 
 #define unsignedLT(R, B, C) tcg_gen_setcond_i32(TCG_COND_LTU, R, B, C);
 #define unsignedGE(R, B, C) tcg_gen_setcond_i32(TCG_COND_GEU, R, B, C)
@@ -238,8 +233,8 @@ void arc2_gen_set_register(enum arc_registers reg, TCGv value);
 #define divRemainingSigned(R, SRC1, SRC2)   tcg_gen_rem_i32(R, SRC1, SRC2)
 #define divRemainingUnsigned(R, SRC1, SRC2) tcg_gen_remu_i32(R, SRC1, SRC2)
 
-#define Halt() \
-    to_implement_wo_abort(ctx)
+/* TODO: to implement */
+#define Halt()
 
 void arc2_has_interrupts(DisasCtxt *ctx, TCGv ret);
 #define hasInterrupts(R)    arc2_has_interrupts(ctx, R)

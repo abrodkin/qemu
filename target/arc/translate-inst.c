@@ -1,6 +1,7 @@
 /*
  *  QEMU ARC CPU
  *
+ *  Copyright (C) 2016 Michael Rolnik
  *  Copyright (c) 2019
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,8 +20,8 @@
  */
 
 /*
-    see http://me.bios.io/images/d/dd/ARCompactISA_ProgrammersReference.pdf
-*/
+ *  see http://me.bios.io/images/d/dd/ARCompactISA_ProgrammersReference.pdf
+ */
 
 #include "translate.h"
 #include "qemu/bitops.h"
@@ -28,234 +29,213 @@
 #include "translate-inst.h"
 #include "arc-decoder.h"
 
-void
-arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret)
+void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret)
 {
-  TCGv c1 = tcg_temp_new_i32();
+    TCGv c1 = tcg_temp_new_i32();
 
-  TCGv nZ = tcg_temp_new_i32();
-  TCGv nN = tcg_temp_new_i32();
-  TCGv nV = tcg_temp_new_i32();
-  TCGv nC = tcg_temp_new_i32();
+    TCGv nZ = tcg_temp_new_i32();
+    TCGv nN = tcg_temp_new_i32();
+    TCGv nV = tcg_temp_new_i32();
+    TCGv nC = tcg_temp_new_i32();
 
-  switch(ctx->insn.cc)
-    {
-      // AL, RA
-      case 0x00:
-	tcg_gen_movi_i32(ret, 1);
-	break;
-      // EQ, Z
-      case 0x01:
-	tcg_gen_mov_i32(ret, cpu_Zf);
-	break;
-      // NE, NZ
-      case 0x02:
-	tcg_gen_xori_tl(ret, cpu_Zf, 1);
-	break;
-      // PL, P
-      case 0x03:
-	tcg_gen_xori_tl(ret, cpu_Nf, 1);
-	break;
-      // MI, N:
-      case 0x04:
-	tcg_gen_mov_i32(ret, cpu_Nf);
-	break;
-      // CS, C, LO
-      case 0x05:
-	tcg_gen_mov_i32(ret, cpu_Cf);
-	break;
-      // CC, NC, HS
-      case 0x06:
-	tcg_gen_xori_tl(ret, cpu_Cf, 1);
-	break;
-      // VS, V
-      case 0x07:
-	tcg_gen_mov_i32(ret, cpu_Vf);
-	break;
-      // VC, NV
-      case 0x08:
-	tcg_gen_xori_tl(ret, cpu_Vf, 1);
-	break;
-      // GT
-      case 0x09:
-	//(N & V & !Z) | (!N & !V & !Z)
-	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
-	tcg_gen_xori_tl(nN, cpu_Nf, 1);
-	tcg_gen_xori_tl(nV, cpu_Vf, 1);
+    switch(ctx->insn.cc) {
+    // AL, RA
+    case 0x00:
+        tcg_gen_movi_i32(ret, 1);
+        break;
+    // EQ, Z
+    case 0x01:
+        tcg_gen_mov_i32(ret, cpu_Zf);
+        break;
+    // NE, NZ
+    case 0x02:
+        tcg_gen_xori_tl(ret, cpu_Zf, 1);
+        break;
+    // PL, P
+    case 0x03:
+        tcg_gen_xori_tl(ret, cpu_Nf, 1);
+        break;
+    // MI, N:
+    case 0x04:
+        tcg_gen_mov_i32(ret, cpu_Nf);
+        break;
+    // CS, C, LO
+    case 0x05:
+        tcg_gen_mov_i32(ret, cpu_Cf);
+        break;
+    // CC, NC, HS
+    case 0x06:
+        tcg_gen_xori_tl(ret, cpu_Cf, 1);
+        break;
+    // VS, V
+    case 0x07:
+        tcg_gen_mov_i32(ret, cpu_Vf);
+        break;
+    // VC, NV
+    case 0x08:
+        tcg_gen_xori_tl(ret, cpu_Vf, 1);
+        break;
+    // GT
+    case 0x09:
+        //(N & V & !Z) | (!N & !V & !Z)
+        tcg_gen_xori_tl(nZ, cpu_Zf, 1);
+        tcg_gen_xori_tl(nN, cpu_Nf, 1);
+        tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
-	tcg_gen_mov_tl(c1, cpu_Nf);
-	tcg_gen_and_tl(c1, c1, cpu_Vf);
-	tcg_gen_and_tl(c1, c1, nZ);
+        tcg_gen_mov_tl(c1, cpu_Nf);
+        tcg_gen_and_tl(c1, c1, cpu_Vf);
+        tcg_gen_and_tl(c1, c1, nZ);
 
-	tcg_gen_mov_tl(ret, nN);
-	tcg_gen_and_tl(ret, ret, nV);
-	tcg_gen_and_tl(ret, ret, nZ);
+        tcg_gen_mov_tl(ret, nN);
+        tcg_gen_and_tl(ret, ret, nV);
+        tcg_gen_and_tl(ret, ret, nZ);
 
-	tcg_gen_or_tl(ret, c1, ret);
-	break;
-      // GE
-      case 0x0A:
-	//(N & V) | (!N & !V)
-	tcg_gen_xori_tl(nN, cpu_Nf, 1);
-	tcg_gen_xori_tl(nV, cpu_Vf, 1);
+        tcg_gen_or_tl(ret, c1, ret);
+        break;
+    // GE
+    case 0x0A:
+        //(N & V) | (!N & !V)
+        tcg_gen_xori_tl(nN, cpu_Nf, 1);
+        tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
-	tcg_gen_and_tl(c1, cpu_Nf, cpu_Vf);
+        tcg_gen_and_tl(c1, cpu_Nf, cpu_Vf);
 
-	tcg_gen_and_tl(ret, nN, nV);
+        tcg_gen_and_tl(ret, nN, nV);
 
-	tcg_gen_or_tl(ret, c1, ret);
-	break;
-      // LT
-      case 0x0B:
-	//(N & !V) | (!N & V)
-	tcg_gen_xori_tl(nN, cpu_Nf, 1);
-	tcg_gen_xori_tl(nV, cpu_Vf, 1);
+        tcg_gen_or_tl(ret, c1, ret);
+        break;
+    // LT
+    case 0x0B:
+        //(N & !V) | (!N & V)
+        tcg_gen_xori_tl(nN, cpu_Nf, 1);
+        tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
-	tcg_gen_and_tl(c1, cpu_Nf, nV);
+        tcg_gen_and_tl(c1, cpu_Nf, nV);
 
-	tcg_gen_and_tl(ret, nN, cpu_Vf);
+        tcg_gen_and_tl(ret, nN, cpu_Vf);
 
-	tcg_gen_or_tl(ret, ret, c1);
-	break;
-      // LE
-      case 0x0C:
-	// Z | (N & !V) | (!N & V)
-	tcg_gen_xori_tl(nN, cpu_Nf, 1);
-	tcg_gen_xori_tl(nV, cpu_Vf, 1);
+        tcg_gen_or_tl(ret, ret, c1);
+        break;
+    // LE
+    case 0x0C:
+        // Z | (N & !V) | (!N & V)
+        tcg_gen_xori_tl(nN, cpu_Nf, 1);
+        tcg_gen_xori_tl(nV, cpu_Vf, 1);
 
-	tcg_gen_and_tl(c1, cpu_Nf, nV);
+        tcg_gen_and_tl(c1, cpu_Nf, nV);
 
-	tcg_gen_and_tl(ret, nN, cpu_Vf);
+        tcg_gen_and_tl(ret, nN, cpu_Vf);
 
-	tcg_gen_or_tl(ret, ret, c1);
+        tcg_gen_or_tl(ret, ret, c1);
 
-	tcg_gen_or_tl(ret, ret, cpu_Zf);
-	break;
-      // HI
-      case 0x0D:
-	// !C & !Z
-	tcg_gen_xori_tl(nC, cpu_Cf, 1);
-	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
+        tcg_gen_or_tl(ret, ret, cpu_Zf);
+        break;
+    // HI
+    case 0x0D:
+        // !C & !Z
+        tcg_gen_xori_tl(nC, cpu_Cf, 1);
+        tcg_gen_xori_tl(nZ, cpu_Zf, 1);
 
-	tcg_gen_and_tl(ret, nC, nZ);
-	break;
-      // LS
-      case 0x0E:
-	// C & Z
-	tcg_gen_or_tl(ret, cpu_Cf, cpu_Zf);
-	break;
-      // PNZ
-      case 0x0F:
-	// !N & !Z
-	tcg_gen_xori_tl(nN, cpu_Nf, 1);
-	tcg_gen_xori_tl(nZ, cpu_Zf, 1);
+        tcg_gen_and_tl(ret, nC, nZ);
+        break;
+    // LS
+    case 0x0E:
+        // C & Z
+        tcg_gen_or_tl(ret, cpu_Cf, cpu_Zf);
+        break;
+    // PNZ
+    case 0x0F:
+        // !N & !Z
+        tcg_gen_xori_tl(nN, cpu_Nf, 1);
+        tcg_gen_xori_tl(nZ, cpu_Zf, 1);
 
-	tcg_gen_and_tl(ret, nN, nZ);
-	break;
+        tcg_gen_and_tl(ret, nN, nZ);
+        break;
     }
 
-  tcg_temp_free_i32(c1);
-  tcg_temp_free_i32(nZ);
-  tcg_temp_free_i32(nN);
-  tcg_temp_free_i32(nV);
-  tcg_temp_free_i32(nC);
-}
-
-void
-to_implement(DisasCtxt *ctx)
-{
-  abort();
-}
-
-
-
-void
-to_implement_wo_abort(DisasCtxt *ctx)
-{
-  return;
-}
-
-void
-no_semantics(DisasCtxt *ctx)
-{
-  return;
+    tcg_temp_free_i32(c1);
+    tcg_temp_free_i32(nZ);
+    tcg_temp_free_i32(nN);
+    tcg_temp_free_i32(nV);
+    tcg_temp_free_i32(nC);
 }
 
 #define MEMIDX (ctx->mem_idx)
 
-void
-arc2_gen_set_memory (DisasCtxt *ctx, TCGv vaddr, int size, TCGv src, bool sign_extend)
+void arc2_gen_set_memory(DisasCtxt *ctx, TCGv vaddr, int size,
+        TCGv src, bool sign_extend)
 {
 
-  tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
+    tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
 
-  switch (size)
-    {
-      case 0x00:
-	tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UL);
-	break;
+    switch (size) {
+    case 0x00:
+        tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UL);
+        break;
 
-      case 0x01:
-	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SB);
-	else
-	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UB);
-	break;
+    case 0x01:
+        if (sign_extend) {
+            tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SB);
+        } else {
+            tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UB);
+        }
+        break;
 
-      case 0x02:
-	if (sign_extend)
-	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SW);
-	else
-	  tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UW);
-	break;
+    case 0x02:
+        if (sign_extend) {
+            tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_SW);
+        } else {
+            tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UW);
+        }
+        break;
 
-      case 0x03:
-	assert(!"reserved");
-	break;
+    case 0x03:
+        assert(!"reserved");
+        break;
     }
 }
 
-void
-arc2_gen_get_memory (DisasCtxt *ctx, TCGv dest, TCGv vaddr, int size, bool sign_extend)
+void arc2_gen_get_memory(DisasCtxt *ctx, TCGv dest, TCGv vaddr,
+        int size, bool sign_extend)
 {
-  tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
+    tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
 
-  switch (size)
-    {
-      case 0x00:
-	tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UL);
-	break;
+    switch (size) {
+    case 0x00:
+        tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UL);
+        break;
 
-      case 0x01:
-	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SB);
-	else
-	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UB);
-	break;
+    case 0x01:
+        if (sign_extend) {
+            tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SB);
+        } else {
+            tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UB);
+        }
+        break;
 
-      case 0x02:
-	if (sign_extend)
-	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SW);
-	else
-	  tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UW);
-	break;
+    case 0x02:
+        if (sign_extend) {
+            tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_SW);
+        } else {
+            tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UW);
+        }
+        break;
 
-      case 0x03:
-	assert(!"reserved");
-	break;
+    case 0x03:
+        assert(!"reserved");
+        break;
     }
 }
 
-void
-arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret)
+
+void arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret)
 {
-  tcg_gen_movi_tl(ret, 1);
+    tcg_gen_movi_tl(ret, 1);
 }
 
-void
-arc2_gen_set_debug(DisasCtxt *ctx, bool value)
+void arc2_gen_set_debug(DisasCtxt *ctx, bool value)
 {
-  // TODO: Could not find a reson to set this.
+    // TODO: Could not find a reson to set this.
 }
 
 void
@@ -309,310 +289,176 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
     return;
 }
 
-bool
-arc2_gen_should_execute_delayslot(DisasCtxt *ctx)
-{
-  return ctx->insn.d != 0;
-  //TCGv ret = tcg_temp_new_i32();
-  //tcg_gen_movi_tl(ret, ctx->insn.d != 0);
-  //return ret;
-}
-
-void arc2_gen_setNFlag(TCGv elem)
-{
-  // TODO: Check type of elem and set sign bit accordingly.
-  tcg_gen_shri_tl(cpu_Nf, elem, 31);
-}
-
-void
-arc2_gen_setVFlag(TCGv elem)
-{
-  // TODO: Check type of elem and set sign bit accordingly.
-  tcg_gen_mov_tl(cpu_Vf, elem);
-}
-
-void
-arc2_gen_set_zflag(TCGv elem)
-{
-  TCGv zero = tcg_const_local_i32 (0);
-  tcg_gen_setcond_i32 (TCG_COND_EQ, cpu_Zf, elem, zero);
-  tcg_temp_free_i32 (zero);
-}
-
-
-int
-arc2_get_tcgv_value(TCGv elem)
-{
-  assert(0);
-  return 0;
-  //return GET_TCGV_I32(elem);
-}
-
-void
-arc2_gen_add_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2)
-{
-  gen_helper_carry_add_flag(ret, dest, src1, src2);
-    //TCGv t1 = tcg_temp_new_i32();
-    //TCGv t2 = tcg_temp_new_i32();
-    //TCGv t3 = tcg_temp_new_i32();
-
-    //tcg_gen_and_tl(t1, src1, src2); /*  t1 = src1 & src2                    */
-    //tcg_gen_andc_tl(t2, src1, dest);/*  t2 = src1 & ~dest                   */
-    //tcg_gen_andc_tl(t3, src2, dest);/*  t3 = src2 & ~dest                   */
-    //tcg_gen_or_tl(t1, t1, t2);      /*  t1 = t1 | t2 | t3                   */
-    //tcg_gen_or_tl(t1, t1, t3);
-
-    //tcg_gen_shri_tl(ret, t1, 31);/*  Cf = t1(31)                         */
-
-    //tcg_temp_free_i32(t3);
-    //tcg_temp_free_i32(t2);
-    //tcg_temp_free_i32(t1);
-}
-
-//TCGv
-//arc2_gen_add_Vf(TCGv dest, TCGv src1, TCGv src2)
-//{
-//    TCGv t1 = tcg_temp_new_i32();
-//    TCGv t2 = tcg_temp_new_i32();
-//    TCGv ret = tcg_temp_new_i32();
-//
-//    /*
-//
-//    src1 & src2 & ~dest | ~src1 & ~src2 & dest = (src1 ^ dest) & ~(src1 ^ src2)
-//
-//    */
-//    tcg_gen_xor_tl(t1, src1, dest); /*  t1 = src1 ^ dest                    */
-//    tcg_gen_xor_tl(t2, src1, src2); /*  t2 = src1 ^ src2                    */
-//    tcg_gen_andc_tl(t1, t1, t2);    /*  t1 = (src1 ^ src2) & ~(src1 ^ src2) */
-//
-//    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31)                         */
-//
-//    tcg_temp_free_i32(t2);
-//    tcg_temp_free_i32(t1);
-//
-//    return ret;
-//}
-/* dest = T0 + T1. Compute C, N, V and Z flags */
-
-void
-arc2_gen_add_Vf(TCGv ret, TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
-{
-  gen_helper_overflow_add_flag(ret, dest, t0, t1);
-  //  TCGv ret = tcg_temp_new_i32();
-  //  TCGv_i32 tmp = tcg_temp_new_i32();
-
-  //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
-  //  tcg_gen_xor_i32(tmp, t0, t1);
-  //  tcg_gen_andc_i32(ret, ret, tmp);
-  //  tcg_temp_free_i32(tmp);
-
-  //  return ret;
-}
 
 /* dest = src1 - src2. Compute C, N, V and Z flags */
-void
-arc2_gen_sub_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2)
+void arc2_gen_sub_Cf(TCGv ret, TCGv dest, TCGv src1, TCGv src2)
 {
-  TCGv t1 = tcg_temp_new_i32();
-  TCGv t2 = tcg_temp_new_i32();
-  TCGv t3 = tcg_temp_new_i32();
+    TCGv t1 = tcg_temp_new_i32();
+    TCGv t2 = tcg_temp_new_i32();
+    TCGv t3 = tcg_temp_new_i32();
 
-  tcg_gen_not_tl(t1, src1);       /*  t1 = ~src1                          */
-  tcg_gen_and_tl(t2, t1, src2);   /*  t2 = ~src1 & src2                   */
-  tcg_gen_or_tl(t3, t1, src2);    /*  t3 = (~src1 | src2) & dest          */
-  tcg_gen_and_tl(t3, t3, dest);
-  tcg_gen_or_tl(t2, t2, t3);      /*  t2 = ~src1 & src2
-                                      | ~src1 & dest
-                                      | dest & src2                    */
-  tcg_gen_shri_tl(ret, t2, 31);/*  Cf = t2(31)                         */
+    tcg_gen_not_tl(t1, src1);       /* t1 = ~src1                 */
+    tcg_gen_and_tl(t2, t1, src2);   /* t2 = ~src1 & src2          */
+    tcg_gen_or_tl(t3, t1, src2);    /* t3 = (~src1 | src2) & dest */
+    tcg_gen_and_tl(t3, t3, dest);
+    /* t2 = ~src1 & src2 | ~src1 & dest | dest & src2 */
+    tcg_gen_or_tl(t2, t2, t3);
+    tcg_gen_shri_tl(ret, t2, 31);   /* Cf = t2(31)                */
 
-  tcg_temp_free_i32(t3);
-  tcg_temp_free_i32(t2);
-  tcg_temp_free_i32(t1);
+    tcg_temp_free_i32(t3);
+    tcg_temp_free_i32(t2);
+    tcg_temp_free_i32(t1);
 }
 
-//TCGv
-//arc2_gen_sub_Vf(TCGv dest, TCGv src1, TCGv src2)
-//{
-//    TCGv t1 = tcg_temp_new_i32();
-//    TCGv t2 = tcg_temp_new_i32();
-//    TCGv ret = tcg_temp_new_i32();
-//
-//    /*
-//	t1 = src1 & ~src2 & ~dest
-//	   | ~src1 & src2 & dest
-//	   = (src1 ^ dest) & (src1 ^ dest)*/
-//    tcg_gen_xor_tl(t1, src1, dest);
-//    tcg_gen_xor_tl(t2, src1, src2);
-//    tcg_gen_and_tl(t1, t1, t2);
-//    tcg_gen_shri_tl(ret, t1, 31);/*  Vf = t1(31) */
-//
-//    tcg_temp_free_i32(t2);
-//    tcg_temp_free_i32(t1);
-//
-//    return ret;
-//}
-/* dest = T0 - T1. Compute C, N, V and Z flags */
-void
-arc2_gen_sub_Vf(TCGv ret, TCGv_i32 dest, TCGv_i32 t0, TCGv_i32 t1)
+
+void arc2_gen_get_bit(TCGv ret, TCGv a, TCGv pos)
 {
-  gen_helper_overflow_sub_flag(ret, dest, t0, t1);
-  //  TCGv ret = tcg_temp_new_i32();
-  //  TCGv_i32 tmp = tcg_temp_new_i32();
-
-  //  tcg_gen_xor_i32(ret, cpu_Nf, t0);
-  //  tcg_gen_xor_i32(tmp, t0, t1);
-  //  tcg_gen_and_i32(ret, ret, tmp);
-
-  //  tcg_temp_free_i32(tmp);
-
-  //  return ret;
+    tcg_gen_rotr_i32(ret, a, pos);
+    tcg_gen_andi_tl(ret, ret, 1);
 }
 
-void
-arc2_gen_get_bit (TCGv ret, TCGv a, TCGv pos)
-{
-  tcg_gen_rotr_i32 (ret, a, pos);
-  tcg_gen_andi_tl(ret, ret, 1);
-}
 
 /* accumulator += b32 * c32 */
-void
-arc2_gen_mac(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
+void arc2_gen_mac(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
 {
-  TCGv_i32 plo = tcg_temp_new_i32();
-  tcg_gen_muls2_i32(plo, phi, b32, c32);
+    TCGv_i32 plo = tcg_temp_new_i32();
+    tcg_gen_muls2_i32(plo, phi, b32, c32);
 
-  /* adding the product to the accumulator */
-  tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
-  tcg_temp_free(plo);
+    /* adding the product to the accumulator */
+    tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
+    tcg_temp_free(plo);
 }
 
 
-/* unsigned version */
-void
-arc2_gen_macu(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
+/* unsigned version of mac */
+void arc2_gen_macu(TCGv phi, TCGv_i32 b32, TCGv_i32 c32)
 {
-  TCGv_i32 plo = tcg_temp_new_i32();
-  tcg_gen_mulu2_i32(plo, phi, b32, c32);
+    TCGv_i32 plo = tcg_temp_new_i32();
+    tcg_gen_mulu2_i32(plo, phi, b32, c32);
 
-  /* adding the product to the accumulator */
-  tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
-  tcg_temp_free(plo);
+    /* adding the product to the accumulator */
+    tcg_gen_add2_i32(cpu_acclo, cpu_acchi, cpu_acclo, cpu_acchi, plo, phi);
+    tcg_temp_free(plo);
 }
 
 
-
-
-void
-tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
+/* TODO: a better name would be tcg_gen_shil_i32() */
+void tcg_gen_shlfi_i32(TCGv a, int b, TCGv c)
 {
-  TCGv tmp = tcg_temp_new_i32();
-  tcg_gen_movi_i32 (tmp, b);
-  tcg_gen_shl_i32 (a, tmp, c);
-  tcg_temp_free (tmp);
+    TCGv tmp = tcg_temp_new_i32();
+    tcg_gen_movi_i32(tmp, b);
+    tcg_gen_shl_i32(a, tmp, c);
+    tcg_temp_free(tmp);
 }
 
-void
-arc2_gen_extract_bits (TCGv ret, TCGv a, TCGv start, TCGv end)
+/* TODO: a gen_helper() would be better for this purpose */
+void arc2_gen_extract_bits(TCGv ret, TCGv a, TCGv start, TCGv end)
 {
-  TCGv tmp1 = tcg_temp_new_i32();
+    TCGv tmp1 = tcg_temp_new_i32();
 
-  tcg_gen_shr_i32 (ret, a, end);
+    tcg_gen_shr_i32(ret, a, end);
 
-  tcg_gen_sub_i32 (tmp1, start, end);
-  tcg_gen_addi_i32 (tmp1, tmp1, 1);
-  tcg_gen_shlfi_i32 (tmp1, 1, tmp1);
-  tcg_gen_subi_i32 (tmp1, tmp1, 1);
+    tcg_gen_sub_i32(tmp1, start, end);
+    tcg_gen_addi_i32(tmp1, tmp1, 1);
+    tcg_gen_shlfi_i32(tmp1, 1, tmp1);
+    tcg_gen_subi_i32(tmp1, tmp1, 1);
 
-  tcg_gen_and_i32 (ret, ret, tmp1);
+    tcg_gen_and_i32(ret, ret, tmp1);
 
-  tcg_temp_free (tmp1);
+    tcg_temp_free(tmp1);
 }
 
 
-void
-arc2_gen_get_register(TCGv ret, enum arc_registers reg)
+void arc2_gen_get_register(TCGv ret, enum arc_registers reg)
 {
-  switch(reg)
-  {
+    switch (reg) {
     case R_SP:
-      tcg_gen_mov_i32 (ret, cpu_sp);
-      break;
+        tcg_gen_mov_i32(ret, cpu_sp);
+        break;
     case R_STATUS32:
-      gen_helper_get_status32(ret, cpu_env);
-      break;
+        gen_helper_get_status32(ret, cpu_env);
+        break;
     case R_ACCLO:
-      tcg_gen_mov_i32(ret, cpu_acclo);
-      break;
+        tcg_gen_mov_i32(ret, cpu_acclo);
+        break;
     case R_ACCHI:
-      tcg_gen_mov_i32(ret, cpu_acchi);
-      break;
+        tcg_gen_mov_i32(ret, cpu_acchi);
+        break;
     default:
-      assert(!"Should not be reached");
-  }
+        g_assert_not_reached();
+    }
 }
-void
-arc2_gen_set_register(enum arc_registers reg, TCGv value)
+
+
+void arc2_gen_set_register(enum arc_registers reg, TCGv value)
 {
-  switch(reg)
-  {
+    switch (reg) {
     case R_SP:
-      tcg_gen_mov_i32 (cpu_sp, value);
-      break;
+        tcg_gen_mov_i32 (cpu_sp, value);
+        break;
     case R_STATUS32:
-      gen_helper_set_status32(cpu_env, value);
-      break;
+        gen_helper_set_status32(cpu_env, value);
+        break;
     case R_ACCLO:
-      tcg_gen_mov_i32(cpu_acclo, value);
-      break;
+        tcg_gen_mov_i32(cpu_acclo, value);
+        break;
     case R_ACCHI:
-      tcg_gen_mov_i32(cpu_acchi, value);
-      break;
+        tcg_gen_mov_i32(cpu_acchi, value);
+        break;
     default:
-      assert(!"Should not be reached");
-  }
+        g_assert_not_reached();
+    }
 }
+
 
 /* TODO: Get this from props ... */
-void arc2_has_interrupts(DisasCtxt *ctx, TCGv ret) {
-  tcg_gen_movi_i32(ret, 1);
+void arc2_has_interrupts(DisasCtxt *ctx, TCGv ret)
+{
+    tcg_gen_movi_i32(ret, 1);
 }
 
-/* Statically infered return function */
+/*
+ ***************************************
+ * Statically inferred return function *
+ ***************************************
+ */
 
-TCGv
-arc2_gen_next_reg(TCGv reg)
+TCGv arc2_gen_next_reg(TCGv reg)
 {
-  int i;
-  for(i = 0; i < 64; i+= 2)
-    if(reg == cpu_r[i])
-      return cpu_r[i+1];
-  assert(!"Should not reach here!");
+    int i;
+    for (i = 0; i < 64; i+= 2) {
+        if (reg == cpu_r[i]) {
+            return cpu_r[i+1];
+        }
+    }
+    g_assert_not_reached();
 
-  /* We never get here but to accommodate -Werror ... */
-  return NULL;
+    /* We never get here but to accommodate -Werror ... */
+    return NULL;
 }
 
-bool
-arc2_target_has_option(enum target_options option)
+bool arc2_target_has_option(enum target_options option)
 {
-  /* TODO: Fill with meaningful cases. */
-  switch(option) {
+    /* TODO: Fill with meaningful cases. */
+    switch (option) {
     case LL64_OPTION:
-      return true;
-      break;
+        return true;
+        break;
     default:
-      break;
-  }
-  return false;
+        break;
+    }
+    return false;
 }
+
 
 bool arc_is_instruction_operand_a_register(DisasCtxt *ctx, int nop)
 {
-  assert (nop < ctx->insn.n_ops);
-  operand_t operand = ctx->insn.operands[nop];
+    assert(nop < ctx->insn.n_ops);
+    operand_t operand = ctx->insn.operands[nop];
 
-  return (operand.type & ARC_OPERAND_IR) != 0;
+    return (operand.type & ARC_OPERAND_IR) != 0;
 }
 
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */
