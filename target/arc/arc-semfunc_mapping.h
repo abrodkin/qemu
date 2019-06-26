@@ -208,7 +208,9 @@ MAPPING(seti, SETI, 1, 0)
 MAPPING(nop, NOP, 0)
 MAPPING(nop_s, NOP, 0)
 MAPPING(prealloc, PREALLOC, 0)
+CONSTANT(PREFETCH, prefetch, 1, 0) /* For variable @src2 */
 MAPPING(prefetch, PREFETCH, 2, 0, 1)
+CONSTANT(PREFETCH, prefetchw, 1, 0) /* For variable @src2 */
 MAPPING(prefetchw, PREFETCH, 2, 0, 1)
 MAPPING(mpy, MPY, 3, 1, 2, 0)
 MAPPING(mpy_s, MPY, 3, 1, 2, 0)
