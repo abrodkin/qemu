@@ -38,19 +38,20 @@ ARCTEST_BEGIN
   #-------------------------------------------------------------
   TEST_2OP_CARRY   ( 9, asl, 0, 0x10000000, 0x02);
   TEST_2OP_CARRY   (10, asl, 1, 0x80000000, 0x01);
-  TEST_2OP_ZERO    (11, asl, 1, 0x12345670, 0xbf);
-  TEST_2OP_NEGATIVE(12, asl, 1, 0x1F345678, 0x04);
+  TEST_2OP_CARRY   (11, asl, 0, 0xffffffff, 0x00);
+  TEST_2OP_ZERO    (12, asl, 1, 0x12345670, 0xbf);
+  TEST_2OP_NEGATIVE(13, asl, 1, 0x1F345678, 0x04);
   # no overflow flag update in "asl multiple"
-  TEST_2OP_OVERFLOW(13, asl, 0, 0x80000000, 0x01);
+  TEST_2OP_OVERFLOW(14, asl, 0, 0x80000000, 0x01);
 
-  TEST_1OP_CARRY   (14, asl, 0, 0x40000000);
-  TEST_1OP_CARRY   (15, asl, 1, 0x80000000);
-  TEST_1OP_ZERO    (16, asl, 0, 0x00001000);
-  TEST_1OP_ZERO    (17, asl, 1, 0x80000000);
-  TEST_1OP_NEGATIVE(18, asl, 0, 0x20000000);
-  TEST_1OP_NEGATIVE(19, asl, 1, 0x40000000);
-  TEST_1OP_OVERFLOW(20, asl, 1, 0x80000000);
-  TEST_1OP_OVERFLOW(21, asl, 0, 0xffffffff);
-  TEST_1OP_OVERFLOW(22, asl, 1, 0x40000000);
+  TEST_1OP_CARRY   (15, asl, 0, 0x40000000);
+  TEST_1OP_CARRY   (16, asl, 1, 0x80000000);
+  TEST_1OP_ZERO    (17, asl, 0, 0x00001000);
+  TEST_1OP_ZERO    (18, asl, 1, 0x80000000);
+  TEST_1OP_NEGATIVE(19, asl, 0, 0x20000000);
+  TEST_1OP_NEGATIVE(20, asl, 1, 0x40000000);
+  TEST_1OP_OVERFLOW(21, asl, 1, 0x80000000);
+  TEST_1OP_OVERFLOW(22, asl, 0, 0xffffffff);
+  TEST_1OP_OVERFLOW(23, asl, 1, 0x40000000);
 
 ARCTEST_END
