@@ -350,8 +350,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
         if (aux_reg_detail->aux_reg->get_func != NULL) {
             result = aux_reg_detail->aux_reg->get_func(aux_reg_detail,
                                                        (void *) env);
-        }
-        else {
+        } else {
             /* TODO: is lr and sr possible delayslot instructions ? */
             assert(0);
             arc_raise_exception(env, EXCP_INST_ERROR);
