@@ -21,7 +21,6 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "cpu.h"
-#include "qemu-common.h"
 #include "migration/vmstate.h"
 #include "exec/log.h"
 #include "mmu.h"
@@ -296,13 +295,12 @@ static void arc_cpu_realizefn(DeviceState *dev, Error **errp)
 
 static void arc_cpu_initfn(Object *obj)
 {
-  CPUState *cs = CPU(obj);
   ARCCPU *cpu = ARC_CPU(obj);
 
   /* Initialize aux-regs. */
   arc_aux_regs_init();
 
-  cs->env_ptr = &cpu->env;
+  cpu_set_cpustate_pointers(cpu);
 }
 
 static ObjectClass *arc_cpu_class_by_name(const char *cpu_model)
@@ -355,12 +353,10 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
   cc->cpu_exec_interrupt = arc_cpu_exec_interrupt;
   cc->dump_state = arc_cpu_dump_state;
   cc->set_pc = arc_cpu_set_pc;
-#if !defined(CONFIG_USER_ONLY)
+#ifndef CONFIG_USER_ONLY
   cc->memory_rw_debug = arc_cpu_memory_rw_debug;
   cc->get_phys_page_debug = arc_cpu_get_phys_page_debug;
   cc->vmsd = &vms_arc_cpu;
-#else
-  cc->handle_mmu_fault = arc_cpu_handle_mmu_fault;
 #endif
   cc->disas_set_info = arc_cpu_disas_set_info;
   cc->synchronize_from_tb = arc_cpu_synchronize_from_tb;
@@ -375,6 +371,7 @@ static void arc_cpu_class_init(ObjectClass *oc, void *data)
 
 #ifdef CONFIG_TCG
     cc->tcg_initialize = arc_translate_init;
+    cc->tlb_fill = arc_cpu_tlb_fill;
 #endif
 }
 

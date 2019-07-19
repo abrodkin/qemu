@@ -77,7 +77,7 @@ arc_mmu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
 		uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
-  CPUState *cs = CPU(arc_env_get_cpu(env));
+  CPUState *cs = env_cpu(env);
   struct arc_mmu *mmu = &env->mmu;
 
   switch (aux_reg_detail->id) {
@@ -253,7 +253,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 		       uint32_t val, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
-  CPUState *cs = CPU(arc_env_get_cpu(env));
+  CPUState *cs = env_cpu(env);
   struct arc_mmu *mmu = &env->mmu;
   uint32_t pd0 = mmu->tlbpd0;
   uint32_t pd1 = mmu->tlbpd1;
@@ -671,25 +671,30 @@ static int decide_action(const CPUARCState *env,
 }
 
 
+#ifndef CONFIG_USER_ONLY
 /* Softmmu support function for MMU. */
-void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
-              MMUAccessType access_type, int mmu_idx, uintptr_t retaddr)
+bool arc_cpu_tlb_fill(CPUState *cs, vaddr address, int size,
+                      MMUAccessType access_type, int mmu_idx,
+                      bool probe, uintptr_t retaddr)
 {
     /* TODO: this rwe should go away when the TODO below is done */
     enum mmu_access_type rwe = (char) access_type;
     CPUARCState *env = &((ARC_CPU(cs))->env);
-    int action = decide_action(env, vaddr, mmu_idx);
+    int action = decide_action(env, address, mmu_idx);
 
     switch (action) {
     case DIRECT_ACTION:
-        tlb_set_page(cs, vaddr & PAGE_MASK, vaddr & PAGE_MASK,
+        tlb_set_page(cs, address & PAGE_MASK, address & PAGE_MASK,
                      PAGE_READ | PAGE_WRITE | PAGE_EXEC,
                      mmu_idx, TARGET_PAGE_SIZE);
         break;
     case MPU_ACTION:
-        if (arc_mpu_translate(env, vaddr, access_type, mmu_idx)) {
+        if (arc_mpu_translate(env, address, access_type, mmu_idx)) {
+            if (probe) {
+                return false;
+            }
             MPUException *mpu_excp = &env->mpu.exception;
-            raise_mem_exception(cs, vaddr, retaddr,
+            raise_mem_exception(cs, address, retaddr,
                     mpu_excp->number, mpu_excp->code, mpu_excp->param);
         }
         break;
@@ -700,31 +705,40 @@ void tlb_fill(CPUState *cs, target_ulong vaddr, int size,
          * exception or not
          */
         uint32_t index;
-        target_ulong paddr = arc_mmu_translate(env, vaddr, rwe, &index);
+        target_ulong paddr = arc_mmu_translate(env, address, rwe, &index);
         if ((enum exception_code_list) env->mmu.exception.number !=
                 EXCP_NO_EXCEPTION) {
+            if (probe) {
+                return false;
+            }
             const struct mmu_exception *mmu_excp = &env->mmu.exception;
-            raise_mem_exception(cs, vaddr, retaddr,
+            raise_mem_exception(cs, address, retaddr,
                     mmu_excp->number, mmu_excp->causecode, mmu_excp->parameter);
         }
         else {
             int prot = arc_mmu_get_prot_for_index(index, env);
-            vaddr = arc_mmu_page_address_for(vaddr);
-            tlb_set_page(cs, vaddr, paddr & PAGE_MASK, prot,
+            address = arc_mmu_page_address_for(address);
+            tlb_set_page(cs, address, paddr & PAGE_MASK, prot,
                          mmu_idx, TARGET_PAGE_SIZE);
         }
         break;
     }
     case EXCEPTION_ACTION:
+        if (probe) {
+            return false;
+        }
         /* TODO: like TODO above, this must move inside mmu */
         qemu_log_mask(CPU_LOG_MMU, "[MMU_TLB_FILL] ProtV "
                       "exception at 0x%08x. rwe = %s\n",
                       env->pc, RWE_STRING(rwe));
-        raise_mem_exception(cs, vaddr, retaddr,
+        raise_mem_exception(cs, address, retaddr,
                             EXCP_PROTV, CAUSE_CODE(rwe), 0x08);
         break;
     default:
         g_assert_not_reached();
     }
 
+    return true;
 }
+#endif /* ifndef CONFIG_USER_ONLY */
+

@@ -51,7 +51,6 @@ static target_ulong get_status32(CPUARCState *env)
 
 static void set_status32(CPUARCState *env, target_ulong value)
 {
-    ARCCPU *cpu = arc_env_get_cpu(env);
     /* TODO: Implement debug mode. */
     bool debug_mode = false;
     if (env->stat.Uf == 1) {
@@ -62,7 +61,7 @@ static void set_status32(CPUARCState *env, target_ulong value)
     }
 
     if (((env->stat.Uf >> 7)  & 0x1) != ((value >> 7)  & 0x1)) {
-        tlb_flush(CPU(cpu));
+        tlb_flush(env_cpu(env));
     }
 
     unpack_status32(&env->stat, value);
@@ -76,8 +75,7 @@ static void set_status32(CPUARCState *env, target_ulong value)
 static void do_exception_no_delayslot(CPUARCState *env, uint32_t index,
                                       uint32_t causecode, uint32_t param)
 {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
+    CPUState *cs = env_cpu(env);
     cpu_restore_state(cs, GETPC(), true);
     env->eret = env->pc;
     env->erbta = env->npc_helper;
@@ -364,7 +362,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
 
 void QEMU_NORETURN helper_halt(CPUARCState *env)
 {
-    CPUState *cs = CPU(arc_env_get_cpu(env));
+    CPUState *cs = env_cpu(env);
     if (env->stat.Uf) {
         cs->exception_index = EXCP_PRIVILEGEV;
         env->causecode = 0;
@@ -381,7 +379,7 @@ void QEMU_NORETURN helper_halt(CPUARCState *env)
 
 void helper_rtie(CPUARCState *env)
 {
-    CPUState *cs = CPU(arc_env_get_cpu(env));
+    CPUState *cs = env_cpu(env);
     if (env->stat.Uf) {
         cs->exception_index = EXCP_PRIVILEGEV;
         env->causecode = 0;
@@ -414,7 +412,7 @@ void helper_rtie(CPUARCState *env)
 
 void helper_flush(CPUARCState *env)
 {
-    tb_flush((CPUState *)arc_env_get_cpu(env));
+    tb_flush((CPUState *)env_archcpu(env));
 }
 
 /* This should only be called from translate, via gen_raise_exception.
@@ -425,8 +423,7 @@ void QEMU_NORETURN helper_raise_exception(CPUARCState *env,
 			                              uint32_t causecode,
 			                              uint32_t param)
 {
-    ARCCPU *cpu = arc_env_get_cpu(env);
-    CPUState *cs = CPU(cpu);
+    CPUState *cs = env_cpu(env);
     /* Cannot restore state here. */
     /* cpu_restore_state(cs, GETPC(), true); */
     cs->exception_index = index;
@@ -517,10 +514,10 @@ static void check_enter_leave_nr_regs(CPUARCState *env,
                                       uint8_t      regs,
                                       uintptr_t    host_pc)
 {
-    const uint8_t rgf_num_regs = arc_env_get_cpu(env)->cfg.rgf_num_regs;
+    const uint8_t rgf_num_regs = env_archcpu(env)->cfg.rgf_num_regs;
     if ((rgf_num_regs == 32 && regs > 14) ||
         (rgf_num_regs == 16 && regs >  3)) {
-        CPUState *cs = CPU(arc_env_get_cpu(env));
+        CPUState *cs = env_cpu(env);
         cpu_restore_state(cs, host_pc, true);
         cs->exception_index = EXCP_INST_ERROR;
         env->causecode      = 0x00;
@@ -539,7 +536,7 @@ static void check_delay_or_execution_slot(CPUARCState *env,
                                           uintptr_t    host_pc)
 {
     if (env->stat.DEf || env->stat.ESf) {
-        CPUState *cs = CPU(arc_env_get_cpu(env));
+        CPUState *cs = env_cpu(env);
         cpu_restore_state(cs, host_pc, true);
         cs->exception_index = EXCP_INST_ERROR;
         env->causecode      = 0x01;
@@ -559,7 +556,7 @@ static void check_addr_is_word_aligned(CPUARCState *env,
                                        uintptr_t    host_pc)
 {
     if (addr & 0x3) {
-        CPUState *cs = CPU(arc_env_get_cpu(env));
+        CPUState *cs = env_cpu(env);
         cpu_restore_state(cs, host_pc, true);
         cs->exception_index = EXCP_MISALIGNED;
         env->causecode      = 0x00;

@@ -120,7 +120,7 @@ static uint32_t irq_pop (CPUARCState *env, const char *str)
 static void arc_rtie_irq (CPUARCState *env)
 {
   uint32_t tmp;
-  ARCCPU *cpu = arc_env_get_cpu(env);
+  ARCCPU *cpu = env_archcpu(env);
 
   assert ((env->aux_irq_act & 0xFFFF) != 0);
   assert (env->stat.AEf == 0);
@@ -543,7 +543,7 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
 
 bool arc_rtie_interrupts (CPUARCState *env)
 {
-  ARCCPU *cpu = arc_env_get_cpu(env);
+  ARCCPU *cpu = env_archcpu(env);
 
   if (env->stat.AEf || ((env->aux_irq_act & 0xffff) == 0))
     return false;

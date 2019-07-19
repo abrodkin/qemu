@@ -21,24 +21,14 @@
 #ifndef CPU_ARC_H
 #define CPU_ARC_H
 
-#include "qemu-common.h"
 #include "cpu-qom.h"
+#include "exec/cpu-defs.h"
+#include "fpu/softfloat.h"
+
 #include "arc-common.h"
 #include "mmu.h"
 #include "mpu.h"
 #include "arc-cache.h"
-
-#define TARGET_LONG_BITS            32
-
-#define CPUArchState struct CPUARCState
-
-#include "exec/cpu-defs.h"
-#include "fpu/softfloat.h"
-
-#define TARGET_PAGE_BITS            13
-#define TARGET_PHYS_ADDR_SPACE_BITS 32
-#define TARGET_VIRT_ADDR_SPACE_BITS 32
-#define NB_MMU_MODES                2
 
 #define ARC_CPU_TYPE_SUFFIX "-" TYPE_ARC_CPU
 #define ARC_CPU_TYPE_NAME(model) model ARC_CPU_TYPE_SUFFIX
@@ -338,10 +328,7 @@ typedef struct CPUARCState {
     /* Fields up to this point are cleared by a CPU reset */
     struct {} end_reset_fields;
 
-    /* Those resources are used only in QEMU core */
-    CPU_COMMON
-
-    /* Fields after CPU_COMMON are preserved across CPU reset. */
+    /* Fields after this point are preserved across CPU reset. */
     uint64_t features;
     uint32_t family;
 
@@ -458,6 +445,7 @@ struct ARCCPU {
     uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
   } cfg;
 
+  CPUNegativeOffsetState neg;
   CPUARCState env;
 };
 
@@ -466,13 +454,6 @@ static inline bool is_user_mode(const CPUARCState *env)
 {
     return env->stat.Uf != false;
 }
-
-static inline ARCCPU *arc_env_get_cpu(const CPUARCState *env)
-{
-    return container_of(env, ARCCPU, env);
-}
-#define ENV_GET_CPU(e) CPU(arc_env_get_cpu(e))
-#define ENV_OFFSET offsetof(ARCCPU, env)
 
 static inline int arc_feature(CPUARCState *env, int feature)
 {
@@ -486,6 +467,9 @@ static inline void  arc_set_feature(CPUARCState *env, int feature)
 
 #define cpu_list            arc_cpu_list
 #define cpu_signal_handler  cpu_arc_signal_handler
+
+typedef CPUARCState CPUArchState;
+typedef ARCCPU ArchCPU;
 
 #include "exec/cpu-all.h"
 
@@ -501,8 +485,9 @@ void arc_translate_init(void);
 void arc_cpu_list(void);
 int cpu_arc_exec(CPUState *cpu);
 int cpu_arc_signal_handler(int host_signum, void *pinfo, void *puc);
-int arc_cpu_handle_mmu_fault(CPUState *cpu, vaddr address, int rw,
-                             int mmu_idx);
+bool arc_cpu_tlb_fill(CPUState *cs, vaddr address, int size,
+                      MMUAccessType access_type, int mmu_idx,
+                      bool probe, uintptr_t retaddr);
 int arc_cpu_memory_rw_debug(CPUState *cs, vaddr address, uint8_t *buf,
                             int len, bool is_write);
 void arc_cpu_do_interrupt(CPUState *cpu);

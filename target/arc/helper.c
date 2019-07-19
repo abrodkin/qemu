@@ -247,7 +247,7 @@ hwaddr arc_cpu_get_phys_page_debug(CPUState *cs, vaddr addr)
 
 void helper_debug(CPUARCState *env)
 {
-   CPUState *cs = CPU(arc_env_get_cpu(env));
+   CPUState *cs = env_cpu(env);
 
    cs->exception_index = EXCP_DEBUG;
    cpu_loop_exit(cs);
@@ -263,7 +263,7 @@ void helper_debug(CPUARCState *env)
  */
 void QEMU_NORETURN arc_raise_exception(CPUARCState *env, int32_t excp_idx)
 {
-    CPUState *cs = CPU(arc_env_get_cpu(env));
+    CPUState *cs = env_cpu(env);
     cpu_restore_state(cs, env->host_pc, true);
     cs->exception_index = excp_idx;
     env->causecode = env->param = 0x0;

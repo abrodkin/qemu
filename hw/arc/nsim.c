@@ -31,6 +31,7 @@
 static void nsim_init(MachineState *machine)
 {
     static struct arc_boot_info boot_info;
+    unsigned int smp_cpus = machine->smp.cpus;
     MemoryRegion *system_memory = get_system_memory();
     MemoryRegion *system_ram;
     ARCCPU *cpu = NULL;

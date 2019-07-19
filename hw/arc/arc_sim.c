@@ -77,6 +77,7 @@ static const MemoryRegionOps arc_io_ops = {
 static void arc_sim_init(MachineState *machine)
 {
     static struct arc_boot_info boot_info;
+    unsigned int smp_cpus = machine->smp.cpus;
     ram_addr_t ram_base = 0;
     ram_addr_t ram_size = machine->ram_size;
     ARCCPU *cpu = NULL;

@@ -247,7 +247,7 @@ static void validate_mpu_regs_access(CPUARCState *env)
         arc_raise_exception(env, EXCP_PRIVILEGEV);
     }
     /* no MPU, no getting any */
-    else if ((arc_env_get_cpu(env))->cfg.has_mpu == false) {
+    else if ((env_archcpu(env))->cfg.has_mpu == false) {
         arc_raise_exception(env, EXCP_INST_ERROR);
     }
 }
@@ -381,7 +381,7 @@ arc_mpu_aux_set(struct arc_aux_reg_detail *aux_reg_detail,
         g_assert_not_reached();
     }
     /* invalidate the entries in qemu's translation buffer */
-    tlb_flush(CPU(arc_env_get_cpu((CPUARCState *) data)));
+    tlb_flush(env_cpu((CPUARCState *) data));
     /* if MPU is enabled, log its data */
     if (mpu->enabled) {
         log_mpu_data(mpu);
@@ -565,7 +565,7 @@ static bool is_page_addr_in_default_region(ARCMPU *mpu, target_ulong addr)
 static void update_tlb_page(CPUARCState *env, uint8_t region,
                             target_ulong addr, int mmu_idx)
 {
-    CPUState *cs = CPU(arc_env_get_cpu(env));
+    CPUState *cs = env_cpu(env);
     /* by default, only add entry for 'addr' */
     target_ulong tlb_addr = addr;
     target_ulong tlb_size = 1;
