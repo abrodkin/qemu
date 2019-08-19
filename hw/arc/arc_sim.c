@@ -15,7 +15,6 @@
 
 #include "qemu/osdep.h"
 #include "qapi/error.h"
-#include "qemu-common.h"
 #include "cpu.h"
 #include "hw/hw.h"
 #include "hw/boards.h"
@@ -25,6 +24,8 @@
 #include "hw/loader.h"
 #include "exec/memory.h"
 #include "exec/address-spaces.h"
+#include "sysemu/reset.h"
+#include "sysemu/runstate.h"
 #include "sysemu/sysemu.h"
 #include "hw/sysbus.h"
 #include "hw/arc/cpudevs.h"

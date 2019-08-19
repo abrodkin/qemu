@@ -21,6 +21,7 @@
 #include "qemu/osdep.h"
 #include "qemu/log.h"
 #include "qemu/error-report.h"
+#include "hw/irq.h"
 #include "cpu.h"
 #include "qemu/main-loop.h"
 #include "irq.h"

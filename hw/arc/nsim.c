@@ -17,6 +17,8 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "boot.h"
+#include "sysemu/reset.h"
+#include "sysemu/sysemu.h"
 #include "hw/boards.h"
 #include "hw/char/serial.h"
 #include "exec/address-spaces.h"

@@ -21,6 +21,7 @@
 #include "qemu/osdep.h"
 #include "qemu/error-report.h"
 #include "cpu.h"
+#include "sysemu/runstate.h"
 #include "exec/helper-proto.h"
 #include "exec/cpu_ldst.h"
 #include "exec/ioport.h"

@@ -16,6 +16,8 @@
 #include "hw/sysbus.h"
 #include "chardev/char.h"
 #include "chardev/char-fe.h"
+#include "hw/hw.h"
+#include "hw/irq.h"
 #include "hw/arc/arc_uart.h"
 #include "qemu/log.h"
 

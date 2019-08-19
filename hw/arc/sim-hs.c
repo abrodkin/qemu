@@ -19,6 +19,8 @@
 #include "hw/boards.h"
 #include "hw/char/serial.h"
 #include "exec/address-spaces.h"
+#include "sysemu/reset.h"
+#include "sysemu/sysemu.h"
 #include "hw/arc/cpudevs.h"
 #include "hw/sysbus.h"
 
@@ -78,7 +80,7 @@ static void simhs_init(MachineState *machine)
     memory_region_add_subregion(system_memory, SIMHS_IO_BASE, system_io);
 
     serial_mm_init(system_io, SIMHS_UART0_OFFSET, 2,
-                   cpu->env.irq[SIMHS_UART0_IRQ], 115200, serial_hd (0),
+                   cpu->env.irq[SIMHS_UART0_IRQ], 115200, serial_hd(0),
                    DEVICE_NATIVE_ENDIAN);
 
     for (n=0; n < SIMHS_VIRTIO_NUMBER; n++) {
