@@ -21,7 +21,7 @@
 #ifndef QEMU_ARC_CPU_QOM_H
 #define QEMU_ARC_CPU_QOM_H
 
-#include "qom/cpu.h"
+#include "hw/core/cpu.h"
 
 #define TYPE_ARC_CPU            "arc-cpu"
 
