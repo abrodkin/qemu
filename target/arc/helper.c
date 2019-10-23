@@ -170,6 +170,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
     env->stat.AEf = 1;
 
     /* 10-14. Other flags sets.  */
+    env->stat.Zf = env->stat_er.Uf;
     env->stat.Lf  = 1;
     env->stat.DEf  = 0;
     env->stat.ESf = 0;
