@@ -35,11 +35,11 @@
 
 void arc_cpu_do_interrupt(CPUState *cs)
 {
-    ARCCPU *cpu = ARC_CPU (cs);
+    ARCCPU *cpu = ARC_CPU(cs);
     CPUARCState *env = &cpu->env;
 
     cs->exception_index = -1;
-    CPU_ILINK (env) = env->pc;
+    CPU_ILINK(env) = env->pc;
 }
 
 #else /* !CONFIG_USER_ONLY */
@@ -116,8 +116,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
         break;
     }
 
-    qemu_log_mask (CPU_LOG_INT, "[EXCP] exception %d (%s) at pc=0x%08x\n",
-                   cs->exception_index, name, env->pc);
+    qemu_log_mask(CPU_LOG_INT, "[EXCP] exception %d (%s) at pc=0x%08x\n",
+                  cs->exception_index, name, env->pc);
 
     /*
      * 3. exception status register is loaded with the contents
@@ -160,7 +160,7 @@ void arc_cpu_do_interrupt (CPUState *cs)
     env->stat.Uf = 0;
 
     if (env->stat_er.Uf) {
-        switchSP (env);
+        switchSP(env);
     }
 
     /* 8. Interrupts are disabled.  */
@@ -170,16 +170,16 @@ void arc_cpu_do_interrupt (CPUState *cs)
     env->stat.AEf = 1;
 
     /* 10-14. Other flags sets.  */
-    env->stat.Zf = env->stat_er.Uf;
+    env->stat.Zf  = env->stat_er.Uf;
     env->stat.Lf  = 1;
-    env->stat.DEf  = 0;
+    env->stat.DEf = 0;
     env->stat.ESf = 0;
     env->stat.DZf = 0;
     env->stat.SCf = 0;
 
     /* 15. The PC is set with the appropriate exception vector. */
-    env->pc = cpu_ldl_code (env, env->intvec + offset);
-    CPU_PCL (env) = env->pc & 0xfffffffe;
+    env->pc = cpu_ldl_code(env, env->intvec + offset);
+    CPU_PCL(env) = env->pc & 0xfffffffe;
 
     qemu_log_mask(CPU_LOG_INT, "[EXCP] isr=0x%x vec=0x%x ecr=0x%08x\n",
                   env->pc, offset, env->ecr);
@@ -239,7 +239,7 @@ int arc_cpu_memory_rw_debug(CPUState *cs, vaddr addr, uint8_t *buf,
 
 hwaddr arc_cpu_get_phys_page_debug(CPUState *cs, vaddr addr)
 {
-   ARCCPU *cpu = ARC_CPU (cs);
+   ARCCPU *cpu = ARC_CPU(cs);
    CPUARCState *env = &cpu->env;
 
    return arc_mmu_translate(env, addr, MMU_MEM_IRRELEVANT_TYPE,
