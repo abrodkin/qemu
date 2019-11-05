@@ -22,6 +22,7 @@
 #include "arc-regs.h"
 #include "qemu/osdep.h"
 #include "cpu.h"
+#include "exec/exec-all.h"
 
 
 uint32_t

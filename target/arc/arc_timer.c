@@ -23,6 +23,7 @@
 #include "qemu/osdep.h"
 #include "qemu/timer.h"
 #include "cpu.h"
+#include "exec/exec-all.h"
 #include "hw/irq.h"
 #include "hw/arc/cpudevs.h"
 #include "arc_timer.h"

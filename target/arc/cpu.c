@@ -21,6 +21,7 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "cpu.h"
+#include "exec/exec-all.h"
 #include "migration/vmstate.h"
 #include "exec/log.h"
 #include "mmu.h"

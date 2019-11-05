@@ -517,6 +517,6 @@ static inline int cpu_interrupts_enabled(CPUARCState *env1)
     return env1->stat.IEf;
 }
 
-#include "exec/exec-all.h"
+#include "exec/cpu-all.h"
 
 #endif /* !defined (CPU_ARC_H) */
