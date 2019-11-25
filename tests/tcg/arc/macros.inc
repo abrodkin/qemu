@@ -189,6 +189,7 @@ tn_\name:
 .equ ILLEGAL_INSTRUCTION_SEQUENCE, 0x00020100
 .equ MACHINE_CHECK               , 0x00030000
 .equ PRIVILEGE_VIOLATION         , 0x00070000
+.equ SOFTWARE_INTERRUPT          , 0x00080000
 .equ MISALIGNED_DATA_ACCESS      , 0x000D0000
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
