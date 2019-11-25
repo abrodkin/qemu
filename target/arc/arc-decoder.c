@@ -1256,7 +1256,7 @@ static struct constant_operands *constant_entry_for(
 {
     struct constant_operands *t = map_constant_operands[mapping];
     while (t != NULL) {
-        if (t->operand_number && operand_number) {
+        if (t->operand_number == operand_number) {
             return t;
         }
         t = t->next;
