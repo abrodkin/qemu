@@ -493,6 +493,140 @@ test14_wrapup:
   mmu_disable
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; two overlapping regions test. one is 2 pages long and the other is inside
+; the second page of the first region:
+;        ,----------.
+;        | R2:rw-   | region nr 2 with read/write permission.
+; page1  |          |
+;        |          |
+; .......|..........|.......
+;        |          |
+; page2  |,________.|
+;        ||R1:r--  || region nr 1 with read only permission.
+;        |`--------'| this region is inside region nr 2.
+;        `----------'
+; setup: R2 is 16kb with rw-
+;        R1 is  4kb with r--
+; write to the first page           --> must go ok.
+; write to the first half of page 2 --> must go ok.
+; write to R1                       --> expect an exception.
+; in the end read from R1           --> must go ok.
+test15:
+  .equ MEM_ADDR15_R2   , 0x150000
+  .equ MEM_ADDR15_R2_P2, MEM_ADDR15_R2 + PAGE_SIZE
+  .equ MEM_ADDR15_R1   , MEM_ADDR15_R2_P2 + PAGE_SIZE/2
+  .equ DATA15_1        , 0x3ff0293f    ; random magic
+  .equ DATA15_2        , DATA15_1+1
+  .equ DATA15_3        , DATA15_1+2
+  .equ MPU_ECR_W_R1, MPU_ECR_WRITE | 1
+  mpu_reset
+  mpu_add_base    mpurdb1, MEM_ADDR15_R1
+  mpu_add_region  mpurdp1, REG_MPU_EN_KR, MPU_SIZE_4K
+  mpu_add_base    mpurdb2, MEM_ADDR15_R2
+  mpu_add_region  mpurdp2, REG_MPU_EN_KR|REG_MPU_EN_KW, MPU_SIZE_16K
+  ; planting some data (for later read)
+  mpu_write_data  DATA15_1, MEM_ADDR15_R1+24
+  ; let the fun begin
+  mpu_enable
+  mpu_write_data  DATA15_2, MEM_ADDR15_R2+20
+  mpu_verify_data DATA15_2, MEM_ADDR15_R2+20, 15
+  mpu_write_data  DATA15_3, MEM_ADDR15_R2+20+PAGE_SIZE
+  mpu_verify_data DATA15_3, MEM_ADDR15_R2+20+PAGE_SIZE, 15
+  ; now time for some exception
+  mpu_set_excep_params mpu_ecr  = MPU_ECR_W_R1         , \
+                       ecr      = PROTV_WRITE_MPU      , \
+                       efa      = MEM_ADDR15_R1+24     , \
+                       eret     = @test15_illegal_store, \
+                       continue = @test15_cont         , \
+                       test_num = 15
+  st r7, [MEM_ADDR15_R2_P2+32] ; write bogus data (region 2, page 2)
+test15_illegal_store:
+  st r7, [MEM_ADDR15_R1+24]    ; this shouldn't be allowed
+  assert_eq 0, 1, 15           ; an exception must have been raised
+test15_cont:
+  mpu_verify_data DATA15_1, MEM_ADDR15_R1+24, 15 ; this is allowed
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; another overlapping regions test. in previous one, a page (nr=2) was split
+; among two regions.  in  this  test, the page  is contained inside  another
+; region, which in return is inside yet another region:
+;        ,----------.
+; page1  | R5:r---  | region nr 5 with read only permission.
+; .......|..........|.......
+; page2  |          |
+; .......|..........|.......
+; page3  |          |
+; .......|..........|.......
+; page4  |          |
+; .......|,________.|.......
+; page5  ||R3:-w-  || region nr 3 with write only permission.
+; .......||........||.......
+; page6  ||        || this region is inside region nr 5.
+; .......|`--------'|.......
+; page7  |          |
+; .......|..........|.......
+; page8  |          |
+;        `----------'
+; setup: R3 is 16kb with -w-
+;        R5 is 64kb with r--
+; read from the fourth page  --> must go ok.
+; read from page 7           --> must go ok.
+; write to page 4            --> expect an exception.
+; write to page 5            --> must go ok.
+; read from page 6           --> expect an exception.
+test16:
+  .equ MEM_ADDR16_R5   , 0x160000
+  .equ MEM_ADDR16_R5_P4, MEM_ADDR16_R5 + 3*PAGE_SIZE
+  .equ MEM_ADDR16_R5_P7, MEM_ADDR16_R5 + 6*PAGE_SIZE
+  .equ MEM_ADDR16_R3   , MEM_ADDR16_R5 + 4*PAGE_SIZE
+  .equ MEM_ADDR16_R3_P5, MEM_ADDR16_R3
+  .equ MEM_ADDR16_R3_P6, MEM_ADDR16_R5 + 5*PAGE_SIZE
+  .equ DATA16_1        , 0x93822093    ; random magic
+  .equ DATA16_2        , DATA16_1+1
+  .equ DATA16_3        , DATA16_1+2
+  .equ MPU_ECR_R_R3, MPU_ECR_READ  | 3
+  .equ MPU_ECR_W_R5, MPU_ECR_WRITE | 5
+  mpu_reset
+  mpu_add_base    mpurdb3, MEM_ADDR16_R3
+  mpu_add_region  mpurdp3, REG_MPU_EN_KW, MPU_SIZE_16K
+  mpu_add_base    mpurdb5, MEM_ADDR16_R5
+  mpu_add_region  mpurdp5, REG_MPU_EN_KR, MPU_SIZE_64K
+  ; planting some data (for later read)
+  mpu_write_data  DATA16_1, MEM_ADDR16_R5_P4+24
+  mpu_write_data  DATA16_3, MEM_ADDR16_R5_P7+24
+  ; let the fun begin
+  mpu_enable
+  mpu_verify_data DATA16_1, MEM_ADDR16_R5_P4+24, 16
+  mpu_verify_data DATA16_3, MEM_ADDR16_R5_P7+24, 16
+  ; first exception because of writing in region 5
+  mpu_set_excep_params mpu_ecr  = MPU_ECR_W_R5         , \
+                       ecr      = PROTV_WRITE_MPU      , \
+                       efa      = MEM_ADDR16_R5_P4+24  , \
+                       eret     = @test16_illegal_store, \
+                       continue = @test16_cont         , \
+                       test_num = 16
+test16_illegal_store:
+  st r7, [MEM_ADDR16_R5_P4+24] ; this shouldn't be allowed
+  assert_eq 0, 1, 16           ; an exception must have been raised
+test16_cont:
+  mpu_write_data  DATA16_2, MEM_ADDR16_R3_P5+24 ;will be checked later
+  ; second exception while reading in region 3
+  mpu_set_excep_params mpu_ecr  = MPU_ECR_R_R3        , \
+                       ecr      = PROTV_READ_MPU      , \
+                       efa      = MEM_ADDR16_R3_P6+24 , \
+                       eret     = @test16_illegal_read, \
+                       continue = @test16_end         , \
+                       test_num = 16
+test16_illegal_read:
+  ld r7, [MEM_ADDR16_R3_P6+24] ; this shouldn't be allowed
+  assert_eq 0, 1, 16           ; an exception must have been raised
+test16_end:
+  mpu_disable
+  mpu_verify_data DATA16_2, MEM_ADDR16_R3_P5+24, 16 ; check if written
+
+
 valhalla:
-  print "MPU is OK.\n"
+  print "[OK] Memory protection unit.\n"
   end

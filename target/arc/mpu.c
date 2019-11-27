@@ -527,28 +527,52 @@ static const MPUPermissions *get_permission(const ARCMPU *mpu,
 }
 
 /*
- * Checks if the page that 'addr' belongs to is
- * completely covered by the default region. This
- * function _assumes_ that 'addr' is part of
- * the default region. Do not use it otherwise!
+ * Have the following example in mind:
+ * ,------------.
+ * | region 5   |
+ * |            |
+ * |            | first page of region 5
+ * |            |
+ * |............|
+ * |            |
+ * |,----------.| second page of region 5
+ * || region 4 ||
+ * |`----------'|
+ * `------------'
+ * Here region four's size is half a page size.
  *
- * The logic is to check if any of the valid regions
- * is contained in the page that 'addr' belongs to.
- * It doesn't need to check the other way: if the
- * page is part of a bigger region; because if that
- * was the case, 'addr' would never be in _default_
- * region in the first place.
+ * This function checks if the page that the address belongs to,
+ * overlaps with another higher priority region. regions with lower
+ * priority don't matter because they cannot influence the permission.
+ *
+ * The logic is to check if any of the valid regions is contained in
+ * the page that 'addr' belongs to.
  */
-static bool is_page_addr_in_default_region(ARCMPU *mpu, target_ulong addr)
+static bool is_overlap_free(ARCMPU *mpu, target_ulong addr,
+                            uint8_t current_region)
 {
+    /* nothing has higher priority than region 0 */
+    if (current_region == 0) {
+        return true;
+    } else if (current_region == MPU_DEFAULT_REGION_NR) {
+        /* make the "default region number" fit in this function */
+        current_region = mpu->reg_bcr.regions;
+    }
+
+    assert(current_region <= mpu->reg_bcr.regions);
+
     target_ulong page_addr = addr & PAGE_MASK;
-    for (uint8_t r = 0; r < mpu->reg_bcr.regions; ++r) {
+    /*
+     * going through every region that has higher priority than
+     * the current one.
+     */
+    for (uint8_t r = 0; r < current_region; ++r) {
         if (mpu->reg_base[r].valid &&
             page_addr == (mpu->reg_base[r].addr & PAGE_MASK)) {
             return false;
         }
     }
-    /* no overlap then */
+    /* no overlap with a higher priority region */
     return true;
 }
 
@@ -570,6 +594,7 @@ static void update_tlb_page(CPUARCState *env, uint8_t region,
     /* by default, only add entry for 'addr' */
     target_ulong tlb_addr = addr;
     target_ulong tlb_size = 1;
+    bool check_for_overlap = true;
     int prot = 0;
 
     if (region != MPU_DEFAULT_REGION_NR) {
@@ -577,25 +602,27 @@ static void update_tlb_page(CPUARCState *env, uint8_t region,
         prot = mpu_permission_to_qemu(
                 &perm->permission, is_user_mode(env));
         /*
-         * if the region completely covers the 'page' that 'addr'
-         * belongs to, then add a 'page'wise entry.
+         * if the region's size is big enough, we'll check for overlap.
+         * later if we find no overlap, then we add the permission for
+         * the whole page to qemu's tlb.
          */
-        if (perm->size >= TARGET_PAGE_SIZE) {
-            tlb_addr = addr & PAGE_MASK;
-            tlb_size = TARGET_PAGE_SIZE;
-        }
+        check_for_overlap = (perm->size >= TARGET_PAGE_SIZE);
     }
     /* default region */
     else {
         prot = mpu_permission_to_qemu(
                 &env->mpu.reg_enable.permission, is_user_mode(env));
-        /*
-         * is the default region big enough to contain the page
-         * that 'addr' belongs to?
-         */
-        if (is_page_addr_in_default_region(&env->mpu, addr)) {
-            tlb_size = TARGET_PAGE_SIZE;
-        }
+    }
+
+    /*
+     * if the region completely covers the 'page' that 'addr'
+     * belongs to, _and_ is not overlapping with any other region
+     * then add a 'page'wise entry.
+     */
+    if (check_for_overlap &&
+        is_overlap_free(&env->mpu, addr, region)) {
+        tlb_addr = addr & PAGE_MASK;
+        tlb_size = TARGET_PAGE_SIZE;
     }
 
     tlb_set_page(cs, tlb_addr, tlb_addr, prot, mmu_idx, tlb_size);

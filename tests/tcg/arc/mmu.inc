@@ -18,7 +18,8 @@
 
 ; bit masks related to page size
 .equ PAGE_INDEX_BITS, 13               ; page size is _assumed_ to be 8 KB
-.equ PAGE_OFFSET_MSK, (1 << PAGE_INDEX_BITS) - 1
+.equ PAGE_SIZE      , 1 << PAGE_INDEX_BITS
+.equ PAGE_OFFSET_MSK, PAGE_SIZE - 1
 .equ PAGE_NUMBER_MSK, ~PAGE_OFFSET_MSK
 
 ; TLBPD0 bit masks
