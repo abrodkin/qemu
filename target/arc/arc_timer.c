@@ -27,6 +27,7 @@
 #include "hw/irq.h"
 #include "hw/arc/cpudevs.h"
 #include "arc_timer.h"
+#include "qemu/main-loop.h"
 
 #define TIMER_PERIOD(hz) (1000000000LL/(hz))
 #define TIMEOUT_LIMIT 100000
@@ -45,7 +46,7 @@ static void cpu_arc_count_update (CPUARCState *env, uint32_t timer)
 
   env->timer[timer].T_Count += (uint32_t)((now - env->timer[timer].last_clk) /
 					  env->timer[timer].period);
-  env->timer[timer].last_clk = now;
+  env->timer[timer].last_clk = (now / env->timer[timer].period) * env->timer[timer].period;
 
   qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer count update 0x%08x\n", timer,
 		env->timer[timer].T_Count);
@@ -61,7 +62,7 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
 
   period = TIMER_PERIOD (env->freq_hz);
   wait = env->timer[timer].T_Count
-    + (uint32_t)(now - env->timer[timer].last_clk)/period;
+    + ((uint32_t)(now - env->timer[timer].last_clk)/period);
   delta = env->timer[timer].T_Limit - wait;
 
   /*
@@ -97,6 +98,7 @@ static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
       && !(env->timer[timer & 0x01].T_Cntrl & TMR_IP))
     {
       qemu_log_mask(CPU_LOG_INT, "[TMR%d] Rising IRQ\n", timer);
+
       qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
     }
 
@@ -212,7 +214,7 @@ static void cpu_arc_count_set (CPUARCState *env, uint32_t timer, uint32_t val)
 {
   timer &= 0x01;
   env->timer[timer].T_Count = val;
-  env->timer[timer].last_clk = qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL);
+  env->timer[timer].last_clk = (qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / env->timer[timer].period) * env->timer[timer].period;
   cpu_arc_timer_update (env, timer);
 }
 
