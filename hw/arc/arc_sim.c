@@ -52,17 +52,17 @@ static void arc_sim_net_init(MemoryRegion *address_space,
 }
 
 static uint64_t arc_io_read(void *opaque, hwaddr addr,
-        unsigned size)
+                            unsigned size)
 {
     return 0;
 }
 
 static void arc_io_write(void *opaque, hwaddr addr,
-        uint64_t val, unsigned size)
+                         uint64_t val, unsigned size)
 {
     switch (addr) {
     case 0x08: /* board reset.  */
-        qemu_system_reset_request (SHUTDOWN_CAUSE_GUEST_RESET);
+        qemu_system_reset_request(SHUTDOWN_CAUSE_GUEST_RESET);
         break;
     default:
         break;
@@ -90,7 +90,7 @@ static void arc_sim_init(MachineState *machine)
     boot_info.kernel_filename = machine->kernel_filename;
 
     for (n = 0; n < smp_cpus; n++) {
-        cpu = ARC_CPU (object_new (machine->cpu_type));
+        cpu = ARC_CPU(object_new(machine->cpu_type));
         if (cpu == NULL) {
             fprintf(stderr, "Unable to find CPU definition!\n");
             exit(1);
@@ -104,8 +104,8 @@ static void arc_sim_init(MachineState *machine)
         object_property_set_bool(OBJECT (cpu), true, "realized", &error_fatal);
 
         /* Initialize internal devices.  */
-        cpu_arc_pic_init (cpu);
-        cpu_arc_clock_init (cpu);
+        cpu_arc_pic_init(cpu);
+        cpu_arc_clock_init(cpu);
 
         qemu_register_reset(arc_cpu_reset, cpu);
     }
@@ -115,12 +115,12 @@ static void arc_sim_init(MachineState *machine)
     memory_region_add_subregion(get_system_memory(), ram_base, ram);
 
     system_io = g_new(MemoryRegion, 1);
-    memory_region_init_io (system_io, NULL, &arc_io_ops, NULL, "arc.io",
+    memory_region_init_io(system_io, NULL, &arc_io_ops, NULL, "arc.io",
                            1024);
-    memory_region_add_subregion (get_system_memory(), 0xf0000000, system_io);
+    memory_region_add_subregion(get_system_memory(), 0xf0000000, system_io);
 
     serial_mm_init(get_system_memory(), 0x90000000, 2, cpu->env.irq[20],
-                   115200, serial_hd (0), DEVICE_NATIVE_ENDIAN);
+                   115200, serial_hd(0), DEVICE_NATIVE_ENDIAN);
 
     if (nd_table[0].used) {
         arc_sim_net_init(get_system_memory(), 0x92000000,
@@ -140,3 +140,7 @@ static void arc_sim_machine_init(MachineClass *mc)
 }
 
 DEFINE_MACHINE("arc-sim", arc_sim_machine_init)
+
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */
