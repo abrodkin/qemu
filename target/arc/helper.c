@@ -169,6 +169,8 @@ void arc_cpu_do_interrupt (CPUState *cs)
     /* 9. The active exception flag is set.  */
     env->stat.AEf = 1;
 
+    bool in_delay_slot = env->stat.DEf;
+
     /* 10-14. Other flags sets.  */
     env->stat.Zf  = env->stat_er.Uf;
     env->stat.Lf  = 1;
@@ -180,6 +182,14 @@ void arc_cpu_do_interrupt (CPUState *cs)
     /* 15. The PC is set with the appropriate exception vector. */
     env->pc = cpu_ldl_code(env, env->intvec + offset);
     CPU_PCL(env) = env->pc & 0xfffffffe;
+
+    if(in_delay_slot == true)
+    {
+        env->exception_in_delay_slot = true;
+        env->exception_delayslot_eret = env->exception_delay_slot_address;;
+    }
+    else
+        env->exception_in_delay_slot = false;
 
     qemu_log_mask(CPU_LOG_INT, "[EXCP] isr=0x%x vec=0x%x ecr=0x%08x\n",
                   env->pc, offset, env->ecr);

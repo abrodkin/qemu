@@ -117,6 +117,8 @@ TCGv    cpu_debug_SS;
 TCGv    cpu_npc_helper;
 TCGv    cpu_lock_lf_var;
 
+TCGv     cpu_exception_delay_slot_address;
+
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
@@ -260,6 +262,8 @@ void arc_translate_init(void)
 
     cpu_npc_helper = NEW_ARC_REG(npc_helper);
     cpu_lock_lf_var = NEW_ARC_REG(lock_lf_var);
+
+    cpu_exception_delay_slot_address = NEW_ARC_REG(exception_delay_slot_address);
 
     init_not_done = 0;
 }

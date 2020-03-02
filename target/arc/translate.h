@@ -160,6 +160,8 @@ extern TCGv     cpu_debug_SS;
 extern TCGv     cpu_npc_helper;
 extern TCGv     cpu_lock_lf_var;
 
+extern TCGv     cpu_exception_delay_slot_address;
+
 
 typedef struct DisasContext DisasCtxt;
 

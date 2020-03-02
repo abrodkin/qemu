@@ -253,6 +253,11 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
 
         ++ctx->ds;
 
+        /* Herlper register to be able to return from exceptions occuring
+         * in delay slots.
+        */
+        tcg_gen_movi_tl(cpu_exception_delay_slot_address, cpc);
+
         /*
          * in case an exception should be raised during the execution
          * of delay slot, bta value is used to set erbta.
