@@ -151,9 +151,9 @@ MAPPING(xor, XOR, 3, 0, 1, 2)
 MAPPING(xor_s, XOR, 3, 0, 1, 2)
 MAPPING(mov, MOV, 2, 0, 1)
 MAPPING(mov_s, MOV, 2, 0, 1)
-CONSTANT(ASL, asl, 2, 1) /* For variable @c */
+CONSTANT(ASL, asl, 2, 268435457) /* For variable @c */
 MAPPING(asl, ASL, 3, 1, 2, 0)
-CONSTANT(ASL, asl_s, 2, 1) /* For variable @c */
+CONSTANT(ASL, asl_s, 2, 268435457) /* For variable @c */
 MAPPING(asl_s, ASL, 3, 1, 2, 0)
 CONSTANT(ASR, asr, 2, 1) /* For variable @c */
 MAPPING(asr, ASR, 3, 1, 2, 0)
