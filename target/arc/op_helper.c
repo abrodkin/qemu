@@ -607,20 +607,24 @@ void helper_enter(CPUARCState *env, uint32_t u6)
     /* stack must be a multiple of 4 (32 bit aligned) */
     check_addr_is_word_aligned(env, CPU_SP(env) - stack_size, GETPC());
 
+    uint32_t tmp_sp = CPU_SP(env);
+
     if (save_fp) {
-        CPU_SP(env) -= 4;
+        tmp_sp -= 4;
         cpu_stl_data(env, CPU_SP(env), CPU_FP(env));
     }
 
     for (uint8_t gpr = regs; gpr >= 1; --gpr) {
-        CPU_SP(env) -= 4;
+        tmp_sp -= 4;
         cpu_stl_data(env, CPU_SP(env), env->r[13+gpr-1]);
     }
 
     if (save_blink) {
-        CPU_SP(env) -= 4;
+        tmp_sp -= 4;
         cpu_stl_data(env, CPU_SP(env), CPU_BLINK(env));
     }
+
+    CPU_SP(env) = tmp_sp;
 
     /* now that sp has been allocated, shall we write it to fp? */
     if (save_fp) {
@@ -672,20 +676,24 @@ void helper_leave(CPUARCState *env, uint32_t u7)
         CPU_SP(env) = CPU_FP(env);
     }
 
+    uint32_t tmp_sp = CPU_SP(env);
+
     if (restore_blink) {
         CPU_BLINK(env) = cpu_ldl_data(env, CPU_SP(env));
-        CPU_SP(env) += 4;
+        tmp_sp += 4;
     }
 
     for (uint8_t gpr = 0; gpr < regs; ++gpr) {
         env->r[13+gpr] = cpu_ldl_data(env, CPU_SP(env));
-        CPU_SP(env) += 4;
+        tmp_sp += 4;
     }
 
     if (restore_fp) {
         CPU_FP(env) = cpu_ldl_data(env, CPU_SP(env));
-        CPU_SP(env) += 4;
+        tmp_sp += 4;
     }
+
+    CPU_SP(env) = tmp_sp;
 
     /* now that we are done, should we jump to blink? */
     if (jump_to_blink) {
