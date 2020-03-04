@@ -611,17 +611,17 @@ void helper_enter(CPUARCState *env, uint32_t u6)
 
     if (save_fp) {
         tmp_sp -= 4;
-        cpu_stl_data(env, CPU_SP(env), CPU_FP(env));
+        cpu_stl_data(env, tmp_sp, CPU_FP(env));
     }
 
     for (uint8_t gpr = regs; gpr >= 1; --gpr) {
         tmp_sp -= 4;
-        cpu_stl_data(env, CPU_SP(env), env->r[13+gpr-1]);
+        cpu_stl_data(env, tmp_sp, env->r[13+gpr-1]);
     }
 
     if (save_blink) {
         tmp_sp -= 4;
-        cpu_stl_data(env, CPU_SP(env), CPU_BLINK(env));
+        cpu_stl_data(env, tmp_sp, CPU_BLINK(env));
     }
 
     CPU_SP(env) = tmp_sp;
@@ -679,17 +679,17 @@ void helper_leave(CPUARCState *env, uint32_t u7)
     uint32_t tmp_sp = CPU_SP(env);
 
     if (restore_blink) {
-        CPU_BLINK(env) = cpu_ldl_data(env, CPU_SP(env));
+        CPU_BLINK(env) = cpu_ldl_data(env, tmp_sp);
         tmp_sp += 4;
     }
 
     for (uint8_t gpr = 0; gpr < regs; ++gpr) {
-        env->r[13+gpr] = cpu_ldl_data(env, CPU_SP(env));
+        env->r[13+gpr] = cpu_ldl_data(env, tmp_sp);
         tmp_sp += 4;
     }
 
     if (restore_fp) {
-        CPU_FP(env) = cpu_ldl_data(env, CPU_SP(env));
+        CPU_FP(env) = cpu_ldl_data(env, tmp_sp);
         tmp_sp += 4;
     }
 
