@@ -30,40 +30,20 @@
 #include "qemu/main-loop.h"
 
 #define TIMER_PERIOD(hz) (1000000000LL/(hz))
-#define TIMEOUT_LIMIT 100000
+#define TIMEOUT_LIMIT 1000000
 
-/* ARC timer update function.  */
-
-static void cpu_arc_count_update (CPUARCState *env, uint32_t timer)
-{
-  uint64_t now;
-
-  assert ((env->timer_build & TB_T0) && env->cpu_timer[0]);
-  assert ((env->timer_build & TB_T1) && env->cpu_timer[1]);
-
-  timer &= 0x01;
-  now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-
-  env->timer[timer].T_Count += (uint32_t)((now - env->timer[timer].last_clk) /
-					  env->timer[timer].period);
-  env->timer[timer].last_clk = (now / env->timer[timer].period) * env->timer[timer].period;
-
-  qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer count update 0x%08x\n", timer,
-		env->timer[timer].T_Count);
-}
+#define T_PERIOD (TIMER_PERIOD (env->freq_hz))
+#define T_COUNT(T) ((uint32_t) ((qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) - env->timer[T].last_clk) / T_PERIOD))
 
 /* Update the next timeout time as difference between Count and Limit */
 static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
 {
-  uint32_t wait, delta;
-  uint64_t now, next, period;
+  uint32_t delta;
+  uint32_t t_count = T_COUNT(timer);
+  uint64_t now = (qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) / T_PERIOD) * T_PERIOD;
+  uint32_t period = T_PERIOD;
 
-  now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-
-  period = TIMER_PERIOD (env->freq_hz);
-  wait = env->timer[timer].T_Count
-    + ((uint32_t)(now - env->timer[timer].last_clk)/period);
-  delta = env->timer[timer].T_Limit - wait;
+  delta = env->timer[timer].T_Limit - t_count - 1;
 
   /*
    * Artificially limit timeout rate to something achievable under
@@ -75,37 +55,33 @@ static void cpu_arc_timer_update (CPUARCState *env, uint32_t timer)
   if ((delta * period) < TIMEOUT_LIMIT)
     period = TIMEOUT_LIMIT / delta;
 
-  next = now + (uint64_t)delta * period;
-
-  timer_mod (env->cpu_timer[timer], next);
-  env->timer[timer].period = period;
+  timer_mod (env->cpu_timer[timer], now + ((uint64_t)delta * period));
 
   qemu_log_mask(LOG_UNIMP,
 		"[TMR%d] Timer update in 0x%08x - 0x%08x = 0x%08x "\
                 "(ctrl:0x%08x @ %d Hz)\n",
 		timer, env->timer[timer].T_Limit,
-		wait, delta, env->timer[timer].T_Cntrl, env->freq_hz);
+		t_count, delta, env->timer[timer].T_Cntrl, env->freq_hz);
 }
 
 /* Expire the timer function.  Rise an interrupt if required.  */
 
 static void cpu_arc_timer_expire (CPUARCState *env, uint32_t timer)
 {
+  assert(timer == 0 || timer == 1);
   qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer expired\n", timer);
 
   /* Raise an interrupt if enabled.  */
-  if ((env->timer[timer & 0x01].T_Cntrl & TMR_IE)
-      && !(env->timer[timer & 0x01].T_Cntrl & TMR_IP))
+  if ((env->timer[timer].T_Cntrl & TMR_IE)
+      && !(env->timer[timer].T_Cntrl & TMR_IP))
     {
       qemu_log_mask(CPU_LOG_INT, "[TMR%d] Rising IRQ\n", timer);
-
-      qemu_irq_raise (env->irq[TIMER0_IRQ + (timer & 0x01)]);
+      qemu_irq_raise (env->irq[TIMER0_IRQ + timer]);
     }
 
   /* Set the IP bit.  */
-  env->timer[timer & 0x01].T_Cntrl |= TMR_IP;
-  env->timer[timer & 0x01].T_Count = 0;
-  env->timer[timer & 0x01].last_clk = qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL);
+  env->timer[timer].T_Cntrl |= TMR_IP;
+  env->timer[timer].last_clk = (qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / T_PERIOD) * T_PERIOD;
 }
 
 /* This callback should occur when the counter is exactly equal to the
@@ -197,24 +173,23 @@ static void arc_rtc_cb (void *opaque)
 
 static void cpu_arc_count_reset (CPUARCState *env, uint32_t timer)
 {
-  timer &= 0x01;
+  assert(timer == 0 || timer == 1);
   env->timer[timer].T_Cntrl = 0;
-  env->timer[timer].T_Count = 0;
   env->timer[timer].T_Limit = 0x00ffffff;
-  env->timer[timer].period = TIMER_PERIOD (env->freq_hz);
 }
 
 static uint32_t cpu_arc_count_get (CPUARCState *env, uint32_t timer)
 {
-  cpu_arc_count_update (env, timer);
-  return env->timer[timer & 0x01].T_Count;
+  uint32_t count = T_COUNT(timer);
+  qemu_log_mask(LOG_UNIMP, "[TMR%d] Timer count %d.\n", timer, count);
+  return count;
 }
 
 static void cpu_arc_count_set (CPUARCState *env, uint32_t timer, uint32_t val)
 {
-  timer &= 0x01;
-  env->timer[timer].T_Count = val;
-  env->timer[timer].last_clk = (qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / env->timer[timer].period) * env->timer[timer].period;
+  assert(timer == 0 || timer == 1);
+  env->timer[timer].last_clk = ((qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / T_PERIOD)
+				+ val) * T_PERIOD;
   cpu_arc_timer_update (env, timer);
 }
 
@@ -241,7 +216,7 @@ static void cpu_arc_store_limit (CPUARCState *env,
 static void cpu_arc_control_set (CPUARCState *env,
 				 uint32_t timer, uint32_t value)
 {
-  timer &= 0x1;
+  assert(timer == 0 || timer == 1);
   if ((env->timer[timer].T_Cntrl & TMR_IP) && !(value & TMR_IP))
       qemu_irq_lower (env->irq[TIMER0_IRQ + (timer)]);
   env->timer[timer].T_Cntrl = value & 0x1f;
@@ -288,6 +263,9 @@ void cpu_arc_clock_init (ARCCPU *cpu)
 
   if (env->timer_build & TB_RTC)
     env->cpu_rtc = timer_new_ns (QEMU_CLOCK_VIRTUAL, &arc_rtc_cb, env);
+
+  env->timer[0].last_clk = (qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / T_PERIOD) * T_PERIOD;
+  env->timer[1].last_clk = (qemu_clock_get_ns (QEMU_CLOCK_VIRTUAL) / T_PERIOD) * T_PERIOD;
 }
 
 void arc_initializeTIMER (ARCCPU *cpu)
@@ -316,6 +294,7 @@ uint32_t
 aux_timer_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
 {
   CPUARCState *env = (CPUARCState *) data;
+  uint32_t ret = 0;
 
   switch (aux_reg_detail->id)
     {
@@ -328,11 +307,13 @@ aux_timer_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
       break;
 
     case AUX_ID_count0:
-      return cpu_arc_count_get (env, 0);
+      ret = cpu_arc_count_get (env, 0);
+      return ret;
       break;
 
     case AUX_ID_count1:
-      return cpu_arc_count_get (env, 1);
+      ret = cpu_arc_count_get (env, 1);
+      return ret;
       break;
 
     case AUX_ID_limit0:

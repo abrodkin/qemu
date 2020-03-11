@@ -234,10 +234,8 @@ typedef struct status_register
 /* ARC processor timer module.  */
 typedef struct
 {
-    uint32_t T_Count;
     uint32_t T_Cntrl;
     uint32_t T_Limit;
-    uint64_t period;
     uint64_t last_clk;
 } arc_timer_t;
 

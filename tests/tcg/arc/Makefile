@@ -55,6 +55,7 @@ TESTCASES += check_excp_mmu.tst
 TESTCASES += check_excp_jumpdl_mmu.tst
 TESTCASES += check_timer0.tst
 TESTCASES += check_timer0_loop.tst
+TESTCASES += check_timer0_loop3.tst
 TESTCASES += check_timer0_retrig.tst
 TESTCASES += check_timer0_sleep.tst
 TESTCASES += check_timerX_freq.tst
