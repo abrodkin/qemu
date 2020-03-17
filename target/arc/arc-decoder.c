@@ -1112,7 +1112,8 @@ static bool read_and_decode_context(DisasCtxt *ctx,
                                     const struct arc_opcode **opcode_p)
 {
     uint16_t buffer[2];
-    uint8_t length;
+    uint16_t delayslot_buffer[2];
+    uint8_t length, delayslot_length;
     uint64_t insn;
 
     /* Read the first 16 bits, figure it out what kind of instruction it is. */
@@ -1160,8 +1161,14 @@ static bool read_and_decode_context(DisasCtxt *ctx,
     /* Update context. */
     ctx->insn.len = length;
     ctx->npc = ctx->cpc + length;
-    ctx->dpc = ctx->npc;
+    ctx->dpc = ctx->cpc + length;
     ctx->pcl = ctx->cpc & 0xfffffffc;
+
+    if (ctx->insn.d == true) {
+        delayslot_buffer[0] = cpu_lduw_code(ctx->env, ctx->dpc);
+        delayslot_length = arc_insn_length(delayslot_buffer[0], ctx->env->family);
+        ctx->npc = ctx->dpc + delayslot_length;
+    };
 
     return true;
 }

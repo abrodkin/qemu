@@ -394,10 +394,7 @@ void helper_rtie(CPUARCState *env)
     if (env->stat.AEf || (env->aux_irq_act & 0xFFFF) == 0) {
         assert (env->stat.Uf == 0);
 
-        if(env->exception_in_delay_slot == true)
-          CPU_PCL(env) = env->exception_delayslot_eret;
-        else
-          CPU_PCL(env) = env->eret;
+        CPU_PCL(env) = env->eret;
 
         env->stat = env->stat_er;
         env->bta = env->erbta;

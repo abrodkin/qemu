@@ -117,8 +117,6 @@ TCGv    cpu_debug_SS;
 TCGv    cpu_npc_helper;
 TCGv    cpu_lock_lf_var;
 
-TCGv     cpu_exception_delay_slot_address;
-
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
 
@@ -263,8 +261,6 @@ void arc_translate_init(void)
     cpu_npc_helper = NEW_ARC_REG(npc_helper);
     cpu_lock_lf_var = NEW_ARC_REG(lock_lf_var);
 
-    cpu_exception_delay_slot_address = NEW_ARC_REG(exception_delay_slot_address);
-
     init_not_done = 0;
 }
 
@@ -272,8 +268,8 @@ static void arc_tr_init_disas_context(DisasContextBase *dcbase,
                                       CPUState *cs)
 {
     DisasContext *dc = container_of(dcbase, DisasContext, base);
-    dc->base.is_jmp = DISAS_NEXT;
 
+    dc->base.is_jmp = DISAS_NEXT;
     dc->mem_idx = dc->base.tb->flags & 1;
 }
 static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
@@ -337,7 +333,14 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
         dc->base.is_jmp = DISAS_NORETURN;
     }
 
-    if(dc->base.is_jmp == DISAS_NORETURN) {
+    if(env->stat.DEf == 1) {
+      dc->base.is_jmp = DISAS_BRANCH_IN_DELAYSLOT;
+      env->stat.DEf = 0;
+    }
+
+    if(dc->base.is_jmp == DISAS_BRANCH_IN_DELAYSLOT) {
+        gen_goto_tb(dc, 0, cpu_bta);
+    } else if(dc->base.is_jmp == DISAS_NORETURN) {
         gen_gotoi_tb(dc, 0, dc->npc);
     }
     else if(dc->base.is_jmp == DISAS_NEXT) {
@@ -366,6 +369,7 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
     case DISAS_UPDATE:
         gen_gotoi_tb(dc, 0, dc->base.pc_next);
         break;
+    case DISAS_BRANCH_IN_DELAYSLOT:
     case DISAS_NORETURN:
         break;
     default:

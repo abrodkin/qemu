@@ -40,6 +40,7 @@
 
 /* signaling the end of translation block */
 #define DISAS_UPDATE        DISAS_TARGET_0
+#define DISAS_BRANCH_IN_DELAYSLOT DISAS_TARGET_1
 
 typedef struct DisasContext {
     DisasContextBase base;

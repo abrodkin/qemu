@@ -333,10 +333,6 @@ typedef struct CPUARCState {
     uint32_t freq_hz; /* CPU frequency in hz, needed for timers.  */
     uint64_t last_clk_rtc;
 
-    uint32_t exception_delay_slot_address;
-    bool exception_in_delay_slot;
-    uint32_t exception_delayslot_eret;
-
     void *irq[256];
     QEMUTimer *cpu_timer[2]; /* Internal timer.  */
     QEMUTimer *cpu_rtc; /* Internal RTC.  */

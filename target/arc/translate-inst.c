@@ -239,7 +239,7 @@ void arc2_gen_set_debug(DisasCtxt *ctx, bool value)
 }
 
 void
-arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
+arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta, TCGv take_branch)
 {
     static int in_delay_slot = false;
     if (ctx->insn.limm_p == 0 && !in_delay_slot) {
@@ -248,15 +248,10 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
         uint32_t pcl = ctx->pcl;
         insn_t insn = ctx->insn;
 
-        ctx->cpc = ctx->npc;
+        ctx->cpc = ctx->dpc;
         ctx->pcl = ctx->cpc & 0xfffffffc;
 
         ++ctx->ds;
-
-        /* Herlper register to be able to return from exceptions occuring
-         * in delay slots.
-        */
-        tcg_gen_movi_tl(cpu_exception_delay_slot_address, cpc);
 
         /*
          * in case an exception should be raised during the execution
@@ -264,26 +259,24 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta)
          */
         tcg_gen_mov_tl(cpu_bta, bta);
         /* set the pc to the next pc */
-        tcg_gen_movi_tl(cpu_pc, ctx->npc);
+        tcg_gen_movi_tl(cpu_pc, ctx->dpc);
         /* we are in a delay slot */
-        tcg_gen_movi_tl(cpu_DEf, 1);
+        tcg_gen_mov_tl(cpu_DEf, take_branch);
         /* necessary for the likely call to restore_state_to_opc() */
-        tcg_gen_insn_start(ctx->npc);
+        tcg_gen_insn_start(ctx->dpc);
         arc_decode(ctx);
+
         /* no more in a delay slot */
-        tcg_gen_movi_tl(cpu_DEf, 0);
+        //tcg_gen_movi_tl(cpu_DEf, 0);
+
         /* restore the pc back */
-        tcg_gen_movi_tl(cpu_pc, ctx->cpc);
+        tcg_gen_movi_tl(cpu_pc, cpc);
         /* again, restore_state_to_opc() must use recent value */
-        tcg_gen_insn_start(ctx->cpc);
+        tcg_gen_insn_start(cpc);
 
         assert(ctx->base.is_jmp == DISAS_NEXT);
 
         --ctx->ds;
-
-        /* Make dpc(delay_slot next pc) become npc(next pc) of the delayslot
-         * instruction.  */
-        ctx->dpc = ctx->npc;
 
         /* Restore old values.  */
         ctx->cpc = cpc;

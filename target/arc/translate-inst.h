@@ -111,8 +111,8 @@ void arc2_gen_no_further_loads_pending(DisasCtxt *ctx, TCGv ret);
 #define NoFurtherLoadsPending(R)    arc2_gen_no_further_loads_pending(ctx, R)
 void arc2_gen_set_debug(DisasCtxt *ctx, bool value);
 #define setDebugLD(A)   arc2_gen_set_debug(ctx, A)
-void arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta);
-#define executeDelaySlot(bta)   arc2_gen_execute_delayslot(ctx, bta)
+void arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta, TCGv take_branch);
+#define executeDelaySlot(bta, take_branch)   arc2_gen_execute_delayslot(ctx, bta, take_branch)
 
 #define shouldExecuteDelaySlot()    (ctx->insn.d != 0)
 
@@ -127,12 +127,13 @@ void arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta);
 #define setZFlag(ELEM)  \
     tcg_gen_setcondi_i32(TCG_COND_EQ, cpu_Zf, ELEM, 0);
 
-#define nextInsnAddressAfterDelaySlot(R)    tcg_gen_movi_tl(R, ctx->dpc);
+#define nextInsnAddressAfterDelaySlot(R)    tcg_gen_movi_tl(R, ctx->npc);
 
 #define nextInsnAddress(R)  tcg_gen_movi_tl(R, ctx->npc)
 #define getPCL(R)           tcg_gen_movi_tl(R, ctx->pcl)
 
 #define setPC(NEW_PC)                               \
+    tcg_gen_movi_tl(cpu_DEf, 0);                    \
     gen_goto_tb(ctx, 1, NEW_PC);                    \
     ret = ret == DISAS_NEXT ? DISAS_NORETURN : ret
 
