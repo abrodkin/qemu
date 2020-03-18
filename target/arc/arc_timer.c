@@ -54,7 +54,7 @@ static void cpu_arc_timer_update(CPUARCState *env, uint32_t timer)
      * generation of host machines.
      */
     if ((delta * period) < TIMEOUT_LIMIT) {
-        period = TIMEOUT_LIMIT / delta;
+        delta = TIMEOUT_LIMIT / period;
     }
 
     timer_mod(env->cpu_timer[timer], now + ((uint64_t)delta * period));
