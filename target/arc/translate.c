@@ -322,6 +322,11 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
     decode_opc(env, dc);
     dc->base.pc_next = dc->npc;
 
+    if(env->stat.DEf == 1) {
+      dc->base.is_jmp = DISAS_BRANCH_IN_DELAYSLOT;
+      env->stat.DEf = 0;
+    }
+
     /* Hardware loop control code */
     if (dc->npc == env->lpe) {
         TCGLabel *label = gen_new_label();
@@ -331,11 +336,6 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
         gen_set_label(label);
         gen_gotoi_tb(dc, 1, dc->npc);
         dc->base.is_jmp = DISAS_NORETURN;
-    }
-
-    if(env->stat.DEf == 1) {
-      dc->base.is_jmp = DISAS_BRANCH_IN_DELAYSLOT;
-      env->stat.DEf = 0;
     }
 
     if(dc->base.is_jmp == DISAS_BRANCH_IN_DELAYSLOT) {
