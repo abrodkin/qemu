@@ -471,12 +471,6 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
   uint32_t vectno = 0;
   uint32_t offset, priority;
 
-  /* TODO: Check if we are in a delay slot.  We may need to avoid
-     executing interrupts when in delay slots.	*/
-  if (env->stat.DEf) {
-    assert(!"An interrupt is raised during a delay slot.");
-  }
-
   /* Check if we should execute this interrupt.	 */
   if (env->stat.Hf
       /* The interrupts are enabled.  */
