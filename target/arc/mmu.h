@@ -51,10 +51,12 @@
 #define TLBINDEX_E      0x80000000
 #define TLBINDEX_RC	0x70000000
 
-#define TLB_CMD_WRITE    0x1
+#define TLB_CMD_WRITE   0x1
+#define TLB_CMD_WRITENI 0x5
 #define TLB_CMD_READ    0x2
 #define TLB_CMD_INSERT  0x7
 #define TLB_CMD_DELETE  0x8
+#define TLB_CMD_IVUTLB  0x6
 
 #define N_SETS          256
 #define N_WAYS          4

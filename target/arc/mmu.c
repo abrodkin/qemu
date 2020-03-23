@@ -268,7 +268,9 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
   if((pd0 & PD0_G) != 0)
     matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
 
-  if (val == TLB_CMD_WRITE)
+  // NOTE: Write and WriteNI commands are the same because we do not model
+  // uTLBs in QEmu.
+  if (val == TLB_CMD_WRITE || val == TLB_CMD_WRITENI)
     {
       // TODO: Include index verification. We are always clearing the index as
       // we assume it is always valid.
@@ -352,10 +354,13 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
 	}
   }
 
+  // NOTE: We do not implement IVUTLB as we do not model uTLBs.
   assert(val == TLB_CMD_INSERT
 	 || val == TLB_CMD_DELETE
 	 || val == TLB_CMD_WRITE
 	 || val == TLB_CMD_READ
+	 || val == TLB_CMD_WRITENI
+	 || val == TLB_CMD_IVUTLB
 	 );
 }
 
@@ -587,7 +592,7 @@ static void QEMU_NORETURN raise_mem_exception(
     cpu_restore_state(cs, host_pc, true);
     env->efa = addr;
     env->eret = env->pc;
-    env->erbta = env->npc_helper;
+    env->erbta = env->bta;
 
     cs->exception_index = excp_idx;
     env->causecode = excp_cause_code;
