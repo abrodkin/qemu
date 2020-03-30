@@ -165,9 +165,6 @@ void arc_gen_verifyCCFlag(DisasCtxt *ctx, TCGv ret)
 void arc2_gen_set_memory(DisasCtxt *ctx, TCGv vaddr, int size,
         TCGv src, bool sign_extend)
 {
-
-    tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
-
     switch (size) {
     case 0x00:
         tcg_gen_qemu_st_tl(src, vaddr, MEMIDX, MO_UL);
@@ -198,8 +195,6 @@ void arc2_gen_set_memory(DisasCtxt *ctx, TCGv vaddr, int size,
 void arc2_gen_get_memory(DisasCtxt *ctx, TCGv dest, TCGv vaddr,
         int size, bool sign_extend)
 {
-    tcg_gen_movi_tl (cpu_npc_helper, ctx->npc);
-
     switch (size) {
     case 0x00:
         tcg_gen_qemu_ld_tl(dest, vaddr, MEMIDX, MO_UL);
@@ -264,10 +259,10 @@ arc2_gen_execute_delayslot(DisasCtxt *ctx, TCGv bta, TCGv take_branch)
         tcg_gen_mov_tl(cpu_DEf, take_branch);
         /* necessary for the likely call to restore_state_to_opc() */
         tcg_gen_insn_start(ctx->dpc);
-        arc_decode(ctx);
 
-        /* no more in a delay slot */
-        //tcg_gen_movi_tl(cpu_DEf, 0);
+        DisasJumpType type = ctx->base.is_jmp;
+        decode_opc(ctx->env, ctx);
+        ctx->base.is_jmp = type;
 
         /* restore the pc back */
         tcg_gen_movi_tl(cpu_pc, cpc);

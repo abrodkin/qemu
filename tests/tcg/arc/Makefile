@@ -20,6 +20,7 @@ TESTCASES += check_lp.tst
 TESTCASES += check_lp02.tst
 TESTCASES += check_lp03.tst
 TESTCASES += check_lp04.tst
+TESTCASES += check_lp05.tst
 TESTCASES += check_addx.tst
 TESTCASES += check_andx.tst
 TESTCASES += check_aslx.tst

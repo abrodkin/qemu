@@ -207,7 +207,8 @@ enum exception_code_list {
     EXCP_DIVZERO,
     EXCP_DCERROR,
     EXCP_MISALIGNED,
-    EXCP_IRQ
+    EXCP_IRQ,
+    EXCP_LPEND_REACHED = 9000
 };
 
 typedef struct status_register
@@ -274,8 +275,8 @@ typedef struct CPUARCState {
     uint32_t        pc;     /*  program counter         */
     uint32_t        lps;    /*  loops start             */
     uint32_t        lpe;    /*  loops end               */
-    /* Fake register to keep track of the next pc. */
-    uint32_t        npc_helper;
+
+    uint32_t	    npc;    /* required for LP - zero overhead loops. */
 
     uint32_t      lock_lf_var;
 

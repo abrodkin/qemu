@@ -52,7 +52,13 @@ void arc_cpu_do_interrupt (CPUState *cs)
     uint32_t     vectno;
     const char  *name;
 
-    /* FIXME! we cannot do interrupts in delay slots.  */
+    /* NOTE: Special LP_END exception. Immediatelly return code execution to
+       lp_start. */
+    if(cs->exception_index == EXCP_LPEND_REACHED) {
+      env->pc = env->param;
+      CPU_PCL(env) = env->pc & 0xfffffffe;
+      return;
+    }
 
     /* If we take an exception within an exception => fatal Machine Check. */
     if (env->stat.AEf == 1) {
@@ -269,7 +275,7 @@ void QEMU_NORETURN arc_raise_exception(CPUARCState *env, int32_t excp_idx)
     cs->exception_index = excp_idx;
     env->causecode = env->param = 0x0;
     env->eret  = env->pc;
-    env->erbta = env->npc_helper;
+    env->erbta = env->bta;
     cpu_loop_exit(cs);
 }
 

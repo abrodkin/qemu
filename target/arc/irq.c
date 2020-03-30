@@ -26,6 +26,7 @@
 #include "qemu/main-loop.h"
 #include "irq.h"
 #include "exec/cpu_ldst.h"
+#include "translate.h"
 
 /* Static functions and variables. */
 
@@ -103,6 +104,8 @@ static void arc_rtie_firq (CPUARCState *env)
 
   CPU_PCL (env) = CPU_ILINK (env);
   env->pc = CPU_ILINK (env);
+
+  helper_zol_verify(env, env->pc);
 }
 
 static uint32_t irq_pop (CPUARCState *env, const char *str)
@@ -194,6 +197,8 @@ static void arc_rtie_irq (CPUARCState *env)
   env->aux_irq_act &= ~(env->stat.Uf << 31); /* Keep U-bit in sync.  */
   CPU_PCL (env) = CPU_ILINK (env);
   env->pc = CPU_ILINK (env);
+
+  helper_zol_verify(env, env->pc);
 }
 
 static void arc_enter_firq (ARCCPU *cpu, uint32_t vector)

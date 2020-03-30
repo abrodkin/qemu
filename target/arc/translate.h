@@ -140,6 +140,8 @@ extern TCGv     cpu_lpc;
 extern TCGv     cpu_lps;
 extern TCGv     cpu_lpe;
 
+extern TCGv     cpu_npc;
+
 extern TCGv     cpu_bta;
 extern TCGv     cpu_bta_l1;
 extern TCGv     cpu_bta_l2;
@@ -158,7 +160,6 @@ extern TCGv     cpu_debug_IS;
 extern TCGv     cpu_debug_FH;
 extern TCGv     cpu_debug_SS;
 
-extern TCGv     cpu_npc_helper;
 extern TCGv     cpu_lock_lf_var;
 
 extern TCGv     cpu_exception_delay_slot_address;
@@ -166,9 +167,15 @@ extern TCGv     cpu_exception_delay_slot_address;
 
 typedef struct DisasContext DisasCtxt;
 
-int arc_decode(DisasCtxt *ctx);
+int arc_decode(DisasCtxt *ctx, const struct arc_opcode *opcode);
 
 void gen_goto_tb(DisasCtxt *ctx, int n, TCGv dest);
+
+void decode_opc(CPUARCState *env, DisasContext *ctx);
+
+bool read_and_decode_context(DisasCtxt *ctx,
+                             const struct arc_opcode **opcode_p);
+int arc_gen_INVALID(const DisasCtxt *ctx);
 
 #endif
 

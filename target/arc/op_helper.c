@@ -79,7 +79,7 @@ static void do_exception_no_delayslot(CPUARCState *env, uint32_t index,
     CPUState *cs = env_cpu(env);
     cpu_restore_state(cs, GETPC(), true);
     env->eret = env->pc;
-    env->erbta = env->npc_helper;
+    env->erbta = env->bta;
 
     helper_raise_exception (env, index, causecode, param);
 }
@@ -361,7 +361,7 @@ target_ulong helper_lr(CPUARCState *env, uint32_t aux)
     return result;
 }
 
-void QEMU_NORETURN helper_halt(CPUARCState *env)
+void QEMU_NORETURN helper_halt(CPUARCState *env, uint32_t npc)
 {
     CPUState *cs = env_cpu(env);
     if (env->stat.Uf) {
@@ -371,7 +371,7 @@ void QEMU_NORETURN helper_halt(CPUARCState *env)
          /* Restore PC such that we point at the faulty instruction.  */
         env->eret = env->pc;
     } else {
-        env->pc = env->npc_helper;
+        env->pc = npc;
         cs->halted = 1;
         cs->exception_index = EXCP_HLT;
     }
@@ -406,6 +406,8 @@ void helper_rtie(CPUARCState *env)
 
         qemu_log_mask(CPU_LOG_INT, "[EXCP] RTIE @0x%08x ECR:0x%08x\n",
                       env->r[63], env->ecr);
+
+        helper_zol_verify(env, env->eret);
     } else {
         arc_rtie_interrupts (env);
         qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n",
@@ -433,6 +435,18 @@ void QEMU_NORETURN helper_raise_exception(CPUARCState *env,
     env->causecode = causecode;
     env->param = param;
     cpu_loop_exit(cs);
+}
+
+void helper_zol_verify(CPUARCState *env, uint32_t npc)
+{
+    if(npc == env->lpe) {
+      if(env->r[60] > 1) {
+        env->r[60] -= 1;
+        helper_raise_exception(env, (uint32_t) EXCP_LPEND_REACHED, 0, env->lps);
+      } else {
+        env->r[60] = 0;
+      }
+    }
 }
 
 uint32_t helper_get_status32(CPUARCState *env)

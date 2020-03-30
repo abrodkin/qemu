@@ -114,8 +114,10 @@ TCGv    cpu_debug_IS;
 TCGv    cpu_debug_FH;
 TCGv    cpu_debug_SS;
 
-TCGv    cpu_npc_helper;
 TCGv    cpu_lock_lf_var;
+
+/* NOTE: Pseudo register required for comparison with lp_end */
+TCGv    cpu_npc;
 
 #include "exec/gen-icount.h"
 #define REG(x)  (cpu_r[x])
@@ -220,6 +222,7 @@ void arc_translate_init(void)
     cpu_lps = NEW_ARC_REG(lps);
     cpu_lpe = NEW_ARC_REG(lpe);
     cpu_pc = NEW_ARC_REG(pc);
+    cpu_npc = NEW_ARC_REG(npc);
 
     cpu_bta_l1 = NEW_ARC_REG(bta_l1);
     cpu_bta_l2 = NEW_ARC_REG(bta_l2);
@@ -258,7 +261,6 @@ void arc_translate_init(void)
     cpu_debug_FH = NEW_ARC_REG(debug.FH);
     cpu_debug_SS = NEW_ARC_REG(debug.SS);
 
-    cpu_npc_helper = NEW_ARC_REG(npc_helper);
     cpu_lock_lf_var = NEW_ARC_REG(lock_lf_var);
 
     init_not_done = 0;
@@ -280,6 +282,7 @@ static void arc_tr_tb_start(DisasContextBase *dcbase, CPUState *cpu)
 static void arc_tr_insn_start(DisasContextBase *dcbase, CPUState *cpu)
 {
     DisasContext *dc = container_of(dcbase, DisasContext, base);
+
 
     tcg_gen_insn_start(dc->base.pc_next);
     dc->cpc = dc->base.pc_next;
@@ -303,10 +306,51 @@ static bool arc_tr_breakpoint_check(DisasContextBase *dcbase, CPUState *cpu,
 }
 
 
-static void decode_opc(CPUARCState *env, DisasContext *ctx)
+void decode_opc(CPUARCState *env, DisasContext *ctx)
 {
     ctx->env = env;
-    ctx->base.is_jmp = arc_decode(ctx);
+
+    const struct arc_opcode *opcode = NULL;
+    if (!read_and_decode_context(ctx, &opcode)) {
+        ctx->base.is_jmp = arc_gen_INVALID(ctx);
+        return;
+    }
+
+    ctx->base.is_jmp = arc_decode(ctx, opcode);
+
+    TCGv npc = tcg_const_local_i32(ctx->npc);
+    gen_helper_zol_verify(cpu_env, npc);
+    tcg_temp_free(npc);
+    //TCGv should_jump_lp_start = tcg_temp_local_new_i32();
+    //TCGv lp_start_bak = tcg_temp_local_new_i32();
+    //TCGv zero = tcg_const_local_i32(0);
+
+    ///* START: Hardware loop control code. */
+    //TCGLabel *not_lp_end = gen_new_label();
+    //TCGLabel *not_count_eq_1 = gen_new_label();
+    //tcg_gen_movi_tl(should_jump_lp_start, 0);
+    //tcg_gen_brcondi_i32(TCG_COND_NE, cpu_lpe, ctx->cpc, not_lp_end);
+    //  tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 1, not_count_eq_1);
+    //    tcg_gen_movi_tl(should_jump_lp_start, 1);
+    //    tcg_gen_mov_tl(lp_start_bak, cpu_lps);
+    //  gen_set_label(not_count_eq_1);
+    //  tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
+    //gen_set_label(not_lp_end);
+    ///* END: Hardware loop control code. */
+
+    //TCGLabel *do_not_jump = gen_new_label();
+    //tcg_gen_brcondi_i32(TCG_COND_NE, should_jump_lp_start, 1, do_not_jump);
+    //  /* NOTE: Trigger the LPE exception */
+    //  TCGv tmp0 = tcg_temp_local_new_i32();
+    //  tcg_gen_movi_tl (tmp0, EXCP_LPEND_REACHED);
+    //  gen_helper_raise_exception(cpu_env, tmp0, zero, cpu_lps);
+    //  tcg_temp_free(tmp0);
+    //gen_set_label(do_not_jump);
+
+    //tcg_temp_free(should_jump_lp_start);
+    //tcg_temp_free(lp_start_bak);
+    //tcg_temp_free(zero);
+
 }
 
 static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
@@ -320,22 +364,13 @@ static void arc_tr_translate_insn(DisasContextBase *dcbase, CPUState *cpu)
 
     dc->cpc = dc->base.pc_next;
     decode_opc(env, dc);
+
     dc->base.pc_next = dc->npc;
+    tcg_gen_movi_tl(cpu_npc, dc->npc);
 
     if(env->stat.DEf == 1) {
       dc->base.is_jmp = DISAS_BRANCH_IN_DELAYSLOT;
       env->stat.DEf = 0;
-    }
-
-    /* Hardware loop control code */
-    if (dc->npc == env->lpe) {
-        TCGLabel *label = gen_new_label();
-        tcg_gen_subi_tl(cpu_lpc, cpu_lpc, 1);
-        tcg_gen_brcondi_i32(TCG_COND_EQ, cpu_lpc, 0, label);
-        gen_goto_tb(dc, 0, cpu_lps);
-        gen_set_label(label);
-        gen_gotoi_tb(dc, 1, dc->npc);
-        dc->base.is_jmp = DISAS_NORETURN;
     }
 
     if(dc->base.is_jmp == DISAS_BRANCH_IN_DELAYSLOT) {

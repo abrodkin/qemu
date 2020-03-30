@@ -1795,7 +1795,7 @@ arc2_gen_XOR (DisasCtxt *ctx, TCGv a, TCGv b, TCGv c)
   if ((f_flag == true))
     {
     setZFlag(a);
-  setNFlag(a);
+    setNFlag(a);
 ;
     }
   else

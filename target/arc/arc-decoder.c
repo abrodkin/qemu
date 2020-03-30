@@ -1108,8 +1108,8 @@ static const struct arc_opcode *find_format(insn_t *pinsn,
     return NULL;
 }
 
-static bool read_and_decode_context(DisasCtxt *ctx,
-                                    const struct arc_opcode **opcode_p)
+bool read_and_decode_context(DisasCtxt *ctx,
+                             const struct arc_opcode **opcode_p)
 {
     uint16_t buffer[2];
     uint16_t delayslot_buffer[2];
@@ -1173,7 +1173,7 @@ static bool read_and_decode_context(DisasCtxt *ctx,
     return true;
 }
 
-static int arc_gen_INVALID(const DisasCtxt *ctx)
+int arc_gen_INVALID(const DisasCtxt *ctx)
 {
     fprintf(stderr, "invalid inst @:%08x\n", ctx->cpc);
     return DISAS_NEXT;
@@ -1366,11 +1366,7 @@ static void gen_trap(DisasCtxt *ctx, uint32_t param)
 
     tcg_gen_movi_tl(cpu_pc, ctx->cpc);
     tcg_gen_movi_tl(cpu_eret, ctx->npc);
-    if (ctx->ds) {
-        tcg_gen_movi_tl(cpu_erbta, ctx->dpc);
-    } else {
-        tcg_gen_movi_tl(cpu_erbta, ctx->npc);
-    }
+    tcg_gen_mov_tl(cpu_erbta, cpu_bta);
 
     gen_helper_raise_exception(cpu_env, tmp0, tmp1, tmp2);
 
@@ -1384,7 +1380,6 @@ static void gen_sleep(DisasCtxt *ctx, TCGv opa)
 {
     uint32_t param = 0;
 
-    tcg_gen_movi_tl(cpu_npc_helper, ctx->npc);
     if (ctx->insn.operands[0].type & ARC_OPERAND_IR) {
         TCGv tmp3 = tcg_temp_local_new_i32 ();
         TCGLabel *done_L = gen_new_label();
@@ -1406,7 +1401,10 @@ static void gen_sleep(DisasCtxt *ctx, TCGv opa)
     }
     /* FIXME: setup debug registers as well. */
 
-    gen_helper_halt(cpu_env);
+    TCGv npc = tcg_temp_local_new_i32 ();
+    tcg_gen_movi_tl (npc, ctx->npc);
+    gen_helper_halt(cpu_env, npc);
+    tcg_temp_free_i32(npc);
     qemu_log_mask(CPU_LOG_TB_IN_ASM,
                   "CPU in sleep mode, waiting for an IRQ.\n");
 }
@@ -1420,9 +1418,8 @@ static void gen_rtie(DisasCtxt *ctx)
     gen_goto_tb(ctx, 1, cpu_pc);
 }
 
-int arc_decode(DisasCtxt *ctx)
+int arc_decode(DisasCtxt *ctx, const struct arc_opcode *opcode)
 {
-    const struct arc_opcode *opcode = NULL;
     int ret = DISAS_NEXT;
     enum arc_opcode_map mapping;
     static bool initialized = false;
@@ -1430,11 +1427,6 @@ int arc_decode(DisasCtxt *ctx)
     if (initialized == false) {
         init_constants();
         initialized = true;
-    }
-
-    /* Call the disassembler. */
-    if (!read_and_decode_context(ctx, &opcode)) {
-        return arc_gen_INVALID(ctx);
     }
 
     /* Do the mapping. */
@@ -1450,6 +1442,8 @@ int arc_decode(DisasCtxt *ctx)
          * features of instructions.  Started by the need to keep a
          * static reference to LP_START and LP_END.
          */
+        /* NOTE: This is just wrong. There is no CC flags check. */
+        /*
         switch(mapping) {
         case MAP_lp_LP:
             ctx->env->lps = ctx->npc;
@@ -1459,6 +1453,7 @@ int arc_decode(DisasCtxt *ctx)
         default:
             break;
         }
+        */
 
         switch(mapping) {
 
@@ -1496,7 +1491,7 @@ int arc_decode(DisasCtxt *ctx)
 
         case MAP_trap_s_TRAP:
             gen_trap(ctx, ctx->insn.operands[0].value);
-            ret = DISAS_NEXT;
+            ret = DISAS_NORETURN;
             break;
 
         case MAP_rtie_RTIE:
