@@ -1510,9 +1510,8 @@ int arc_decode(DisasCtxt *ctx)
             break;
 
         default:
-            arc_debug_opcode(opcode, ctx, "Could not map opcode");
-            ret = DISAS_NEXT;
-            break;
+            arc_debug_opcode(opcode, ctx, "No handle for map opcode");
+            g_assert(!"Semantic not handled: Use -d unimp to list it.");
         }
 
         for (i = 0; i < number_of_ops_semfunc[mapping]; i++) {
@@ -1525,9 +1524,8 @@ int arc_decode(DisasCtxt *ctx)
 
     } /* mapping is done */
     else {
-        gen_excp(ctx, EXCP_INST_ERROR, 0, 0);
-        arc_debug_opcode(opcode, ctx, "Could not identify opcode");
-        ret = DISAS_NEXT;
+        arc_debug_opcode(opcode, ctx, "No mapping for opcode");
+        g_assert(!"Semantic not found: Use -d unimp to list it.");
     }
 
     return ret;
