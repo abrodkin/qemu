@@ -27,6 +27,7 @@
 #include "irq.h"
 #include "exec/cpu_ldst.h"
 #include "translate.h"
+#include "qemu/host-utils.h"
 
 /* Static functions and variables. */
 
@@ -130,7 +131,7 @@ static void arc_rtie_irq (CPUARCState *env)
   assert (env->stat.AEf == 0);
 
   /* Clear currently active interrupt.  */
-  tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
+  tmp = ctz32 (env->aux_irq_act & 0xffff);
 
   qemu_log_mask (CPU_LOG_INT,
 		 "[IRQ] exit irq:%d IRQ_ACT:0x%08x PRIO:%d\n",
@@ -364,7 +365,7 @@ aux_irq_get (struct arc_aux_reg_detail *aux_reg_detail, void *data)
     case AUX_ID_icause:
       if ((env->aux_irq_act & 0xffff) == 0)
 	return 0;
-      tmp = __builtin_ctz (env->aux_irq_act & 0xffff);
+      tmp = ctz32 (env->aux_irq_act & 0xffff);
       return env->icause[tmp];
 
     case AUX_ID_irq_build:
@@ -488,8 +489,7 @@ bool arc_cpu_exec_interrupt (CPUState *cs, int interrupt_request)
   /* Check if any interrupts are pending. */
   if (!env->irq_priority_pending
       /* Or we are serving at the same priority level.  */
-      || (__builtin_ctz (env->irq_priority_pending)
-          >= __builtin_ctz (env->aux_irq_act)))
+      || (ctz32 (env->irq_priority_pending) >= ctz32 (env->aux_irq_act)))
     return false;
 
   /* Find the first IRQ to serve.  */
