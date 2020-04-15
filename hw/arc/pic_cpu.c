@@ -18,9 +18,10 @@
  */
 
 #include "qemu/osdep.h"
+#include "cpu.h"
 #include "hw/hw.h"
 #include "hw/irq.h"
-#include "cpu.h"
+#include "qemu/log.h"
 #include "hw/arc/cpudevs.h"
 
 /* ARC pic handler.  */
@@ -30,24 +31,31 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
   CPUState *cs = CPU(cpu);
   CPUARCState *env = &cpu->env;
   int i;
-  bool clear;
+  bool clear = false;
+  uint32_t irq_bit;
 
-  if (!cpu->cfg.has_interrupts)
-    return;
+  /* Assert if this handler is called in a system without
+   * interrupts.  */
+  assert(cpu->cfg.has_interrupts);
 
-  if (irq < 16 || irq >= (cpu->cfg.number_of_interrupts + 15))
-    return;
+  /* Assert if the IRQ is not within the cpu configuration bounds.  */
+  assert(irq >= 16 && irq < (cpu->cfg.number_of_interrupts + 15));
 
+  irq_bit = 1 << env->irq_bank[irq].priority;
   if (level)
     {
-      cpu_interrupt (cs, CPU_INTERRUPT_HARD);
+      /* An interrupt is enabled, update irq_priority_pendig and rise
+         the qemu interrupt line.  */
       env->irq_bank[irq].pending = 1;
-      env->irq_priority_pending |= 1 << env->irq_bank[irq].priority;
+      atomic_or(&env->irq_priority_pending, irq_bit);
+      cpu_interrupt (cs, CPU_INTERRUPT_HARD);
     }
   else
     {
       env->irq_bank[irq].pending = 0;
 
+      /* First, check if we still have any pending interrupt at the
+         given priority.  */
       clear = true;
       for (i = 16; i < cpu->cfg.number_of_interrupts; i++)
         if (env->irq_bank[i].pending
@@ -57,12 +65,22 @@ static void arc_pic_cpu_handler (void* opaque, int irq, int level)
             break;
           }
 
+      /* If not, update (clear) irq_priority_pending.  */
       if (clear)
-        {
-          cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
-          env->irq_priority_pending &= ~(1 << env->irq_bank[irq].priority);
-        }
+        atomic_and(&env->irq_priority_pending, ~irq_bit);
+
+      /* If we don't have any pending priority, lower the qemu irq
+         line.  N.B. we can also check more here like IE bit, but we
+         need to add a cpu_interrupt call when we enable the
+         interrupts (e.g., sleep, seti).  */
+      if (!env->irq_priority_pending)
+        cpu_reset_interrupt (cs, CPU_INTERRUPT_HARD);
     }
+  qemu_log_mask (CPU_LOG_INT,
+                 "[IRQ] level = %d, clear = %d, irq = %d, priority = %d, "
+                 "pending = %08x, pc = %08x\n",
+                 level, clear, irq, env->irq_bank[irq].priority,
+                 env->irq_priority_pending, env->pc);
 }
 
 /* ARC PIC initialization helper.  */
