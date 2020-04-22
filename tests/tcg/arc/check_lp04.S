@@ -9,14 +9,14 @@
 
   ; align the address
   and    r4, r0, 3
-  rsub   lp_count, r4, 4
+  rsub.f  lp_count, r4, 4
   lpne   @main_clear
   stb.ab r1, [r0, 1]
   sub    r2, r2, 1
 
 main_clear:
   ; main setting to zero
-  and    lp_count, r2, 0x1f
+  and.f    lp_count, r2, 0x1f
   lpne   @verify
   stb.ab r1, [r0, 1]
 
