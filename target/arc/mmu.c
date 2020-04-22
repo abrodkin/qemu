@@ -292,7 +292,7 @@ arc_mmu_aux_set_tlbcmd(struct arc_aux_reg_detail *aux_reg_detail,
     }
   if (val == TLB_CMD_DELETE || val == TLB_CMD_INSERT)
     {
-      tlb_flush_page_by_mmuidx(cs, VPN(pd0), 0);
+      tlb_flush(cs);
 
       if((pd0 & PD0_G) != 0)
 	matching_mask &= ~(PD0_S | PD0_ASID); /* When Global do not check for asid match */
