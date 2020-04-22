@@ -395,6 +395,7 @@ void helper_rtie(CPUARCState *env)
         assert (env->stat.Uf == 0);
 
         CPU_PCL(env) = env->eret;
+        env->pc = env->eret;
 
         env->stat = env->stat_er;
         env->bta = env->erbta;
@@ -406,13 +407,13 @@ void helper_rtie(CPUARCState *env)
 
         qemu_log_mask(CPU_LOG_INT, "[EXCP] RTIE @0x%08x ECR:0x%08x\n",
                       env->r[63], env->ecr);
-
-        helper_zol_verify(env, env->eret);
     } else {
         arc_rtie_interrupts (env);
         qemu_log_mask(CPU_LOG_INT, "[IRQ] RTIE @0x%08x STATUS32:0x%08x\n",
                       env->r[63], pack_status32 (&env->stat));
     }
+
+    helper_zol_verify(env, env->pc);
 }
 
 void helper_flush(CPUARCState *env)
