@@ -1,4 +1,4 @@
-; check_vadd.S
+; check_lp06.S
 ;
 ; Tests for Zero overhead loop: interrupting the loop
 ; If the test fails, check the end of this file for how to troubleshoot.
