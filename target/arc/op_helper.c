@@ -198,6 +198,10 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
         env->ecr = val;
         break;
 
+    case AUX_ID_efa:
+        env->efa = val;
+        break;
+
     default:
         if (aux_reg_detail->aux_reg->set_func != NULL) {
             aux_reg_detail->aux_reg->set_func(aux_reg_detail, val,
