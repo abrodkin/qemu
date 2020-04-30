@@ -33,7 +33,7 @@
 #define PD0_S   0x80000000      /* Shared Library ASID */
 #define PD0_FLG (PD0_G | PD0_V | PD0_SZ | PD0_L)
 
-#define PD0_ASID_MATCH 0x0000001f
+#define PD0_ASID_MATCH 0x0000003f
 #define PD0_PID_MATCH  0x000000ff
 
 /* PD1 permission bits */

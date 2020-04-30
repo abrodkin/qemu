@@ -186,6 +186,18 @@ arc_mmu_get_tlb_at_index(uint32_t index, struct arc_mmu *mmu)
   return &mmu->nTLB[set][bank];
 }
 
+static inline bool
+match_sasid(struct arc_tlb_e *tlb, struct arc_mmu *mmu)
+{
+  /* Match to a shared library. */
+  uint8_t position = tlb->pd0 & PD0_ASID_MATCH;
+  uint64_t pos = 1ULL << position;
+  uint64_t sasid = ((uint64_t) mmu->sasid1 << 32) | mmu->sasid0;
+  if((pos & sasid) == 0)
+    return false;
+  return true;
+}
+
 static struct arc_tlb_e *
 arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, int *num_finds, uint32_t *index)
 {
@@ -208,10 +220,7 @@ arc_mmu_lookup_tlb(uint32_t vaddr, uint32_t compare_mask, struct arc_mmu *mmu, i
 	if((tlb->pd0 & PD0_S) != 0)
 	  {
 	    /* Match to a shared library. */
-	    uint8_t position = tlb->pd0 & PD0_ASID_MATCH;
-            uint32_t m1 = mmu->sasid0 & (1 << (position & (32-1)));
-            uint32_t m2 = mmu->sasid1 & (1 << ((position-32) & (32-1)));
-	    if(m1 == 0 && m2 == 0)
+	    if(match_sasid(tlb, mmu) == false)
 	      general_match = false;
 	  } else {
 	    /* Match to a process. */
@@ -464,10 +473,7 @@ arc_mmu_translate(struct CPUARCState *env,
 	if((tlb->pd0 & PD0_S) != 0)
 	  {
 	    /* Match to a shared library. */
-	    uint8_t position = tlb->pd0 & PD0_ASID_MATCH;
-            uint32_t m1 = mmu->sasid0 & (1 << (position & (32-1)));
-            uint32_t m2 = mmu->sasid1 & (1 << ((position-32) & (32-1)));
-	    if(m1 == 0 && m2 == 0)
+	    if(match_sasid(tlb, mmu) == false)
 	      match = false;
 	  } else if((tlb->pd0 & PD0_ASID_MATCH) != (mmu->pid_asid & PD0_ASID_MATCH)) {
 	    /* Match to a process. */
