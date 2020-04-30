@@ -76,6 +76,7 @@ TESTCASES += check_rtc.tst
 TESTCASES += check_mpu.tst
 TESTCASES += check_big_tb.tst
 TESTCASES += check_enter_leave.tst
+TESTCASES += check_bta.tst
 
 all: $(TESTCASES)
 OBJECTS = ivt.o
