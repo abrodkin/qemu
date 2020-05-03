@@ -160,6 +160,7 @@ enum gdb_aux_other_regs {
     GDB_AUX_OTHER_REG_MPU_PERM15,       /* MPU permission 15   */
     /* excpetions */
     GDB_AUX_OTHER_REG_ERSTATUS,         /* exception return status  */
+    GDB_AUX_OTHER_REG_ERBTA,            /* exception return BTA     */
     GDB_AUX_OTHER_REG_ECR,              /* exception cause register */
     GDB_AUX_OTHER_REG_ERET,             /* exception return address */
     GDB_AUX_OTHER_REG_EFA,              /* exception fault address  */
@@ -176,6 +177,8 @@ enum gdb_aux_other_regs {
     GDB_AUX_OTHER_REG_IRQ_PULSE,        /* pulse cancel           */
     GDB_AUX_OTHER_REG_IRQ_PENDING,      /* pending                */
     GDB_AUX_OTHER_REG_IRQ_PRIO,         /* priority               */
+    /* miscellaneous */
+    GDB_AUX_OTHER_REG_BTA,              /* branch target address */
 
     GDB_AUX_OTHER_REG_LAST
 };

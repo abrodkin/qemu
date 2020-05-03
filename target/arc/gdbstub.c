@@ -224,6 +224,9 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_ERSTATUS:
       regval = helper_lr(env, REG_ADDR(AUX_ID_erstatus, processor));
       break;
+    case GDB_AUX_OTHER_REG_ERBTA:
+        regval = helper_lr(env, REG_ADDR(AUX_ID_erbta, processor));
+        break;
     case GDB_AUX_OTHER_REG_ECR:
       regval = helper_lr(env, REG_ADDR(AUX_ID_ecr, processor));
       break;
@@ -269,7 +272,10 @@ arc_aux_other_gdb_get_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
       break;
     case GDB_AUX_OTHER_REG_IRQ_PRIO:
       regval = helper_lr(env, REG_ADDR(AUX_ID_irq_priority, processor));
-     break;
+      break;
+    case GDB_AUX_OTHER_REG_BTA:
+        regval = helper_lr(env, REG_ADDR(AUX_ID_bta, processor));
+        break;
     default:
       assert(!"Unsupported other auxiliary register is being read.");
   }
@@ -348,6 +354,9 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_ERSTATUS:
       helper_sr(env, regval, REG_ADDR(AUX_ID_erstatus, processor));
       break;
+    case GDB_AUX_OTHER_REG_ERBTA:
+        helper_sr(env, regval, REG_ADDR(AUX_ID_erbta, processor));
+        break;
     case GDB_AUX_OTHER_REG_ECR:
       helper_sr(env, regval, REG_ADDR(AUX_ID_ecr, processor));
       break;
@@ -382,6 +391,9 @@ arc_aux_other_gdb_set_reg(CPUARCState *env, uint8_t *mem_buf, int regnum)
     case GDB_AUX_OTHER_REG_IRQ_PRIO:
       helper_sr(env, regval, REG_ADDR(AUX_ID_irq_priority, processor));
       break;
+    case GDB_AUX_OTHER_REG_BTA:
+        helper_sr(env, regval, REG_ADDR(AUX_ID_bta, processor));
+        break;
     default:
       assert(!"Unsupported other auxiliary register is being written.");
   }
@@ -407,3 +419,7 @@ void arc_cpu_register_gdb_regs_for_features(ARCCPU *cpu)
                              "arc-aux-other.xml",
                              0);
 }
+
+
+/*-*-indent-tabs-mode:nil;tab-width:4;indent-line-function:'insert-tab'-*-*/
+/* vim: set ts=4 sw=4 et: */

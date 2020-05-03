@@ -205,20 +205,23 @@
   <reg name="mpurdp15"  bitsize="32" regnum="89"  type="mpurdp_type"    group=""/>
   <!-- exception registers -->
   <reg name="erstatus" bitsize="32" regnum="90" type="erstatus_type" group="general"/>
-  <reg name="ecr"      bitsize="32" regnum="91" type="ecr_type"      group="general"/>
-  <reg name="eret"     bitsize="32" regnum="92" type="code_ptr"      group="general"/>
-  <reg name="efa"      bitsize="32" regnum="93" type="uint32"        group="general"/>
+  <reg name="erbta"    bitsize="32" regnum="91" type="code_ptr"      group="general"/>
+  <reg name="ecr"      bitsize="32" regnum="92" type="ecr_type"      group="general"/>
+  <reg name="eret"     bitsize="32" regnum="93" type="code_ptr"      group="general"/>
+  <reg name="efa"      bitsize="32" regnum="94" type="uint32"        group="general"/>
   <!-- irq registers -->
-  <reg name="icause"               bitsize="32" regnum="94"  type="uint8"           group="general"/>
-  <reg name="aux_irq_ctrl"         bitsize="32" regnum="95"  type="irq_ctrl_type"   group="general"/>
-  <reg name="aux_irq_act"          bitsize="32" regnum="96"  type="irq_act_type"    group="general"/>
-  <reg name="irq_priority_pending" bitsize="32" regnum="97"  type="uint16"          group="general"/>
-  <reg name="aux_irq_hint"         bitsize="32" regnum="98"  type="uint8"           group="general"/>
-  <reg name="irq_select"           bitsize="32" regnum="99"  type="uint8"           group="general"/>
-  <reg name="irq_enable"           bitsize="32" regnum="100" type="bool"            group="general"/>
-  <reg name="irq_trigger"          bitsize="32" regnum="101" type="bool"            group="general"/>
-  <reg name="irq_status"           bitsize="32" regnum="102" type="irq_status_type" group="general"/>
-  <reg name="irq_pulse_cancel"     bitsize="32" regnum="103" type="bool"            group="general"/>
-  <reg name="irq_pending"          bitsize="32" regnum="104" type="bool"            group="general"/>
-  <reg name="irq_priority"         bitsize="32" regnum="105" type="uint8"           group="general"/>
+  <reg name="icause"               bitsize="32" regnum="95"  type="uint8"           group="general"/>
+  <reg name="aux_irq_ctrl"         bitsize="32" regnum="96"  type="irq_ctrl_type"   group="general"/>
+  <reg name="aux_irq_act"          bitsize="32" regnum="97"  type="irq_act_type"    group="general"/>
+  <reg name="irq_priority_pending" bitsize="32" regnum="98"  type="uint16"          group="general"/>
+  <reg name="aux_irq_hint"         bitsize="32" regnum="99"  type="uint8"           group="general"/>
+  <reg name="irq_select"           bitsize="32" regnum="100" type="uint8"           group="general"/>
+  <reg name="irq_enable"           bitsize="32" regnum="101" type="bool"            group="general"/>
+  <reg name="irq_trigger"          bitsize="32" regnum="102" type="bool"            group="general"/>
+  <reg name="irq_status"           bitsize="32" regnum="103" type="irq_status_type" group="general"/>
+  <reg name="irq_pulse_cancel"     bitsize="32" regnum="104" type="bool"            group="general"/>
+  <reg name="irq_pending"          bitsize="32" regnum="105" type="bool"            group="general"/>
+  <reg name="irq_priority"         bitsize="32" regnum="106" type="uint8"           group="general"/>
+  <!-- miscellaneous -->
+  <reg name="bta" bitsize="32" regnum="107" type="code_ptr" group="general"/>
 </feature>

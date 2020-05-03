@@ -190,6 +190,10 @@ void helper_sr(CPUARCState *env, uint32_t val, uint32_t aux)
         env->erbta = val;
         break;
 
+    case AUX_ID_bta:
+        env->bta = val;
+        break;
+
     case AUX_ID_erstatus:
         unpack_status32(&env->stat_er, val);
         break;
