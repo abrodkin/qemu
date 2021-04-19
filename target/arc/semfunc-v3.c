@@ -21,6 +21,7 @@
 #include "qemu/osdep.h"
 #include "translate.h"
 #include "semfunc-v3.h"
+#include "exec/gen-icount.h"
 
 
 
@@ -4282,6 +4283,10 @@ int
 arc_gen_LR (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = DISAS_NEXT;
+
+  if (tb_cflags(ctx->base.tb) & CF_USE_ICOUNT)
+    gen_io_start();
+
   TCGv temp_1 = tcg_temp_local_new();
   readAuxReg(temp_1, src);
   tcg_gen_andi_tl(temp_1, temp_1, 0xffffffff);
@@ -12085,6 +12090,10 @@ int
 arc_gen_LRL (DisasCtxt *ctx, TCGv dest, TCGv src)
 {
   int ret = DISAS_NEXT;
+
+  if (tb_cflags(ctx->base.tb) & CF_USE_ICOUNT)
+    gen_io_start();
+
   TCGv temp_1 = tcg_temp_local_new();
   readAuxReg(temp_1, src);
   tcg_gen_mov_tl(dest, temp_1);

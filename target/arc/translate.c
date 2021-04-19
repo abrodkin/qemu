@@ -756,6 +756,9 @@ arc_gen_SR(DisasCtxt *ctx, TCGv src2, TCGv src1)
 {
     int ret = DISAS_NEXT;
 
+    if (tb_cflags(ctx->base.tb) & CF_USE_ICOUNT)
+        gen_io_start();
+
 #ifdef TARGET_ARCV2
     writeAuxReg(src2, src1);
 #elif defined(TARGET_ARCV3)
@@ -770,6 +773,9 @@ int
 arc_gen_SRL(DisasCtxt *ctx, TCGv src2, TCGv src1)
 {
     int ret = DISAS_NEXT;
+
+    if (tb_cflags(ctx->base.tb) & CF_USE_ICOUNT)
+       gen_io_start();
 
     writeAuxReg(src2, src1);
     return ret;
