@@ -2035,11 +2035,6 @@ static void arc_tr_tb_stop(DisasContextBase *dcbase, CPUState *cpu)
     default:
          g_assert_not_reached();
     }
-
-    if (dc->base.num_insns == dc->base.max_insns &&
-        (dc->base.tb->cflags & CF_LAST_IO)) {
-        gen_io_end();
-    }
 }
 
 static void arc_tr_disas_log(const DisasContextBase *dcbase, CPUState *cpu)
