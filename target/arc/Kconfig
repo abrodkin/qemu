@@ -1,2 +1,5 @@
-config ARC
+config ARCV2
+    bool
+
+config ARCV3
     bool
